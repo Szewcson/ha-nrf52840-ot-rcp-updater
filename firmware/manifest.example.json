@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "releases": [
+    {
+      "hardware": "PCA10059",
+      "ncs_version": "3.3.4",
+      "zephyr_version": "4.4.0",
+      "artifact": {
+        "url": "https://github.com/OWNER/REPOSITORY/releases/download/v3.3.4/nrf52840-ot-rcp-ncs-3.3.4.zip",
+        "sha256": "REPLACE_WITH_LOWERCASE_SHA256",
+        "filename": "nrf52840-ot-rcp-ncs-3.3.4.zip"
+      },
+      "release_url": "https://github.com/OWNER/REPOSITORY/releases/tag/v3.3.4",
+      "release_summary": "PCA10059 OpenThread RCP built with NCS 3.3.4."
+    }
+  ]
+}

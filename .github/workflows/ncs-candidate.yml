@@ -1,0 +1,129 @@
+name: Publish NCS RCP Releases
+
+on:
+  schedule:
+    - cron: "23 * * * *"
+  workflow_dispatch:
+    inputs:
+      ncs_tag:
+        description: Stable sdk-nrf tag to publish, for example v3.3.4
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ncs-rcp-publication
+  cancel-in-progress: false
+
+jobs:
+  discover:
+    runs-on: ubuntu-24.04
+    outputs:
+      releases: ${{ steps.releases.outputs.releases }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REQUESTED_TAG: ${{ inputs.ncs_tag }}
+        run: |
+          set -eu
+          if [ -n "${REQUESTED_TAG}" ]; then
+            upstream="$(gh api "repos/nrfconnect/sdk-nrf/releases/tags/${REQUESTED_TAG}" | jq -c '[.]')"
+          else
+            upstream="$(gh api --paginate 'repos/nrfconnect/sdk-nrf/releases?per_page=100')"
+          fi
+          releases="$(jq -cn --argjson upstream "${upstream}" --slurpfile manifest firmware/manifest.json --slurpfile policy firmware/release-policy.json '
+            ($manifest[0].releases | map(.ncs_version)) as $published |
+            ($policy[0].minimum_ncs_version | split(".") | map(tonumber)) as $minimum |
+            [$upstream[] |
+              select(.draft == false and .prerelease == false) |
+              .tag_name |
+              select(test("^v[0-9]+\\.[0-9]+\\.[0-9]+$")) |
+              ltrimstr("v") as $version |
+              select(($version | split(".") | map(tonumber)) >= $minimum) |
+              select(($published | index($version)) | not) |
+              {tag: ("v" + $version), version: $version}
+            ] | sort_by(.version | split(".") | map(tonumber))
+          ')"
+          echo "releases=${releases}" >> "${GITHUB_OUTPUT}"
+
+  build:
+    needs: discover
+    if: needs.discover.outputs.releases != '[]'
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.discover.outputs.releases) }}
+    container:
+      image: ghcr.io/nrfconnect/sdk-nrf-toolchain:${{ matrix.tag }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build tagged RCP package
+        env:
+          NCS_TAG: ${{ matrix.tag }}
+          NCS_VERSION: ${{ matrix.version }}
+        run: |
+          set -eu
+          west init --mr "${NCS_TAG}" -m https://github.com/nrfconnect/sdk-nrf "${RUNNER_TEMP}/ncs"
+          west update -d "${RUNNER_TEMP}/ncs"
+          west zephyr-export -d "${RUNNER_TEMP}/ncs"
+          if ! nrfutil list | grep -q nrf5sdk-tools; then
+            nrfutil install nrf5sdk-tools=1.1.0 --force
+          fi
+          python3 tools/build_rcp.py \
+            --ncs-root "${RUNNER_TEMP}/ncs" \
+            --expected-ncs-version "${NCS_VERSION}" \
+            --output-dir "${GITHUB_WORKSPACE}/candidate"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nrf52840-ot-rcp-${{ matrix.version }}
+          path: candidate/
+          if-no-files-found: error
+          retention-days: 1
+
+  publish:
+    needs: [discover, build]
+    if: needs.discover.outputs.releases != '[]' && needs.build.result == 'success'
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        include: ${{ fromJSON(needs.discover.outputs.releases) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: nrf52840-ot-rcp-${{ matrix.version }}
+          path: candidate
+      - name: Publish artifact and manifest
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NCS_VERSION: ${{ matrix.version }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          set -eu
+          release_tag="rcp-ncs-${NCS_VERSION}"
+          package="$(find candidate -maxdepth 1 -name '*.zip' -type f -print -quit)"
+          test -n "${package}"
+          if gh release view "${release_tag}" >/dev/null 2>&1; then
+            gh release upload "${release_tag}" "${package}" --clobber
+          else
+            gh release create "${release_tag}" "${package}" \
+              --title "PCA10059 OT RCP NCS ${NCS_VERSION}" \
+              --notes "Automatically built from Nordic NCS ${NCS_VERSION}."
+          fi
+          python3 tools/publish_manifest.py \
+            --manifest firmware/manifest.json \
+            --metadata candidate/release-metadata.json \
+            --repository "${REPOSITORY}" \
+            --release-tag "${release_tag}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add firmware/manifest.json
+          git commit -m "firmware: publish PCA10059 NCS ${NCS_VERSION}"
+          git push
