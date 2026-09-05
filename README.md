@@ -380,7 +380,8 @@ requirements, and the release-matched Zephyr SDK. The workflow publishes each
 versioned ELF, detached signature, signed manifest entry, NCS license, SPDX
 SBOM, generated notice, and provenance record to the dedicated `firmware`
 branch. Its build jobs have read-only repository access and do not receive a
-GitHub token; only the publication job can write the firmware branch. The
+write-capable token; only the publication job requests `contents: write` for
+the firmware branch. The
 add-on pins the Ed25519 public key used to verify the manifest and every ELF,
 so a mutable branch and SHA-256 alone cannot authorize firmware. The workflow
 fails closed if NCS's exact license hash or the SBOM's concluded file licenses
@@ -405,8 +406,11 @@ The matching private key must never be committed or printed in Actions logs.
 Store its base64-encoded PEM as the `FIRMWARE_SIGNING_PRIVATE_KEY_B64` secret
 of the `firmware-publisher` GitHub environment. That environment needs no
 reviewer for automatic publication, but should be restricted to the protected
-`main` branch. Protect `main` and `firmware`, disallow force pushes, and allow
-only the publication workflow to bypass the `firmware` rule.
+`main` branch. Protect `main` with pull-request review and CI. On `firmware`,
+block force pushes and deletion, but allow ordinary fast-forward updates: the
+publication job uses a `GITHUB_TOKEN` push and would otherwise be blocked.
+The signed manifest and ELF verification, not branch mutability, is the
+firmware integrity boundary.
 
 When NCS changes its license text, update the reviewed
 `ncs_license_sha256` value in `firmware/release-policy.json` in the same pull
