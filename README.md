@@ -134,20 +134,21 @@ app restarts. Home Assistant applies the resulting security-rating point after
 installation. The profile is loaded when the add-on starts, so restart the app
 after an upgrade before retrying a DFU recovery.
 
-With the profile active, the current Supervisor score is expected to be `4`:
-the base `5`, plus one for AppArmor, minus one for the required `manager` role,
-and minus one for the required host network. A score of `3` means the custom
-profile is not active on that Home Assistant host. The app intentionally does
-not switch to a broader Home Assistant API role or add a no-op ingress UI merely
-to raise the number.
+With the profile active, the expected Supervisor score is `5`: the base `5`,
+plus one for AppArmor, minus one for the required `manager` role. A score of
+`4` means the custom profile is not active on that Home Assistant host. The app
+does not use host networking, a broader Home Assistant API role, or a no-op
+ingress UI merely to raise the number.
 
-The Home Assistant Core OpenThread Border Router app uses Home Assistant's host
-network. This app does too, so its safe-update preflight can reach OTBR at
-`http://127.0.0.1:8081`. In the OTBR app configuration, use **Show disabled
-ports** to enable the OpenThread REST API on port `8081`. Do not use
-`core-openthread-border-router` as `otbr_api_url`: Home Assistant does not
-make host-network apps addressable by generated DNS names from ordinary app
-networks.
+The Home Assistant Core OpenThread Border Router app uses host networking,
+while this app uses Home Assistant's internal app network. Home Assistant's
+OTBR service alias, `core-openthread-border-router`, works across that boundary,
+so the safe-update preflight reaches
+`http://core-openthread-border-router:8081` without exposing anything on the
+host. Leave OTBR's **OpenThread REST API port** disabled under **Network**
+unless you separately need its advanced debugging interface. An existing `8081`
+host-port mapping can be removed after this app is upgraded and restarted; the
+updater does not use it.
 
 If OTBR reports `started` or `running`, an unreachable REST API is a safety
 failure and the update is rejected. To update while the REST API is
@@ -164,6 +165,16 @@ and the notices of its transitive modules. Every published ELF is accompanied
 by the exact NCS license text, an SPDX SBOM, its generated human-readable
 notice, and a provenance record binding it to its source revision, resolved
 west manifest, SDK report, and SHA-256.
+
+### CI-only Build and SBOM Tooling
+
+The firmware workflow runs `west`, the release-matched Zephyr SDK, and NCS's
+native SBOM dependencies only in disposable GitHub Actions environments. Their
+code, virtual environments, and package data are not copied into the add-on
+image or firmware branch. The generated SBOM and notices remain release
+evidence, not a redistribution of those tools. The maintained review of their
+licenses and role is in [firmware/CI-TOOLING-LICENSES.md](firmware/CI-TOOLING-LICENSES.md).
+This is an engineering record, not legal advice.
 
 The runtime updater contains no Nordic `nrfutil`, `nrfutil device`,
 `nrf-device-lib`, or `nrf5sdk-tools` binary. It builds `nrfdfu-rs` from pinned
@@ -197,7 +208,8 @@ that `nrf` and `zephyr` are real Git work trees before doing so; no source file
 or compiled input is excluded.
 
 Some real build inputs have no per-file SPDX tag: NCS version metadata,
-generated Mbed TLS configuration checks, and MPSL FEM precompiled archives.
+generated Mbed TLS configuration checks, MPSL FEM precompiled archives, and
+four named Zephyr metadata, empty-compilation-unit, and linker-script files.
 `firmware/sbom-license-policy.json` maps only those path patterns through
 NCS's hash-bound cache-database mechanism after checking the upstream license
 evidence for each mapping. The policy, resulting cache, and their hashes in
@@ -206,6 +218,14 @@ rejects every other `NOASSERTION`, `NONE`, or unknown file license rather than
 silently publishing it. See the
 [NCS SBOM documentation](https://github.com/nrfconnect/sdk-nrf/blob/main/scripts/west_commands/sbom/README.rst)
 for its build-input and cache-database model.
+
+NCS lists ScanCode as an optional SBOM detector. The workflow enables it only
+in its disposable CI environment for independent license-text recognition and
+pins the compatible dependency versions required by ScanCode 32.4.1. ScanCode
+and its reference database are not copied into the add-on image or firmware
+branch; its detector output is still subject to the same fail-closed validation.
+See [firmware/CI-TOOLING-LICENSES.md](firmware/CI-TOOLING-LICENSES.md) for the
+tooling-license review and redistribution boundary.
 
 ## Configuration
 
@@ -269,11 +289,12 @@ off for bare metal, controller passthrough, or stable direct passthrough.
 This app intentionally supports one target: a PCA10059 RCP, its stock Nordic
 Secure DFU bootloader (`1915:521f`), and this repository's verified firmware
 manifest. It also supports only Home Assistant's Core OpenThread Border Router
-app, `core_openthread_border_router`, using its local REST API at
-`http://127.0.0.1:8081` for the quiet-window and post-flash health checks.
-These are not configuration choices. On first startup after this upgrade, the
-app removes the retired `hardware`, `manifest_url`, `otbr_addon_slug`,
-`otbr_api_url`, and `dfu_vid_pid` options through the Supervisor API.
+app, `core_openthread_border_router`, using its internal service alias at
+`http://core-openthread-border-router:8081` for quiet-window and post-flash
+health checks. These are not configuration choices. On first startup after
+this upgrade, the app removes the retired `hardware`, `manifest_url`,
+`otbr_addon_slug`, `otbr_api_url`, and `dfu_vid_pid` options through the
+Supervisor API.
 
 For a normal update, the updater records the configured RCP's physical USB port
 before it resets into DFU, then accepts only the matching VID:PID on that same

@@ -135,7 +135,8 @@ def _verify_evidence(workspace: Path, evidence: Evidence) -> None:
     missing = [text for text in evidence.contains if text not in contents]
     if missing:
         raise SbomLicenseCacheError(
-            f"SBOM license evidence {evidence.path} no longer supports the policy rule"
+            f"SBOM license evidence {evidence.path} no longer supports the policy rule; "
+            f"missing required text {missing[0]!r}"
         )
 
 

@@ -24,7 +24,9 @@ _USB_TOPOLOGY_RE = re.compile(r"^[1-9][0-9]*-[1-9][0-9]*(?:\.[1-9][0-9]*)*$")
 DEFAULT_BAUDRATE = 1_000_000
 SUPPORTED_HARDWARE = "PCA10059"
 CORE_OTBR_ADDON_SLUG = "core_openthread_border_router"
-CORE_OTBR_API_URL = "http://127.0.0.1:8081"
+# This is the Supervisor-provided alias for the host-network OTBR app. Using
+# it from the internal app network avoids exposing OTBR's REST port on the host.
+CORE_OTBR_API_URL = "http://core-openthread-border-router:8081"
 DEFAULT_SAFE_UPDATE = True
 DEFAULT_ALLOW_LEGACY_RCP = False
 DEFAULT_ALLOW_PRERELEASES = False

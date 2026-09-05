@@ -31,6 +31,7 @@ class ConfigSchemaTests(unittest.TestCase):
         self.assertIn("uart: true", config)
         self.assertIn("tmpfs: true", config)
         self.assertNotIn("usb: true", config)
+        self.assertNotIn("host_network: true", config)
 
     def test_does_not_expose_fixed_target_or_otbr_settings(self) -> None:
         schema = _CONFIG.read_text(encoding="utf-8").split("schema:\n", maxsplit=1)[1]

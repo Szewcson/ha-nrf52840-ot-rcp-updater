@@ -6,10 +6,13 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parents[1] / "nrf52840_ot_rcp_updater"))
 
-from app.models import Settings, ValidationError, version_key
+from app.models import CORE_OTBR_API_URL, Settings, ValidationError, version_key
 
 
 class SettingsTests(unittest.TestCase):
+    def test_uses_the_fixed_internal_otbr_service_alias(self) -> None:
+        self.assertEqual(CORE_OTBR_API_URL, "http://core-openthread-border-router:8081")
+
     def test_accepts_home_assistant_list_baudrate_as_a_string(self) -> None:
         settings = Settings.from_mapping(
             {

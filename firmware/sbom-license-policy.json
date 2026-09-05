@@ -35,6 +35,54 @@
           "zephyr_link_libraries(${LIB_DIR}/libmpsl_fem_${fem_lib_name}.a)"
         ]
       }
+    },
+    {
+      "path_glob": "zephyr/VERSION",
+      "license": "Apache-2.0",
+      "reason": "Zephyr build-version metadata is consumed by the RCP build but has no individual SPDX tag. It is not an exception in Zephyr's central REUSE metadata and is covered by Zephyr's top-level Apache-2.0 license.",
+      "evidence": {
+        "path": "zephyr/LICENSE",
+        "contains": [
+          "Apache License",
+          "Version 2.0, January 2004"
+        ]
+      }
+    },
+    {
+      "path_glob": "zephyr/include/zephyr/linker/ram-end.ld",
+      "license": "Apache-2.0",
+      "reason": "This Zephyr linker-script fragment has no individual SPDX tag. It is not an exception in Zephyr's central REUSE metadata and is covered by Zephyr's top-level Apache-2.0 license.",
+      "evidence": {
+        "path": "zephyr/LICENSE",
+        "contains": [
+          "Apache License",
+          "Version 2.0, January 2004"
+        ]
+      }
+    },
+    {
+      "path_glob": "zephyr/misc/empty_file.c",
+      "license": "Apache-2.0",
+      "reason": "This empty Zephyr compilation unit has no individual SPDX tag. It is not an exception in Zephyr's central REUSE metadata and is covered by Zephyr's top-level Apache-2.0 license.",
+      "evidence": {
+        "path": "zephyr/LICENSE",
+        "contains": [
+          "Apache License",
+          "Version 2.0, January 2004"
+        ]
+      }
+    },
+    {
+      "path_glob": "zephyr/subsys/usb/device_next/usbd_data.ld",
+      "license": "Apache-2.0",
+      "reason": "This Zephyr USB linker-script fragment has no individual SPDX tag. It is not an exception in Zephyr's central REUSE metadata and is covered by Zephyr's top-level Apache-2.0 license.",
+      "evidence": {
+        "path": "zephyr/LICENSE",
+        "contains": [
+          "Apache License",
+          "Version 2.0, January 2004"
+        ]
+      }
     }
   ]
 }

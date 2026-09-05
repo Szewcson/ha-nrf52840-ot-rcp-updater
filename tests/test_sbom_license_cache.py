@@ -29,6 +29,27 @@ def _rule(path_glob: str, license_expression: str, evidence_path: str) -> dict[s
 
 
 class SbomLicenseCacheTests(unittest.TestCase):
+    def test_production_policy_maps_only_named_zephyr_files(self) -> None:
+        policy_path = Path(__file__).parents[1] / "firmware" / "sbom-license-policy.json"
+        document = json.loads(policy_path.read_text(encoding="utf-8"))
+        zephyr_rules = [
+            rule for rule in document["rules"] if rule["path_glob"].startswith("zephyr/")
+        ]
+
+        self.assertEqual(
+            {rule["path_glob"] for rule in zephyr_rules},
+            {
+                "zephyr/VERSION",
+                "zephyr/include/zephyr/linker/ram-end.ld",
+                "zephyr/misc/empty_file.c",
+                "zephyr/subsys/usb/device_next/usbd_data.ld",
+            },
+        )
+        self.assertTrue(all(rule["license"] == "Apache-2.0" for rule in zephyr_rules))
+        self.assertTrue(
+            all(rule["evidence"]["path"] == "zephyr/LICENSE" for rule in zephyr_rules)
+        )
+
     def test_creates_hash_bound_cache_for_reviewed_matches(self) -> None:
         with TemporaryDirectory() as directory:
             root = Path(directory)
@@ -66,13 +87,16 @@ class SbomLicenseCacheTests(unittest.TestCase):
             source = root / "component" / "generated.h"
             source.parent.mkdir()
             source.write_text("generated\n", encoding="utf-8")
+            (root / "component" / "LICENSE").write_text("different license\n", encoding="utf-8")
             policy = root / "policy.json"
             policy.write_text(
                 _policy([_rule("component/*.h", "Apache-2.0", "component/LICENSE")]),
                 encoding="utf-8",
             )
 
-            with self.assertRaisesRegex(SbomLicenseCacheError, "evidence"):
+            with self.assertRaisesRegex(
+                SbomLicenseCacheError, "missing required text 'SPDX-License-Identifier: Apache-2.0'"
+            ):
                 create_cache(root, policy, root / "cache.json")
 
     def test_rejects_ambiguous_matching_rules(self) -> None:
