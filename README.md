@@ -401,7 +401,7 @@ first verified firmware build.
 
 The public Ed25519 verifier is compiled into the add-on at
 `app/firmware_signing_public_key.pem`. Its DER SHA-256 fingerprint is
-`b6df24ea326821eff5b11abb93fec6cae42645bf2733215be05285664713a3a9`.
+`6048da9611bedad11db1b43743a41abf59f64140f23eab979f45bd6da52f8aea`.
 The matching private key must never be committed or printed in Actions logs.
 Store its base64-encoded PEM as the `FIRMWARE_SIGNING_PRIVATE_KEY_B64` secret
 of the `firmware-publisher` GitHub environment. That environment needs no

@@ -18,7 +18,19 @@ class FirmwareEvidenceTests(unittest.TestCase):
         with TemporaryDirectory() as directory:
             report = Path(directory) / "firmware.spdx"
             report.write_text(
-                "SPDXVersion: SPDX-2.3\nFileLicenseConcluded: Apache-2.0\n",
+                "\n".join(
+                    (
+                        "SPDXVersion: SPDX-2.2",
+                        "PackageName: nrf",
+                        "PackageLicenseConcluded: NOASSERTION",
+                        "",
+                        "FileName: nrf/LICENSE",
+                        "SPDXID: SPDXRef-file-1",
+                        "LicenseConcluded: LicenseRef-Nordic-5-Clause",
+                        "LicenseInfoInFile: NOASSERTION",
+                        "",
+                    )
+                ),
                 encoding="utf-8",
             )
             validate_spdx(report)
@@ -27,10 +39,27 @@ class FirmwareEvidenceTests(unittest.TestCase):
         with TemporaryDirectory() as directory:
             report = Path(directory) / "firmware.spdx"
             report.write_text(
-                "SPDXVersion: SPDX-2.3\nFileLicenseConcluded: NOASSERTION\n",
+                "\n".join(
+                    (
+                        "SPDXVersion: SPDX-2.2",
+                        "FileName: generated.h",
+                        "LicenseConcluded: NOASSERTION",
+                        "",
+                    )
+                ),
                 encoding="utf-8",
             )
             with self.assertRaisesRegex(SbomError, "unknown concluded"):
+                validate_spdx(report)
+
+    def test_rejects_file_without_a_concluded_license(self) -> None:
+        with TemporaryDirectory() as directory:
+            report = Path(directory) / "firmware.spdx"
+            report.write_text(
+                "SPDXVersion: SPDX-2.2\nFileName: generated.h\nSPDXID: SPDXRef-file-1\n",
+                encoding="utf-8",
+            )
+            with self.assertRaisesRegex(SbomError, "without LicenseConcluded"):
                 validate_spdx(report)
 
     def test_records_resolved_build_evidence_for_the_exact_artifact(self) -> None:

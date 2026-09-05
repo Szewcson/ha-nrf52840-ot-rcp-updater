@@ -12,8 +12,47 @@ class SbomError(RuntimeError):
 
 
 _MAX_SBOM_BYTES = 32 * 1024 * 1024
-_LICENSE_LINE = re.compile(r"^FileLicenseConcluded:\s*(.+?)\s*$", re.MULTILINE)
+_FILE_NAME_LINE = re.compile(r"^FileName:\s*(?P<name>.+?)\s*$")
+_LICENSE_LINE = re.compile(r"^LicenseConcluded:\s*(?P<license>.+?)\s*$")
 _UNKNOWN_LICENSE_MARKERS = ("NOASSERTION", "NONE", "LicenseRef-Unknown")
+
+
+def _file_license_conclusions(document: str) -> list[tuple[str, str | None]]:
+    """Return each NCS SPDX file record and its concluded license, if present.
+
+    NCS produces SPDX 2.2 tag-value records, where ``FileName`` starts a file
+    record and ``LicenseConcluded`` is its license. Do not inspect the
+    package-level ``PackageLicenseConcluded`` field: NCS intentionally emits
+    ``NOASSERTION`` there even when all individual file licenses are known.
+    """
+
+    files: list[tuple[str, str | None]] = []
+    current_name: str | None = None
+    current_license: str | None = None
+
+    for line in document.splitlines():
+        file_match = _FILE_NAME_LINE.match(line)
+        if file_match:
+            if current_name is not None:
+                files.append((current_name, current_license))
+            current_name = file_match.group("name")
+            current_license = None
+            continue
+
+        if current_name is None:
+            continue
+        license_match = _LICENSE_LINE.match(line)
+        if license_match:
+            if current_license is not None:
+                raise SbomError(
+                    "SPDX SBOM has multiple LicenseConcluded entries for "
+                    f"file {current_name!r}"
+                )
+            current_license = license_match.group("license")
+
+    if current_name is not None:
+        files.append((current_name, current_license))
+    return files
 
 
 def validate_spdx(path: Path) -> None:
@@ -30,13 +69,21 @@ def validate_spdx(path: Path) -> None:
         document = path.read_text(encoding="utf-8")
     except OSError as err:
         raise SbomError(f"cannot read SPDX SBOM: {err}") from err
-    licenses = _LICENSE_LINE.findall(document)
-    if not licenses:
-        raise SbomError("SPDX SBOM contains no FileLicenseConcluded entries")
+    files = _file_license_conclusions(document)
+    if not files:
+        raise SbomError("SPDX SBOM contains no FileName records")
+    missing = [file_name for file_name, license_expression in files if license_expression is None]
+    if missing:
+        examples = ", ".join(missing[:4])
+        raise SbomError(
+            "SPDX SBOM has file records without LicenseConcluded entries; "
+            f"refusing unattended publication: {examples}"
+        )
     unknown = [
         license_expression
-        for license_expression in licenses
-        if any(marker in license_expression for marker in _UNKNOWN_LICENSE_MARKERS)
+        for _, license_expression in files
+        if license_expression is not None
+        and any(marker in license_expression for marker in _UNKNOWN_LICENSE_MARKERS)
     ]
     if unknown:
         examples = ", ".join(sorted(set(unknown))[:4])

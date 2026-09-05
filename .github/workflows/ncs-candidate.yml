@@ -157,10 +157,19 @@ jobs:
             --ncs-root "${RUNNER_TEMP}/ncs" \
             --expected-ncs-version "${NCS_VERSION}" \
             --output-dir "${GITHUB_WORKSPACE}/candidate"
+          # ScanCode is an optional NCS detector. Its current CLI invocation
+          # conflicts with its own root-path flags, so do not install or run it
+          # in the unattended publisher. The remaining deterministic detectors
+          # are checked below and unknown file licenses still fail publication.
+          sbom_requirements="${RUNNER_TEMP}/requirements-west-ncs-sbom.txt"
+          grep -Ev '^[[:space:]]*scancode-toolkit' \
+            nrf/scripts/requirements-west-ncs-sbom.txt > "${sbom_requirements}"
           python -m pip install --disable-pip-version-check --no-cache-dir \
-            --requirement nrf/scripts/requirements-west-ncs-sbom.txt
+            --requirement "${sbom_requirements}"
           west ncs-sbom \
             -d "${GITHUB_WORKSPACE}/candidate/build/coprocessor" \
+            --license-detectors spdx-tag,full-text,external-file,git-info \
+            --optional-license-detectors "" \
             --output-spdx "${GITHUB_WORKSPACE}/candidate/firmware.spdx" \
             --output-html "${GITHUB_WORKSPACE}/candidate/firmware-notices.html"
           python "${GITHUB_WORKSPACE}/tools/validate_sbom.py" \

@@ -2,16 +2,19 @@ from __future__ import annotations
 
 import unittest
 from pathlib import Path
+from tomllib import loads
 
 _CONFIG = Path(__file__).parents[1] / "nrf52840_ot_rcp_updater" / "config.yaml"
+_PYPROJECT = Path(__file__).parents[1] / "pyproject.toml"
 
 
 class ConfigSchemaTests(unittest.TestCase):
     def test_names_only_the_supported_pca10059_target(self) -> None:
         config = _CONFIG.read_text(encoding="utf-8")
+        project = loads(_PYPROJECT.read_text(encoding="utf-8"))
 
         self.assertIn("name: PCA10059 OpenThread RCP Updater", config)
-        self.assertIn("version: 0.3.0", config)
+        self.assertIn(f"version: {project['project']['version']}", config)
 
     def test_uses_supervisor_serial_and_baudrate_selectors(self) -> None:
         schema = _CONFIG.read_text(encoding="utf-8").split("schema:\n", maxsplit=1)[1]

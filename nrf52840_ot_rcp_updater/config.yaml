@@ -1,5 +1,5 @@
 name: PCA10059 OpenThread RCP Updater
-version: 0.3.0
+version: 0.3.1
 slug: nrf52840_ot_rcp_updater
 description: Safely updates a PCA10059 RCP used by the Home Assistant Core OpenThread Border Router app
 stage: experimental

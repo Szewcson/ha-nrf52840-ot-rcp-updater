@@ -46,6 +46,17 @@ class WorkflowSecurityTests(unittest.TestCase):
         ):
             self.assertIn(evidence, workflow)
 
+    def test_sbom_uses_deterministic_ncs_detectors(self) -> None:
+        workflow = (
+            Path(__file__).parents[1] / ".github" / "workflows" / "ncs-candidate.yml"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn("grep -Ev '^[[:space:]]*scancode-toolkit'", workflow)
+        self.assertIn(
+            "--license-detectors spdx-tag,full-text,external-file,git-info", workflow
+        )
+        self.assertIn('--optional-license-detectors ""', workflow)
+
     def test_pull_request_ci_reuses_the_full_verification_baseline(self) -> None:
         workflow = (Path(__file__).parents[1] / ".github" / "workflows" / "ci.yml").read_text(
             encoding="utf-8"
