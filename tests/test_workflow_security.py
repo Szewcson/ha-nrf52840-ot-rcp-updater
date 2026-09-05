@@ -51,11 +51,17 @@ class WorkflowSecurityTests(unittest.TestCase):
             Path(__file__).parents[1] / ".github" / "workflows" / "ncs-candidate.yml"
         ).read_text(encoding="utf-8")
 
-        self.assertIn("grep -Ev '^[[:space:]]*scancode-toolkit'", workflow)
+        self.assertIn('"commoncode==32.3.0"', workflow)
+        self.assertIn('"click==8.2.1"', workflow)
+        self.assertIn("scancode-toolkit\\[full\\]==32\\.4\\.1", workflow)
+        self.assertIn("--constraint \"${sbom_constraints}\"", workflow)
+        self.assertIn("python -m pip check", workflow)
         self.assertIn(
-            "--license-detectors spdx-tag,full-text,external-file,git-info", workflow
+            "--license-detectors spdx-tag,full-text,external-file,scancode-toolkit,git-info",
+            workflow,
         )
-        self.assertIn('--optional-license-detectors ""', workflow)
+        self.assertIn("--optional-license-detectors scancode-toolkit", workflow)
+        self.assertNotIn("grep -Ev '^[[:space:]]*scancode-toolkit'", workflow)
 
     def test_pull_request_ci_reuses_the_full_verification_baseline(self) -> None:
         workflow = (Path(__file__).parents[1] / ".github" / "workflows" / "ci.yml").read_text(

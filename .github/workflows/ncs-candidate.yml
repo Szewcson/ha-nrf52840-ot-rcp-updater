@@ -157,19 +157,25 @@ jobs:
             --ncs-root "${RUNNER_TEMP}/ncs" \
             --expected-ncs-version "${NCS_VERSION}" \
             --output-dir "${GITHUB_WORKSPACE}/candidate"
-          # ScanCode is an optional NCS detector. Its current CLI invocation
-          # conflicts with its own root-path flags, so do not install or run it
-          # in the unattended publisher. The remaining deterministic detectors
-          # are checked below and unknown file licenses still fail publication.
-          sbom_requirements="${RUNNER_TEMP}/requirements-west-ncs-sbom.txt"
-          grep -Ev '^[[:space:]]*scancode-toolkit' \
-            nrf/scripts/requirements-west-ncs-sbom.txt > "${sbom_requirements}"
-          python -m pip install --disable-pip-version-check --no-cache-dir \
-            --requirement "${sbom_requirements}"
+          # ScanCode 32.4.1's release requirements pin commoncode 32.3.0 and
+          # Click 8.2.1. Newer resolver-selected versions make ScanCode's
+          # mutually-exclusive root-path options fail at startup; see
+          # https://github.com/aboutcode-org/scancode-toolkit/issues/4573.
+          # Keep this workaround specific to that upstream ScanCode release.
+          sbom_constraints="${RUNNER_TEMP}/scancode-32.4.1-constraints.txt"
+          : > "${sbom_constraints}"
+          if grep -Eq '^[[:space:]]*scancode-toolkit\[full\]==32\.4\.1([[:space:];]|$)' \
+            nrf/scripts/requirements-west-ncs-sbom.txt; then
+            printf '%s\n' "commoncode==32.3.0" "click==8.2.1" > "${sbom_constraints}"
+          fi
+          python -m pip install --disable-pip-version-check --no-cache-dir --upgrade \
+            --constraint "${sbom_constraints}" \
+            --requirement nrf/scripts/requirements-west-ncs-sbom.txt
+          python -m pip check
           west ncs-sbom \
             -d "${GITHUB_WORKSPACE}/candidate/build/coprocessor" \
-            --license-detectors spdx-tag,full-text,external-file,git-info \
-            --optional-license-detectors "" \
+            --license-detectors spdx-tag,full-text,external-file,scancode-toolkit,git-info \
+            --optional-license-detectors scancode-toolkit \
             --output-spdx "${GITHUB_WORKSPACE}/candidate/firmware.spdx" \
             --output-html "${GITHUB_WORKSPACE}/candidate/firmware-notices.html"
           python "${GITHUB_WORKSPACE}/tools/validate_sbom.py" \

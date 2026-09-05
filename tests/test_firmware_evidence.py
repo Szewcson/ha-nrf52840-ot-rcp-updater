@@ -49,7 +49,7 @@ class FirmwareEvidenceTests(unittest.TestCase):
                 ),
                 encoding="utf-8",
             )
-            with self.assertRaisesRegex(SbomError, "unknown concluded"):
+            with self.assertRaisesRegex(SbomError, r"generated\.h: NOASSERTION"):
                 validate_spdx(report)
 
     def test_rejects_file_without_a_concluded_license(self) -> None:

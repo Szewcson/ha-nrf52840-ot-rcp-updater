@@ -80,8 +80,8 @@ def validate_spdx(path: Path) -> None:
             f"refusing unattended publication: {examples}"
         )
     unknown = [
-        license_expression
-        for _, license_expression in files
+        f"{file_name}: {license_expression}"
+        for file_name, license_expression in files
         if license_expression is not None
         and any(marker in license_expression for marker in _UNKNOWN_LICENSE_MARKERS)
     ]
