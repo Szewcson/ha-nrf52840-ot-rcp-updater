@@ -133,6 +133,12 @@ jobs:
           west init --mr "${NCS_TAG}" -m https://github.com/nrfconnect/sdk-nrf "${RUNNER_TEMP}/ncs"
           cd "${RUNNER_TEMP}/ncs"
           west update
+          # NCS build inputs reference these repositories' VCS state. Verify a
+          # real checkout before compiling or deriving SBOM provenance from it.
+          for repository in nrf zephyr; do
+            test -d "${repository}/.git"
+            test "$(git -C "${repository}" rev-parse --is-inside-work-tree)" = "true"
+          done
           expected_ncs_license_sha256="$(jq -r '.ncs_license_sha256' "${GITHUB_WORKSPACE}/firmware/release-policy.json")"
           test "${expected_ncs_license_sha256}" != "null"
           actual_ncs_license_sha256="$(sha256sum nrf/LICENSE | awk '{ print $1 }')"
@@ -172,9 +178,26 @@ jobs:
             --constraint "${sbom_constraints}" \
             --requirement nrf/scripts/requirements-west-ncs-sbom.txt
           python -m pip check
+          # NCS 3.3's experimental build extractor includes .git/index as an
+          # SBOM source. NCS 3.4 already contains this exact VCS filter; fail
+          # closed for any future extractor shape that we have not audited.
+          sbom_extractor="nrf/scripts/west_commands/sbom/ninja_build_extractor.py"
+          if grep -Fqx "        return normalized.endswith(IGNORE_TARGETS)" "${sbom_extractor}"; then
+            git -C nrf apply --check \
+              "${GITHUB_WORKSPACE}/patches/ncs-sbom/0001-exclude-vcs-metadata.patch"
+            git -C nrf apply "${GITHUB_WORKSPACE}/patches/ncs-sbom/0001-exclude-vcs-metadata.patch"
+          elif ! grep -Fqx "        return '.git' in normalized.split('/')" "${sbom_extractor}"; then
+            echo "Unsupported NCS SBOM VCS-metadata filter; refusing publication" >&2
+            exit 1
+          fi
+          python "${GITHUB_WORKSPACE}/tools/create_sbom_license_cache.py" \
+            --workspace "${RUNNER_TEMP}/ncs" \
+            --policy "${GITHUB_WORKSPACE}/firmware/sbom-license-policy.json" \
+            --output "${GITHUB_WORKSPACE}/candidate/sbom-license-cache.json"
           west ncs-sbom \
             -d "${GITHUB_WORKSPACE}/candidate/build/coprocessor" \
-            --license-detectors spdx-tag,full-text,external-file,scancode-toolkit,git-info \
+            --input-cache-database "${GITHUB_WORKSPACE}/candidate/sbom-license-cache.json" \
+            --license-detectors cache-database,spdx-tag,full-text,external-file,scancode-toolkit,git-info \
             --optional-license-detectors scancode-toolkit \
             --output-spdx "${GITHUB_WORKSPACE}/candidate/firmware.spdx" \
             --output-html "${GITHUB_WORKSPACE}/candidate/firmware-notices.html"
@@ -183,6 +206,8 @@ jobs:
           cp nrf/LICENSE "${GITHUB_WORKSPACE}/candidate/NCS-LICENSE.txt"
           cp "${GITHUB_WORKSPACE}/firmware/NOTICE.txt" \
             "${GITHUB_WORKSPACE}/candidate/PROJECT-NOTICE.txt"
+          cp "${GITHUB_WORKSPACE}/firmware/sbom-license-policy.json" \
+            "${GITHUB_WORKSPACE}/candidate/sbom-license-policy.json"
           west manifest --freeze > "${GITHUB_WORKSPACE}/candidate/west-manifest.yml"
           cp zephyr/SDK_VERSION "${GITHUB_WORKSPACE}/candidate/zephyr-sdk.txt"
           artifact="$(jq -er '.artifact' "${GITHUB_WORKSPACE}/candidate/release-metadata.json")"
@@ -194,6 +219,8 @@ jobs:
             --ncs-license "${GITHUB_WORKSPACE}/candidate/NCS-LICENSE.txt" \
             --west-manifest "${GITHUB_WORKSPACE}/candidate/west-manifest.yml" \
             --toolchain-report "${GITHUB_WORKSPACE}/candidate/zephyr-sdk.txt" \
+            --sbom-license-policy "${GITHUB_WORKSPACE}/candidate/sbom-license-policy.json" \
+            --sbom-license-cache "${GITHUB_WORKSPACE}/candidate/sbom-license-cache.json" \
             --source-revision "${GITHUB_SHA}" \
             --output "${GITHUB_WORKSPACE}/candidate/provenance.json"
       - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
@@ -246,6 +273,8 @@ jobs:
           for evidence in \
             NCS-LICENSE.txt \
             PROJECT-NOTICE.txt \
+            sbom-license-policy.json \
+            sbom-license-cache.json \
             firmware.spdx \
             firmware-notices.html \
             provenance.json \
@@ -283,6 +312,10 @@ jobs:
             "${store}/${FIRMWARE_DIRECTORY}/${filename}.ncs-license.txt"
           install -D -m 0644 candidate/PROJECT-NOTICE.txt \
             "${store}/${FIRMWARE_DIRECTORY}/${filename}.project-notice.txt"
+          install -D -m 0644 candidate/sbom-license-policy.json \
+            "${store}/${FIRMWARE_DIRECTORY}/${filename}.sbom-license-policy.json"
+          install -D -m 0644 candidate/sbom-license-cache.json \
+            "${store}/${FIRMWARE_DIRECTORY}/${filename}.sbom-license-cache.json"
           install -D -m 0644 candidate/firmware.spdx \
             "${store}/${FIRMWARE_DIRECTORY}/${filename}.sbom.spdx"
           install -D -m 0644 candidate/firmware-notices.html \
@@ -312,6 +345,8 @@ jobs:
             "${FIRMWARE_DIRECTORY}/${filename}.sig" \
             "${FIRMWARE_DIRECTORY}/${filename}.ncs-license.txt" \
             "${FIRMWARE_DIRECTORY}/${filename}.project-notice.txt" \
+            "${FIRMWARE_DIRECTORY}/${filename}.sbom-license-policy.json" \
+            "${FIRMWARE_DIRECTORY}/${filename}.sbom-license-cache.json" \
             "${FIRMWARE_DIRECTORY}/${filename}.sbom.spdx" \
             "${FIRMWARE_DIRECTORY}/${filename}.sbom.html" \
             "${FIRMWARE_DIRECTORY}/${filename}.provenance.json" \

@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "rules": [
+    {
+      "path_glob": "nrf/VERSION",
+      "license": "LicenseRef-Nordic-5-Clause",
+      "reason": "NCS build-version metadata is an input to the generated version banner; the workflow separately pins and verifies the exact NCS license text.",
+      "evidence": {
+        "path": "nrf/LICENSE",
+        "contains": [
+          "LicenseID:  LicenseRef-Nordic-5-Clause"
+        ]
+      }
+    },
+    {
+      "path_glob": "modules/crypto/mbedtls/library/mbedtls_config_check_*.h",
+      "license": "Apache-2.0 OR GPL-2.0-or-later",
+      "reason": "Mbed TLS generates these included configuration-check headers without individual SPDX tags; its upstream LICENSE declares the dual license for Mbed TLS files.",
+      "evidence": {
+        "path": "modules/crypto/mbedtls/LICENSE",
+        "contains": [
+          "Mbed TLS files are provided under a dual [Apache-2.0]",
+          "OR [GPL-2.0-or-later] license."
+        ]
+      }
+    },
+    {
+      "path_glob": "nrfxlib/mpsl/fem/**/libmpsl_fem_*.a",
+      "license": "LicenseRef-Nordic-5-Clause",
+      "reason": "These precompiled FEM archives are linked by the FEM CMake integration, which declares the Nordic 5-Clause SPDX identifier.",
+      "evidence": {
+        "path": "nrfxlib/mpsl/fem/CMakeLists.txt",
+        "contains": [
+          "SPDX-License-Identifier: LicenseRef-Nordic-5-Clause",
+          "zephyr_link_libraries(${LIB_DIR}/libmpsl_fem_${fem_lib_name}.a)"
+        ]
+      }
+    }
+  ]
+}

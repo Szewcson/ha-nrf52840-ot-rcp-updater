@@ -188,6 +188,25 @@ Nordic's current terms before changing the distribution model or NCS dependency
 set. Names associated with NCS, Nordic hardware, Home Assistant, and
 OpenThread identify compatibility only and do not imply endorsement.
 
+### Firmware SBOM Policy
+
+NCS labels build-directory SBOM analysis as experimental. Its NCS 3.3 extractor
+mistakenly treats Git bookkeeping as build input, so the publisher applies the
+same narrow `.git` exclusion already present upstream in NCS 3.4. It verifies
+that `nrf` and `zephyr` are real Git work trees before doing so; no source file
+or compiled input is excluded.
+
+Some real build inputs have no per-file SPDX tag: NCS version metadata,
+generated Mbed TLS configuration checks, and MPSL FEM precompiled archives.
+`firmware/sbom-license-policy.json` maps only those path patterns through
+NCS's hash-bound cache-database mechanism after checking the upstream license
+evidence for each mapping. The policy, resulting cache, and their hashes in
+the provenance record are published beside the SBOM. The release job still
+rejects every other `NOASSERTION`, `NONE`, or unknown file license rather than
+silently publishing it. See the
+[NCS SBOM documentation](https://github.com/nrfconnect/sdk-nrf/blob/main/scripts/west_commands/sbom/README.rst)
+for its build-input and cache-database model.
+
 ## Configuration
 
 Choose the normal RCP serial device with Home Assistant's serial-device picker.

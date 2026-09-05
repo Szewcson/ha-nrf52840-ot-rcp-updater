@@ -14,7 +14,7 @@ class SbomError(RuntimeError):
 _MAX_SBOM_BYTES = 32 * 1024 * 1024
 _FILE_NAME_LINE = re.compile(r"^FileName:\s*(?P<name>.+?)\s*$")
 _LICENSE_LINE = re.compile(r"^LicenseConcluded:\s*(?P<license>.+?)\s*$")
-_UNKNOWN_LICENSE_MARKERS = ("NOASSERTION", "NONE", "LicenseRef-Unknown")
+_UNKNOWN_LICENSE_MARKERS = ("NOASSERTION", "NONE", "LICENSEREF-UNKNOWN")
 
 
 def _file_license_conclusions(document: str) -> list[tuple[str, str | None]]:
@@ -83,7 +83,7 @@ def validate_spdx(path: Path) -> None:
         f"{file_name}: {license_expression}"
         for file_name, license_expression in files
         if license_expression is not None
-        and any(marker in license_expression for marker in _UNKNOWN_LICENSE_MARKERS)
+        and any(marker in license_expression.upper() for marker in _UNKNOWN_LICENSE_MARKERS)
     ]
     if unknown:
         examples = ", ".join(sorted(set(unknown))[:4])

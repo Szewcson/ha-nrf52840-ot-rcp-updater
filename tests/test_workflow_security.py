@@ -38,6 +38,8 @@ class WorkflowSecurityTests(unittest.TestCase):
         for evidence in (
             "NCS-LICENSE.txt",
             "PROJECT-NOTICE.txt",
+            "sbom-license-policy.json",
+            "sbom-license-cache.json",
             "firmware.spdx",
             "firmware-notices.html",
             "provenance.json",
@@ -57,9 +59,13 @@ class WorkflowSecurityTests(unittest.TestCase):
         self.assertIn("--constraint \"${sbom_constraints}\"", workflow)
         self.assertIn("python -m pip check", workflow)
         self.assertIn(
-            "--license-detectors spdx-tag,full-text,external-file,scancode-toolkit,git-info",
+            "--license-detectors cache-database,spdx-tag,full-text,external-file,scancode-toolkit,git-info",
             workflow,
         )
+        self.assertIn("--input-cache-database", workflow)
+        self.assertIn("tools/create_sbom_license_cache.py", workflow)
+        self.assertIn("0001-exclude-vcs-metadata.patch", workflow)
+        self.assertIn('test -d "${repository}/.git"', workflow)
         self.assertIn("--optional-license-detectors scancode-toolkit", workflow)
         self.assertNotIn("grep -Ev '^[[:space:]]*scancode-toolkit'", workflow)
 

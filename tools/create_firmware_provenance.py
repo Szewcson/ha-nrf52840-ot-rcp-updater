@@ -54,6 +54,8 @@ def create_provenance(
     ncs_license_path: Path,
     west_manifest_path: Path,
     toolchain_report_path: Path,
+    sbom_license_policy_path: Path,
+    sbom_license_cache_path: Path,
     source_revision: str,
     output_path: Path,
 ) -> None:
@@ -89,6 +91,14 @@ def create_provenance(
             ),
         },
         "source_repository_revision": source_revision,
+        "sbom": {
+            "license_policy_sha256": _digest(
+                sbom_license_policy_path, _MAX_EVIDENCE_BYTES, "SBOM license policy"
+            ),
+            "license_cache_sha256": _digest(
+                sbom_license_cache_path, _MAX_EVIDENCE_BYTES, "SBOM license cache"
+            ),
+        },
         "toolchain_report_sha256": _digest(
             toolchain_report_path, _MAX_EVIDENCE_BYTES, "toolchain report"
         ),
@@ -121,6 +131,8 @@ def main() -> int:
     parser.add_argument("--ncs-license", required=True, type=Path)
     parser.add_argument("--west-manifest", required=True, type=Path)
     parser.add_argument("--toolchain-report", required=True, type=Path)
+    parser.add_argument("--sbom-license-policy", required=True, type=Path)
+    parser.add_argument("--sbom-license-cache", required=True, type=Path)
     parser.add_argument("--source-revision", required=True)
     parser.add_argument("--output", required=True, type=Path)
     arguments = parser.parse_args()
@@ -133,6 +145,8 @@ def main() -> int:
             arguments.ncs_license,
             arguments.west_manifest,
             arguments.toolchain_report,
+            arguments.sbom_license_policy,
+            arguments.sbom_license_cache,
             arguments.source_revision,
             arguments.output,
         )

@@ -52,6 +52,16 @@ class FirmwareEvidenceTests(unittest.TestCase):
             with self.assertRaisesRegex(SbomError, r"generated\.h: NOASSERTION"):
                 validate_spdx(report)
 
+    def test_rejects_placeholder_license_regardless_of_case(self) -> None:
+        with TemporaryDirectory() as directory:
+            report = Path(directory) / "firmware.spdx"
+            report.write_text(
+                "SPDXVersion: SPDX-2.2\nFileName: generated.h\nLicenseConcluded: noassertion\n",
+                encoding="utf-8",
+            )
+            with self.assertRaisesRegex(SbomError, r"generated\.h: noassertion"):
+                validate_spdx(report)
+
     def test_rejects_file_without_a_concluded_license(self) -> None:
         with TemporaryDirectory() as directory:
             report = Path(directory) / "firmware.spdx"
@@ -85,6 +95,10 @@ class FirmwareEvidenceTests(unittest.TestCase):
             west_manifest.write_text("manifest:\n", encoding="utf-8")
             toolchain = root / "toolchain.txt"
             toolchain.write_text("Zephyr SDK 0.16\n", encoding="utf-8")
+            sbom_policy = root / "sbom-license-policy.json"
+            sbom_policy.write_text('{"schema_version":1}\n', encoding="utf-8")
+            sbom_cache = root / "sbom-license-cache.json"
+            sbom_cache.write_text('{"files":{}}\n', encoding="utf-8")
             output = root / "provenance.json"
 
             create_provenance(
@@ -95,14 +109,24 @@ class FirmwareEvidenceTests(unittest.TestCase):
                 ncs_license,
                 west_manifest,
                 toolchain,
+                sbom_policy,
+                sbom_cache,
                 "1" * 40,
                 output,
             )
 
             document = json.loads(output.read_text(encoding="utf-8"))
-        self.assertEqual(document["artifact"]["sha256"], sha256(b"firmware").hexdigest())
-        self.assertEqual(document["ncs"]["tag"], "v3.4.0")
-        self.assertEqual(document["ncs"]["revision"], "0" * 40)
+            self.assertEqual(document["artifact"]["sha256"], sha256(b"firmware").hexdigest())
+            self.assertEqual(document["ncs"]["tag"], "v3.4.0")
+            self.assertEqual(document["ncs"]["revision"], "0" * 40)
+            self.assertEqual(
+                document["sbom"]["license_policy_sha256"],
+                sha256(sbom_policy.read_bytes()).hexdigest(),
+            )
+            self.assertEqual(
+                document["sbom"]["license_cache_sha256"],
+                sha256(sbom_cache.read_bytes()).hexdigest(),
+            )
 
     def test_rejects_provenance_for_an_unexpected_artifact_name(self) -> None:
         with TemporaryDirectory() as directory:
@@ -130,6 +154,8 @@ class FirmwareEvidenceTests(unittest.TestCase):
                     artifact,
                     "v3.4.0",
                     "0" * 40,
+                    source,
+                    source,
                     source,
                     source,
                     source,
