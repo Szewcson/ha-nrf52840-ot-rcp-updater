@@ -1,9 +1,8 @@
 from __future__ import annotations
 
-from pathlib import Path
 import sys
 import unittest
-
+from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parents[1] / "nrf52840_ot_rcp_updater"))
 
@@ -21,10 +20,25 @@ class SpinelTests(unittest.TestCase):
             encoded = pack_uint(value)
             self.assertEqual(unpack_uint(encoded, 0), (value, len(encoded)))
 
-    def test_parses_additive_platform_info_before_build_timestamp(self) -> None:
+    def test_parses_additive_platform_info_after_the_conventional_soc_token(self) -> None:
         version = parse_ncp_version(
-            "OPENTHREAD/1.4.0; HW/PCA10059 NCS/3.3.4 ZEPHYR/4.4.0; Sep 2 2026 12:00:00"
+            "OPENTHREAD/1.4.0; NRF52840 PCA10059 N/3.3.4 Z/4.4.0; "
+            "Sep 2 2026 12:00:00"
         )
+        self.assertEqual(version.hardware, "PCA10059")
+        self.assertEqual(version.ncs_version, "3.3.4")
+        self.assertEqual(version.zephyr_version, "4.4.0")
+
+    def test_parses_nordic_prerelease_platform_info(self) -> None:
+        version = parse_ncp_version(
+            "OPENTHREAD/1.4.0; NRF52840 PCA10059 N/3.5.0-preview1 Z/4.4.0"
+        )
+
+        self.assertEqual(version.ncs_version, "3.5.0-preview1")
+
+    def test_keeps_parsing_the_legacy_platform_info_without_a_soc_token(self) -> None:
+        version = parse_ncp_version("OPENTHREAD/1.4.0; HW/PCA10059 NCS/3.3.4 ZEPHYR/4.4.0")
+
         self.assertEqual(version.hardware, "PCA10059")
         self.assertEqual(version.ncs_version, "3.3.4")
         self.assertEqual(version.zephyr_version, "4.4.0")

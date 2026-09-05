@@ -1,0 +1,115 @@
+#include <tunables/global>
+
+profile nrf52840_ot_rcp_updater flags=(attach_disconnected,mediate_deleted) {
+  #include <abstractions/base>
+
+  # Bashio only needs DNS plus HTTP calls to the Supervisor and MQTT service.
+  # Do not grant the launch profile every capability or network family.
+  network inet stream,
+  network inet dgram,
+  network inet6 stream,
+  network inet6 dgram,
+  signal,
+  file,
+
+  # S6-Overlay and Bashio launch the updater under this profile.
+  /init rix,
+  /run.sh rix,
+  /bin/** ix,
+  /usr/bin/** ix,
+  /etc/s6/** rix,
+  /run/s6/** rwix,
+  /etc/services.d/** rwix,
+  /etc/cont-init.d/** rwix,
+  /etc/cont-finish.d/** rwix,
+  /run/** rwk,
+  /package/** ix,
+  /command/** ix,
+  /usr/lib/bashio/** ix,
+  /tmp/** rwk,
+  /data/ rwk,
+  /data/** rwk,
+
+  # The application must not retain the launcher's broad file access.
+  /usr/bin/python3 cx -> nrf52840_ot_rcp_updater_python,
+  /usr/bin/python3.11 cx -> nrf52840_ot_rcp_updater_python,
+
+  profile nrf52840_ot_rcp_updater_python flags=(attach_disconnected,mediate_deleted) {
+    #include <abstractions/base>
+
+    # HTTPS manifest downloads, MQTT, OTBR REST, and Supervisor REST use TCP/UDP only.
+    network inet stream,
+    network inet dgram,
+    network inet6 stream,
+    network inet6 dgram,
+    signal,
+
+    /usr/bin/python3 mr,
+    /usr/bin/python3.11 mr,
+    /usr/lib/** mr,
+    /lib/** mr,
+    /usr/share/** r,
+    /etc/** r,
+    /proc/** r,
+    /run/** r,
+
+    / r,
+    # Python imports app.main from /app, so grant the package root and contents.
+    /app/ r,
+    /app/** r,
+    /data/ rwk,
+    /data/** rwk,
+    /tmp/** rwk,
+    /dev/null rw,
+    /dev/random r,
+    /dev/urandom r,
+    # pyserial and nrfdfu-rs take advisory locks after opening serial devices.
+    /dev/serial/by-id/** rwk,
+    /dev/ttyACM* rwk,
+    /dev/ttyUSB* rwk,
+    /sys/ r,
+    /sys/class/ r,
+    /sys/class/tty/ r,
+    /sys/class/tty/** r,
+    /sys/bus/ r,
+    /sys/bus/usb/ r,
+    /sys/bus/usb/devices/ r,
+    /sys/bus/usb/devices/** r,
+    /sys/devices/ r,
+    /sys/devices/** r,
+
+    # Preserve the exact endpoint selected by the Python USB topology check.
+    # ``cx`` transitions only to a child profile declared inside this profile.
+    /usr/local/bin/nrfdfu cx,
+
+    profile /usr/local/bin/nrfdfu flags=(attach_disconnected,mediate_deleted) {
+      #include <abstractions/base>
+
+      signal,
+      /usr/local/bin/nrfdfu mr,
+      /usr/lib/** mr,
+      /lib/** mr,
+      /etc/** r,
+      /proc/** r,
+      # The parent downloads and verifies ELFs; the helper only reads them to flash.
+      /data/ r,
+      /data/downloads/ r,
+      /data/downloads/*.elf r,
+      /dev/null rw,
+      # nrfdfu-rs opens the selected endpoint and takes an exclusive flock.
+      /dev/ttyACM* rwk,
+      /dev/ttyUSB* rwk,
+      # serialport enumerates this directory before it can honor --port.
+      /sys/ r,
+      /sys/class/ r,
+      /sys/class/tty/ r,
+      /sys/class/tty/** r,
+      /sys/bus/ r,
+      /sys/bus/usb/ r,
+      /sys/bus/usb/devices/ r,
+      /sys/bus/usb/devices/** r,
+      /sys/devices/ r,
+      /sys/devices/** r,
+    }
+  }
+}

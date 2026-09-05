@@ -1,26 +1,45 @@
-ARG BUILD_FROM
-FROM $BUILD_FROM
+ARG BUILD_FROM=ghcr.io/home-assistant/amd64-base-debian:bookworm
+ARG NRFDFU_REVISION=8a8e0adda6b0f44cf1ba9aee62c62a67df335137
 
-ARG BUILD_ARCH
-ARG NRFUTIL_DEVICE_VERSION=2.20.1
+FROM rust:1.82-bookworm AS nrfdfu-builder
 
-RUN apk add --no-cache curl gcompat libgcc libstdc++ python3 py3-paho-mqtt py3-pyserial \
-    && case "${BUILD_ARCH}" in \
-        amd64) \
-            nrfutil_url="https://files.nordicsemi.com/artifactory/swtools/external/nrfutil/executables/x86_64-unknown-linux-gnu/nrfutil"; \
-            nrfutil_sha256="4800f8b71feec0caaf3c143d29b0b7fd6f33c6a258da10e660743f0db1890a0b" ;; \
-        aarch64) \
-            nrfutil_url="https://files.nordicsemi.com/artifactory/swtools/external/nrfutil/executables/aarch64-unknown-linux-gnu/nrfutil"; \
-            nrfutil_sha256="0a1d87ad5eab2292beb847462c69b3b9db37aba3a59bbd56e31de7ce45b12a9a" ;; \
-        *) echo "Unsupported architecture: ${BUILD_ARCH}" >&2; exit 1 ;; \
-    esac \
-    && curl --fail --location --silent --show-error "${nrfutil_url}" --output /usr/local/bin/nrfutil \
-    && echo "${nrfutil_sha256}  /usr/local/bin/nrfutil" | sha256sum -c - \
-    && chmod 0755 /usr/local/bin/nrfutil \
-    && nrfutil install "device=${NRFUTIL_DEVICE_VERSION}" --force
+ARG NRFDFU_REVISION
+
+COPY patches/nrfdfu-cli-init-packet-versions.patch \
+     patches/nrfdfu-cli-exact-port.patch /patches/
+
+RUN apt-get update \
+    && apt-get install --no-install-recommends --yes \
+        ca-certificates \
+        git \
+    && git clone https://github.com/knurling-rs/nrfdfu-rs.git /src/nrfdfu-rs \
+    && git -C /src/nrfdfu-rs checkout --detach "${NRFDFU_REVISION}" \
+    && test "$(git -C /src/nrfdfu-rs rev-parse HEAD)" = "${NRFDFU_REVISION}" \
+    && git -C /src/nrfdfu-rs apply --check --unidiff-zero /patches/nrfdfu-cli-init-packet-versions.patch \
+    && git -C /src/nrfdfu-rs apply --unidiff-zero /patches/nrfdfu-cli-init-packet-versions.patch \
+    && git -C /src/nrfdfu-rs apply --check --unidiff-zero /patches/nrfdfu-cli-exact-port.patch \
+    && git -C /src/nrfdfu-rs apply --unidiff-zero /patches/nrfdfu-cli-exact-port.patch \
+    && cargo build --release --locked --manifest-path /src/nrfdfu-rs/Cargo.toml \
+    && rm -rf /var/lib/apt/lists/*
+
+FROM ${BUILD_FROM}
+
+RUN apt-get update \
+    && apt-get install --no-install-recommends --yes \
+        ca-certificates \
+        libgcc-s1 \
+        libstdc++6 \
+        python3 \
+        python3-paho-mqtt \
+        python3-serial \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=nrfdfu-builder /src/nrfdfu-rs/target/release/nrfdfu /usr/local/bin/nrfdfu
+COPY --from=nrfdfu-builder /src/nrfdfu-rs/LICENSE-APACHE /usr/share/licenses/nrfdfu-rs/LICENSE-APACHE
+COPY LICENSES/nrfdfu-rs-NOTICE.md /usr/share/licenses/nrfdfu-rs/NOTICE.md
 
 COPY app /app
 COPY run.sh /run.sh
-RUN chmod a+x /run.sh
+RUN chmod 0755 /usr/local/bin/nrfdfu /run.sh
 
 CMD ["/run.sh"]

@@ -1,0 +1,54 @@
+---
+configuration:
+  device:
+    name: RCP device
+    description: >-
+      The serial device used by the PCA10059 OpenThread RCP while its normal
+      firmware is running.
+  baudrate:
+    name: Baudrate
+    description: >-
+      The fixed serial speed used to communicate with the RCP. Match the
+      configured OpenThread Border Router value.
+  safe_update:
+    name: Safe update
+    description: >-
+      Require OTBR to be idle, stop it while the RCP is updated, then verify
+      that it is healthy again.
+  allow_legacy_rcp:
+    name: Allow untagged RCP recovery
+    description: >-
+      Allow recovery when the RCP does not provide the updater's version tags.
+      Only enable this after confirming that the connected device is a PCA10059.
+  allow_prereleases:
+    name: Use preview and release-candidate firmware
+    description: >-
+      Include Nordic preview and release-candidate NCS firmware in the update
+      and manual-target selectors.
+  pinned_ncs_minor:
+    name: Pin NCS minor line
+    description: >-
+      Limit automatic updates to one major.minor line, such as 3.4. Leave empty
+      to use the newest allowed release.
+  dfu_serial_number:
+    name: DFU USB serial number
+    description: >-
+      Optional recovery-only selector when several matching Nordic Secure DFU
+      bootloaders are connected.
+  dfu_usb_path:
+    name: DFU USB topology path
+    description: >-
+      Optional recovery-only selector for bootloaders with the same USB serial,
+      such as 2-3 or 2-3.1.
+  manifest_poll_interval:
+    name: Firmware manifest refresh interval
+    description: >-
+      Seconds between checks for a newly published verified firmware release.
+  idle_window:
+    name: OTBR quiet window
+    description: >-
+      Seconds for which OTBR management work must remain idle before an update.
+  boot_timeout:
+    name: RCP boot timeout
+    description: >-
+      Seconds to wait for the newly flashed RCP and OTBR to become available.

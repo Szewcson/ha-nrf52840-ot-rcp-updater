@@ -1,41 +1,48 @@
 name: nRF52840 OT RCP Updater
-version: 0.1.0
+version: 0.2.37
 slug: nrf52840_ot_rcp_updater
 description: Safely updates a PCA10059 OpenThread RCP used by the official OTBR app
-url: https://github.com/example/ha-nrf52840-ot-rcp-updater
+stage: experimental
+url: https://github.com/Szewcson/ha-nrf52840-ot-rcp-updater
 arch:
   - aarch64
   - amd64
 startup: services
 init: false
 hassio_api: true
-hassio_role: default
-usb: true
+hassio_role: manager
+host_network: true
+# Keep the custom profile explicit: it is worth one Supervisor rating point
+# only after the profile has been loaded on the host.
+apparmor: true
+# Secure DFU uses the selected CDC ACM serial endpoint, not raw USB transfers.
+uart: true
+tmpfs: true
 services:
   - mqtt:need
 options:
   device: null
-  baudrate: 1000000
-  hardware: PCA10059
-  otbr_addon_slug: core_openthread_border_router
-  otbr_api_url: null
+  baudrate: "1000000"
   safe_update: true
   allow_legacy_rcp: false
-  dfu_serial_number: null
-  manifest_url: null
+  allow_prereleases: false
+  pinned_ncs_minor: ""
+  dfu_serial_number: ""
+  dfu_usb_path: ""
   manifest_poll_interval: 3600
   idle_window: 20
-  boot_timeout: 45
+  boot_timeout: 90
 schema:
+  # Select the normal RCP endpoint before starting any Secure DFU recovery.
   device: device(subsystem=tty)
-  baudrate: list(115200|230400|460800|921600|1000000)
-  hardware: list(PCA10059)
-  otbr_addon_slug: str
-  otbr_api_url: url?
+  # Match the official OTBR selector while keeping the accepted values fixed.
+  baudrate: list(57600|115200|230400|460800|921600|1000000)
   safe_update: bool
   allow_legacy_rcp: bool
+  allow_prereleases: bool
+  pinned_ncs_minor: str?
   dfu_serial_number: str?
-  manifest_url: url?
+  dfu_usb_path: str?
   manifest_poll_interval: int(300,86400)
   idle_window: int(10,300)
   boot_timeout: int(15,120)
