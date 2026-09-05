@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import base64
 import json
 import struct
 import sys
@@ -9,9 +10,22 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+
 sys.path.insert(0, str(Path(__file__).parents[1] / "nrf52840_ot_rcp_updater"))
 
 from app.manifest import FirmwareManifest, ManifestError, _validate_rcp_elf, download_artifact
+
+
+def _signature(payload: bytes) -> tuple[bytes, bytes]:
+    private_key = Ed25519PrivateKey.generate()
+    public_key = private_key.public_key().public_bytes(
+        serialization.Encoding.PEM,
+        serialization.PublicFormat.SubjectPublicKeyInfo,
+    )
+    signature = b"ed25519:" + base64.b64encode(private_key.sign(payload)) + b"\n"
+    return public_key, signature
 
 
 def _elf() -> bytes:
@@ -51,6 +65,7 @@ def _release(ncs_version: str) -> dict[str, object]:
             "url": f"https://example.invalid/{ncs_version}.elf",
             "sha256": "0" * 64,
             "filename": f"{ncs_version}.elf",
+            "signature_url": f"https://example.invalid/{ncs_version}.elf.sig",
         },
         "release_url": "https://example.invalid/release",
         "release_summary": "Test release",
@@ -135,8 +150,9 @@ class FirmwareManifestTests(unittest.TestCase):
             "url": "https://example.invalid/rcp.zip",
             "sha256": "0" * 64,
             "filename": "rcp.zip",
+            "signature_url": "https://example.invalid/rcp.zip.sig",
         }
-        with self.assertRaisesRegex(ManifestError, "ELF firmware image"):
+        with self.assertRaisesRegex(ManifestError, "simple .elf filename"):
             FirmwareManifest.from_bytes(
                 json.dumps({"schema_version": 1, "releases": [release]}).encode()
             )
@@ -149,21 +165,53 @@ class FirmwareManifestTests(unittest.TestCase):
 
     def test_verifies_elf_checksum_before_writing(self) -> None:
         data = _elf()
+        public_key, signature = _signature(data)
         entry = _release("3.4.0")
         entry["artifact"] = {
             "url": "https://example.invalid/rcp.elf",
             "sha256": sha256(data).hexdigest(),
             "filename": "rcp.elf",
+            "signature_url": "https://example.invalid/rcp.elf.sig",
         }
         release = FirmwareManifest.from_bytes(
             json.dumps({"schema_version": 1, "releases": [entry]}).encode()
         ).newest_for("PCA10059")
 
         with TemporaryDirectory() as directory:
-            with patch("app.manifest._fetch", return_value=data):
+            with (
+                patch("app.manifest._FIRMWARE_SIGNING_PUBLIC_KEY_PEM", public_key),
+                patch("app.manifest._fetch", side_effect=[data, signature]),
+            ):
                 downloaded = download_artifact(release, Path(directory))
 
             self.assertEqual(downloaded.read_bytes(), data)
+
+    def test_verifies_the_manifest_before_parsing_it(self) -> None:
+        payload = json.dumps(
+            {"schema_version": 1, "releases": [_release("3.4.0")]}
+        ).encode()
+        public_key, signature = _signature(payload)
+
+        with (
+            patch("app.manifest._FIRMWARE_SIGNING_PUBLIC_KEY_PEM", public_key),
+            patch("app.manifest._fetch", side_effect=[payload, signature]),
+        ):
+            manifest = FirmwareManifest.download("https://example.invalid/manifest.json")
+
+        self.assertEqual(manifest.newest_for("PCA10059").ncs_version, "3.4.0")
+
+    def test_rejects_a_manifest_with_a_wrong_detached_signature(self) -> None:
+        payload = json.dumps(
+            {"schema_version": 1, "releases": [_release("3.4.0")]}
+        ).encode()
+        public_key, signature = _signature(b"different manifest")
+
+        with (
+            patch("app.manifest._FIRMWARE_SIGNING_PUBLIC_KEY_PEM", public_key),
+            patch("app.manifest._fetch", side_effect=[payload, signature]),
+            self.assertRaisesRegex(ManifestError, "signature does not match"),
+        ):
+            FirmwareManifest.download("https://example.invalid/manifest.json")
 
 
 if __name__ == "__main__":

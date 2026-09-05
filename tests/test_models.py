@@ -34,6 +34,7 @@ class SettingsTests(unittest.TestCase):
 
         self.assertEqual(settings.baudrate, 1_000_000)
         self.assertTrue(settings.safe_update)
+        self.assertFalse(settings.qemu_usb_reenumeration_workaround)
         self.assertFalse(settings.allow_legacy_rcp)
         self.assertFalse(settings.allow_prereleases)
         self.assertIsNone(settings.dfu_usb_path)
@@ -92,6 +93,16 @@ class SettingsTests(unittest.TestCase):
         )
 
         self.assertEqual(settings.dfu_usb_path, "2-3.1")
+
+    def test_enables_the_opt_in_qemu_usb_reenumeration_workaround(self) -> None:
+        settings = Settings.from_mapping(
+            {
+                "device": "/dev/serial/by-id/nrf52840",
+                "qemu_usb_reenumeration_workaround": True,
+            }
+        )
+
+        self.assertTrue(settings.qemu_usb_reenumeration_workaround)
 
     def test_rejects_a_dfu_usb_filesystem_path(self) -> None:
         with self.assertRaisesRegex(ValidationError, "Linux USB path"):

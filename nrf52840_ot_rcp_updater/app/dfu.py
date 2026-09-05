@@ -22,6 +22,14 @@ class DfuTransferError(DfuError):
 
 _USB_SERIAL_RE = re.compile(r"^[A-Za-z0-9._+-]{1,80}$")
 NRFDFU_EXECUTABLE = "/usr/local/bin/nrfdfu"
+_NRFDFU_ENVIRONMENT = {
+    # The launcher contains Supervisor and MQTT credentials. nrfdfu needs no
+    # inherited configuration, so give it a stable locale and executable path
+    # instead of passing the service environment across this trust boundary.
+    "PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+    "LANG": "C.UTF-8",
+    "LC_ALL": "C.UTF-8",
+}
 
 
 @dataclass(frozen=True)
@@ -371,6 +379,8 @@ class NrfDfuFlasher:
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
                 timeout=timeout,
+                env=_NRFDFU_ENVIRONMENT,
+                close_fds=True,
             )
         except OSError as err:
             raise DfuError(f"unable to execute {action}: {err}") from err

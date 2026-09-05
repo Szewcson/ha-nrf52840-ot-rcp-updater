@@ -1,9 +1,14 @@
-# nRF52840 OpenThread RCP Updater
+# PCA10059 OpenThread RCP Updater
 
-Home Assistant app that exposes a native `update` entity for an nRF52840
-Dongle (PCA10059) used as the RCP for the official OpenThread Border Router
-app. It never replaces OTBR: the app performs one controlled hand-off from
-OTBR to the stock PCA10059 Secure DFU bootloader and back.
+Home Assistant app that exposes a native `update` entity for the PCA10059
+nRF52840 dongle used as the RCP for the Home Assistant Core OpenThread Border
+Router app. It never replaces OTBR: the app performs one controlled hand-off
+from OTBR to the stock PCA10059 Secure DFU bootloader and back.
+
+This is an independent community project. It is not affiliated with, sponsored
+by, authorized by, or endorsed by Nordic Semiconductor ASA, Home Assistant,
+Nabu Casa, the Open Home Foundation, or the OpenThread project. Those names
+are used only to identify hardware, source, and product compatibility.
 
 ## Version Contract
 
@@ -64,10 +69,11 @@ Zephyr fields must also match after flashing.
 
 ## Update Flow
 
-1. Home Assistant discovers `nRF52840 OT RCP` as an MQTT `update` entity.
-2. An explicit `update.install` request downloads a HTTPS artifact and verifies
-   its SHA-256 plus its 32-bit little-endian ARM ELF headers and PCA10059 flash
-   segments before OTBR is stopped.
+1. Home Assistant discovers `PCA10059 OpenThread RCP` as an MQTT `update` entity.
+2. An explicit `update.install` request verifies the signed manifest, then the
+   selected HTTPS artifact's detached Ed25519 signature, SHA-256, 32-bit
+   little-endian ARM ELF headers, and PCA10059 flash segments before OTBR is
+   stopped.
 3. With `safe_update: true`, the app checks OTBR REST management actions twice
    over the configured quiet window when OTBR is running. This detects
    commissioning or diagnostic work, but cannot prove that all Thread
@@ -105,6 +111,13 @@ removal of the Nordic runtime binary makes a future move to the standard Alpine
 base possible, but that independent base-image migration is intentionally not
 part of this change.
 
+The Rust builder image is pinned by its multi-architecture content digest. The
+runtime `BUILD_FROM` value remains architecture-selected by the Home Assistant
+add-on build convention, so its upstream update policy is reviewed separately.
+The final image includes this project's Apache-2.0 license, the nrfdfu-rs
+license and notice, Cargo's locked dependency metadata, and an installed Debian
+package inventory under `/usr/share/licenses`.
+
 The app declares Home Assistant's `manager` Supervisor role because it must
 stop and restart OTBR around a DFU operation. Home Assistant only grants that
 capability to an app with extended Supervisor access.
@@ -128,8 +141,8 @@ profile is not active on that Home Assistant host. The app intentionally does
 not switch to a broader Home Assistant API role or add a no-op ingress UI merely
 to raise the number.
 
-The official OpenThread Border Router app uses Home Assistant's host network.
-This app does too, so its safe-update preflight can reach OTBR at
+The Home Assistant Core OpenThread Border Router app uses Home Assistant's host
+network. This app does too, so its safe-update preflight can reach OTBR at
 `http://127.0.0.1:8081`. In the OTBR app configuration, use **Show disabled
 ports** to enable the OpenThread REST API on port `8081`. Do not use
 `core-openthread-border-router` as `otbr_api_url`: Home Assistant does not
@@ -147,7 +160,10 @@ was already stopped; start OTBR manually after the RCP has been verified.
 This repository's source code is licensed under Apache-2.0. The RCP firmware is
 built from the nRF Connect SDK (NCS) for an nRF52840, so its distribution also
 remains subject to the [NCS license](https://github.com/nrfconnect/sdk-nrf/blob/main/LICENSE)
-and the notices of its transitive modules.
+and the notices of its transitive modules. Every published ELF is accompanied
+by the exact NCS license text, an SPDX SBOM, its generated human-readable
+notice, and a provenance record binding it to its source revision, resolved
+west manifest, SDK report, and SHA-256.
 
 The runtime updater contains no Nordic `nrfutil`, `nrfutil device`,
 `nrf-device-lib`, or `nrf5sdk-tools` binary. It builds `nrfdfu-rs` from pinned
@@ -169,7 +185,8 @@ notice and license in the add-on image.
 The published artifact is an application-only ELF. It does not include a
 Nordic SoftDevice. This is an implementation note, not legal advice. Review
 Nordic's current terms before changing the distribution model or NCS dependency
-set.
+set. Names associated with NCS, Nordic hardware, Home Assistant, and
+OpenThread identify compatibility only and do not imply endorsement.
 
 ## Configuration
 
@@ -184,6 +201,8 @@ device: /dev/serial/by-id/usb-Nordic_Semiconductor_Thread_Co-Processor-if00
 # Everything below has this built-in default and is optional to configure.
 baudrate: "1000000"
 safe_update: true
+# Opt-in workaround for QEMU direct USB passthrough during RCP/DFU transitions.
+qemu_usb_reenumeration_workaround: false
 allow_legacy_rcp: false
 allow_prereleases: false
 # Keep normal updates within one NCS major.minor line, for example: 3.4
@@ -198,17 +217,40 @@ idle_window: 20
 boot_timeout: 90
 ```
 
-`baudrate` is a fixed Home Assistant selector matching the official OTBR
+`baudrate` is a fixed Home Assistant selector matching the Core OpenThread Border Router
 frontend choices: `57600`, `115200`, `230400`, `460800`, `921600`, and
 `1000000`. The PCA10059 build uses USB CDC ACM, so this app intentionally does
 not expose a hardware-flow-control setting: Nordic's flow-control guidance is
 for UART-connected development kits, not this USB dongle. Use the same baudrate
 as OTBR; current project firmware uses `1000000` by default.
 
+### QEMU Direct USB Passthrough
+
+Leave `qemu_usb_reenumeration_workaround` disabled unless a QEMU guest loses
+the RCP during its normal-RCP <-> Secure-DFU USB identity transitions. When
+enabled, the app waits eight seconds after requesting Secure DFU and again
+after asking Secure DFU to boot the application, before making the first
+`nrfdfu` or Spinel probe. The update entity shows each wait as a progress stage.
+
+This is a bounded mitigation for QEMU's direct `usb-host` backend, not a claim
+that a fixed delay repairs every passthrough failure. In QEMU 11.0.3,
+auto-selected USB devices are scanned every two seconds; a product ID of zero
+is a wildcard, failed opens are capped at three attempts, and a still-open
+handle prevents a replacement device from being opened. QEMU closes that
+handle and immediately rescans after guest I/O reports `NO_DEVICE`. Waiting
+for the replacement USB personality to be ready before that first guest probe
+avoids the observed early-rescan race. The eight-second delay spans four scan
+intervals. See QEMU's
+[auto-selection implementation](https://github.com/qemu/qemu/blob/v11.0.3/hw/usb/host-libusb.c#L1834-L1920)
+and its
+[NO_DEVICE recovery path](https://github.com/qemu/qemu/blob/v11.0.3/hw/usb/host-libusb.c#L1102-L1148).
+It increases the OTBR outage by at least 16 seconds per normal flash; leave it
+off for bare metal, controller passthrough, or stable direct passthrough.
+
 This app intentionally supports one target: a PCA10059 RCP, its stock Nordic
 Secure DFU bootloader (`1915:521f`), and this repository's verified firmware
-manifest. It also supports only Home Assistant's official
-`core_openthread_border_router` app, using its local REST API at
+manifest. It also supports only Home Assistant's Core OpenThread Border Router
+app, `core_openthread_border_router`, using its local REST API at
 `http://127.0.0.1:8081` for the quiet-window and post-flash health checks.
 These are not configuration choices. On first startup after this upgrade, the
 app removes the retired `hardware`, `manifest_url`, `otbr_addon_slug`,
@@ -262,7 +304,8 @@ resets to `Automatic` only after post-flash Spinel verification. The verified
 to its normal automatic release policy. The update entity's
 diagnostic attributes show the configured device path, detected normal-RCP USB
 serial, configured DFU VID:PID, whether the normal USB topology is known, the
-optional and resolved DFU serials, DFU presence, and the official OTBR app slug.
+optional and resolved DFU serials, DFU presence, and the Core OpenThread Border
+Router app slug.
 
 The Update entity always reports `installed_version` from the last verified
 Spinel response and `latest_version` from the automatic release policy. After a
@@ -308,8 +351,8 @@ RCP already runs a newer line, the entity reports an error instead.
 Manual release selection does not bypass the stock Secure DFU bootloader's
 application-version anti-rollback check, so the bootloader can still reject a
 lower firmware version. It also does not upload arbitrary local ELF files:
-every manual target is downloaded from the verified manifest and checked
-against its published SHA-256 before flashing.
+every manual target is selected from the Ed25519-signed manifest and checked
+against its detached signature and published SHA-256 before flashing.
 
 ## Firmware Releases
 
@@ -329,29 +372,51 @@ metadata contains the SHA-256, monotonic Secure DFU application version, and
 the exact compiled `SPINEL_PROP_NCP_VERSION` string with its byte count. The
 repository workflow consumes both files when it publishes the firmware branch.
 
-`.github/workflows/ncs-candidate.yml` runs hourly. It finds Nordic tags at or
+`.github/workflows/ncs-candidate.yml` runs hourly. It finds NCS tags at or
 above the baseline in `firmware/release-policy.json`: stable `vX.Y.Z` tags plus
 the supported `vX.Y.Z-previewN` and `vX.Y.Z-rcN` prereleases. Each is built on
 a standard GitHub Ubuntu runner using NCS sources, `west`, NCS Python
 requirements, and the release-matched Zephyr SDK. The workflow publishes each
-versioned ELF and SHA-256 manifest entry to the dedicated `firmware` branch. Its
-build jobs have read-only repository access and do not receive a GitHub token;
-only the publication job can write the firmware branch. All GitHub actions are
-pinned to reviewed commit SHAs. It
+versioned ELF, detached signature, signed manifest entry, NCS license, SPDX
+SBOM, generated notice, and provenance record to the dedicated `firmware`
+branch. Its build jobs have read-only repository access and do not receive a
+GitHub token; only the publication job can write the firmware branch. The
+add-on pins the Ed25519 public key used to verify the manifest and every ELF,
+so a mutable branch and SHA-256 alone cannot authorize firmware. The workflow
+fails closed if NCS's exact license hash or the SBOM's concluded file licenses
+are not approved. All GitHub actions are pinned to reviewed commit SHAs. It
 creates no GitHub Release: GitHub always adds source archive links to Releases,
 and those archives are irrelevant for an RCP firmware updater. The branch
-contains only `manifest.json` and versioned ELF files. Stable, preview, and RC
-entries are selected from the same policy; there is no review or promotion gate.
-GitHub does not provide a cross-repository release trigger, so hourly polling
-is the automatic trigger.
+contains only the signed index, firmware ELFs, signatures, and release evidence.
+Stable, preview, and RC entries are selected from the same policy; there is no
+review or promotion gate. GitHub does not provide a cross-repository release
+trigger, so hourly polling is the automatic trigger.
 
 The manifest and generated binaries are not committed to the source branch. If
 the firmware branch does not exist yet, the workflow initializes it after the
 first verified firmware build.
 
+### Firmware Signing Setup
+
+The public Ed25519 verifier is compiled into the add-on at
+`app/firmware_signing_public_key.pem`. Its DER SHA-256 fingerprint is
+`b6df24ea326821eff5b11abb93fec6cae42645bf2733215be05285664713a3a9`.
+The matching private key must never be committed or printed in Actions logs.
+Store its base64-encoded PEM as the `FIRMWARE_SIGNING_PRIVATE_KEY_B64` secret
+of the `firmware-publisher` GitHub environment. That environment needs no
+reviewer for automatic publication, but should be restricted to the protected
+`main` branch. Protect `main` and `firmware`, disallow force pushes, and allow
+only the publication workflow to bypass the `firmware` rule.
+
+When NCS changes its license text, update the reviewed
+`ncs_license_sha256` value in `firmware/release-policy.json` in the same pull
+request as the license review. The unattended workflow intentionally stops
+until that explicit approval exists.
+
 ## Development Checks
 
 ```sh
+.venv/bin/ruff check .
 python3 -m unittest discover -s tests -v
 python3 -m compileall -q nrf52840_ot_rcp_updater/app tools tests
 ```

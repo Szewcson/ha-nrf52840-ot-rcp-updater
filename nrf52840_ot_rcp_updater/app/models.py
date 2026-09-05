@@ -18,15 +18,17 @@ _VERSION_RE = re.compile(
 _MINOR_LINE_RE = re.compile(r"^[0-9]+\.[0-9]+$")
 _TOKEN_RE = re.compile(r"^[A-Za-z0-9._+-]{1,80}$")
 _SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
+_ARTIFACT_FILENAME_RE = re.compile(r"^[A-Za-z0-9._+-]{1,160}\.elf$")
 _USB_TOPOLOGY_RE = re.compile(r"^[1-9][0-9]*-[1-9][0-9]*(?:\.[1-9][0-9]*)*$")
 
 DEFAULT_BAUDRATE = 1_000_000
 SUPPORTED_HARDWARE = "PCA10059"
-OFFICIAL_OTBR_ADDON_SLUG = "core_openthread_border_router"
-OFFICIAL_OTBR_API_URL = "http://127.0.0.1:8081"
+CORE_OTBR_ADDON_SLUG = "core_openthread_border_router"
+CORE_OTBR_API_URL = "http://127.0.0.1:8081"
 DEFAULT_SAFE_UPDATE = True
 DEFAULT_ALLOW_LEGACY_RCP = False
 DEFAULT_ALLOW_PRERELEASES = False
+DEFAULT_QEMU_USB_REENUMERATION_WORKAROUND = False
 DEFAULT_DFU_VID_PID = "1915:521f"
 FIRMWARE_MANIFEST_URL = (
     "https://raw.githubusercontent.com/Szewcson/ha-nrf52840-ot-rcp-updater/"
@@ -121,6 +123,15 @@ def validate_dfu_application_version(value: object, name: str) -> int:
     return value
 
 
+def validate_artifact_filename(value: object, name: str) -> str:
+    """Accept one portable firmware basename, never a filesystem path."""
+
+    filename = _require_string(value, name)
+    if not _ARTIFACT_FILENAME_RE.fullmatch(filename):
+        raise ValidationError(f"{name} must be a simple .elf filename")
+    return filename
+
+
 @dataclass(frozen=True)
 class Artifact:
     """An immutable RCP ELF selected from a release manifest."""
@@ -128,16 +139,16 @@ class Artifact:
     url: str
     sha256: str
     filename: str
+    signature_url: str
 
     def __post_init__(self) -> None:
         if not self.url.startswith("https://"):
             raise ValidationError("artifact URL must use HTTPS")
         if not _SHA256_RE.fullmatch(self.sha256):
             raise ValidationError("artifact SHA-256 must be lowercase hexadecimal")
-        if "/" in self.filename or self.filename in {"", ".", ".."}:
-            raise ValidationError("artifact filename must not contain a path")
-        if not self.filename.endswith(".elf"):
-            raise ValidationError("artifact must be an ELF firmware image")
+        validate_artifact_filename(self.filename, "artifact filename")
+        if not self.signature_url.startswith("https://"):
+            raise ValidationError("artifact signature URL must use HTTPS")
 
 
 @dataclass(frozen=True)
@@ -180,6 +191,7 @@ class Settings:
     device: Path
     baudrate: int
     safe_update: bool
+    qemu_usb_reenumeration_workaround: bool
     allow_legacy_rcp: bool
     allow_prereleases: bool
     pinned_ncs_minor: str | None
@@ -244,6 +256,10 @@ class Settings:
             device=Path(device),
             baudrate=baudrate,
             safe_update=option_bool("safe_update", default=DEFAULT_SAFE_UPDATE),
+            qemu_usb_reenumeration_workaround=option_bool(
+                "qemu_usb_reenumeration_workaround",
+                default=DEFAULT_QEMU_USB_REENUMERATION_WORKAROUND,
+            ),
             allow_legacy_rcp=allow_legacy_rcp,
             allow_prereleases=option_bool(
                 "allow_prereleases", default=DEFAULT_ALLOW_PRERELEASES

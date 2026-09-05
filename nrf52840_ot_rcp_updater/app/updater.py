@@ -12,9 +12,9 @@ from time import monotonic, sleep
 from .dfu import DfuError, DfuSelector, DfuTransferError, NrfDfuFlasher
 from .manifest import download_artifact
 from .models import (
+    CORE_OTBR_ADDON_SLUG,
+    CORE_OTBR_API_URL,
     DEFAULT_DFU_VID_PID,
-    OFFICIAL_OTBR_ADDON_SLUG,
-    OFFICIAL_OTBR_API_URL,
     SUPPORTED_HARDWARE,
     FirmwareRelease,
     NcpVersion,
@@ -37,6 +37,9 @@ class RescanDeferred(UpdateError):
 
 
 _MIN_POST_DFU_BOOT_TIMEOUT = 90
+# Four QEMU host-libusb autoscan intervals. This is deliberately opt-in because
+# it mitigates direct USB passthrough timing, not an RCP firmware requirement.
+_QEMU_USB_REENUMERATION_SETTLE_SECONDS = 8
 LOGGER = logging.getLogger(__name__)
 ProgressReporter = Callable[[int, str], None]
 
@@ -62,7 +65,7 @@ class RcpUpdater:
         with update_lock(self._state_directory):
             try:
                 otbr_was_running = self._prepare_safe_update()
-                with self._supervisor.temporarily_stop(OFFICIAL_OTBR_ADDON_SLUG) as was_running:
+                with self._supervisor.temporarily_stop(CORE_OTBR_ADDON_SLUG) as was_running:
                     if self._settings.safe_update and was_running != otbr_was_running:
                         raise RescanDeferred("OTBR changed state before the version rescan")
                     return self._spinel().get_ncp_version()
@@ -93,7 +96,7 @@ class RcpUpdater:
             package = download_artifact(release, self._state_directory / "downloads")
             self._report_progress(progress, 35, "Preparing OTBR and RCP")
             otbr_was_running = self._prepare_safe_update()
-            with self._supervisor.temporarily_stop(OFFICIAL_OTBR_ADDON_SLUG) as was_running:
+            with self._supervisor.temporarily_stop(CORE_OTBR_ADDON_SLUG) as was_running:
                 if self._settings.safe_update and was_running != otbr_was_running:
                     raise UpdateError(
                         "OTBR state changed during the safe-update preflight; retry the update"
@@ -134,39 +137,52 @@ class RcpUpdater:
                             raise UpdateError(str(err)) from err
                         self._report_progress(progress, 55, "Entering Secure DFU")
                         self._spinel().reset_bootloader()
+                        self._settle_qemu_usb_reenumeration(
+                            progress, 60, "Secure DFU"
+                        )
                     if before is None:
                         self._report_progress(progress, 55, "Using detected Secure DFU")
                     self._report_progress(progress, 70, "Flashing firmware")
-                    self._report_progress(progress, 85, "Verifying RCP firmware")
                     try:
                         self._flasher.flash(package, dfu_selector, release.dfu_application_version)
                     except DfuTransferError as err:
                         # USB can disconnect while the bootloader finishes an accepted image.
                         # Treat only a live Spinel match as evidence of a successful update.
                         LOGGER.warning("nrfdfu failed; reconciling the RCP firmware over Spinel")
+                        self._settle_qemu_usb_reenumeration(progress, 85, "RCP")
+                        self._report_progress(progress, 85, "Verifying RCP firmware")
                         try:
-                            after = self._wait_for_expected_release(release, dfu_selector)
+                            after = self._wait_for_expected_release(
+                                release, dfu_selector, progress=progress
+                            )
                         except UpdateError as verification_error:
                             raise UpdateError(
                                 f"{err}; RCP did not verify the requested firmware: "
                                 f"{verification_error}"
                             ) from err
                     else:
-                        after = self._wait_for_expected_release(release, dfu_selector)
+                        self._settle_qemu_usb_reenumeration(progress, 85, "RCP")
+                        self._report_progress(progress, 85, "Verifying RCP firmware")
+                        after = self._wait_for_expected_release(
+                            release, dfu_selector, progress=progress
+                        )
 
-        if self._settings.safe_update and otbr_was_running:
-            self._report_progress(progress, 95, "Waiting for OTBR")
-            self._require_otbr_healthy()
-        state = self._state_store.load()
-        state.update(
-            {
-                "installed": asdict(after),
-                "verified_at": datetime.now(UTC).isoformat(),
-            }
-        )
-        self._state_store.save(state)
-        self._report_progress(progress, 100, "Update verified")
-        return after
+            # Do not release the inter-process transaction lock until OTBR has
+            # recovered and the verified result is durable. A process restart
+            # or a second command must not overlap this final ownership phase.
+            if self._settings.safe_update and otbr_was_running:
+                self._report_progress(progress, 95, "Waiting for OTBR")
+                self._require_otbr_healthy()
+            state = self._state_store.load()
+            state.update(
+                {
+                    "installed": asdict(after),
+                    "verified_at": datetime.now(UTC).isoformat(),
+                }
+            )
+            self._state_store.save(state)
+            self._report_progress(progress, 100, "Update verified")
+            return after
 
     @property
     def _state_directory(self) -> Path:
@@ -188,6 +204,31 @@ class RcpUpdater:
         except Exception:
             LOGGER.exception("Unable to publish RCP update progress")
 
+    def _settle_qemu_usb_reenumeration(
+        self, progress: ProgressReporter | None, update_percentage: int, personality: str
+    ) -> None:
+        """Avoid an early guest probe while QEMU replaces a direct USB device.
+
+        QEMU host-libusb detects a vanished device only when guest I/O gets
+        ``NO_DEVICE``. Waiting until the replacement personality is ready lets
+        that first probe cause an immediate successful reattach instead of an
+        early failed open. This is an opt-in virtualization workaround.
+        """
+
+        if not self._settings.qemu_usb_reenumeration_workaround:
+            return
+        LOGGER.info(
+            "QEMU USB re-enumeration workaround: waiting %s seconds for %s",
+            _QEMU_USB_REENUMERATION_SETTLE_SECONDS,
+            personality,
+        )
+        self._report_progress(
+            progress,
+            update_percentage,
+            f"Waiting for {personality} USB re-enumeration",
+        )
+        sleep(_QEMU_USB_REENUMERATION_SETTLE_SECONDS)
+
     def diagnostics(self) -> dict[str, object]:
         """Return non-invasive device and OTBR observations for Home Assistant."""
 
@@ -197,8 +238,8 @@ class RcpUpdater:
             "configured_dfu_vid_pid": DEFAULT_DFU_VID_PID,
             "configured_dfu_serial": self._settings.dfu_serial_number,
             "configured_dfu_usb_path": self._settings.dfu_usb_path,
-            "official_otbr_addon_slug": OFFICIAL_OTBR_ADDON_SLUG,
-            "official_otbr_api_url": OFFICIAL_OTBR_API_URL,
+            "otbr_addon_slug": CORE_OTBR_ADDON_SLUG,
+            "otbr_api_url": CORE_OTBR_API_URL,
         }
         try:
             diagnostics["detected_rcp_usb_serial"] = self._flasher.normal_usb_serial(
@@ -310,7 +351,10 @@ class RcpUpdater:
         return selector
 
     def _wait_for_expected_release(
-        self, release: FirmwareRelease, dfu_selector: DfuSelector | None = None
+        self,
+        release: FirmwareRelease,
+        dfu_selector: DfuSelector | None = None,
+        progress: ProgressReporter | None = None,
     ) -> NcpVersion:
         # Secure DFU targets can take longer than the normal OTBR restart window to
         # switch USB identities and start the RCP application.
@@ -334,7 +378,8 @@ class RcpUpdater:
                         "RCP did not re-enumerate; requesting a final Secure DFU application reboot"
                     )
                     self._flasher.reboot_application(target.target)
-                    return self._wait_for_expected_release(release)
+                    self._settle_qemu_usb_reenumeration(progress, 85, "RCP")
+                    return self._wait_for_expected_release(release, progress=progress)
             except DfuError as err:
                 raise UpdateError(f"RCP application reboot retry failed: {err}") from err
         raise UpdateError(f"RCP did not report the expected firmware after DFU: {last_error}")
@@ -373,7 +418,7 @@ class RcpUpdater:
         if not self._settings.safe_update:
             return False
 
-        state = self._supervisor.addon_state(OFFICIAL_OTBR_ADDON_SLUG)
+        state = self._supervisor.addon_state(CORE_OTBR_ADDON_SLUG)
         if state in {"stopped", "not_running"}:
             return False
         if state not in {"started", "running"}:
@@ -385,12 +430,12 @@ class RcpUpdater:
         return True
 
     def _require_quiet_management_window(self) -> None:
-        OtbrRestClient(OFFICIAL_OTBR_API_URL).require_quiet_management_window(
+        OtbrRestClient(CORE_OTBR_API_URL).require_quiet_management_window(
             self._settings.idle_window
         )
 
     def _require_otbr_healthy(self) -> None:
-        client = OtbrRestClient(OFFICIAL_OTBR_API_URL)
+        client = OtbrRestClient(CORE_OTBR_API_URL)
         deadline = monotonic() + self._settings.boot_timeout
         last_error: Exception | None = None
         while monotonic() < deadline:

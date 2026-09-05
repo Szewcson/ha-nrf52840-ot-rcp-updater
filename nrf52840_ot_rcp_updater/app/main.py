@@ -61,6 +61,7 @@ _SELECTED_TARGET = "selected_ncs_version"
 _RETIRED_STATE_KEYS = ("completed_one_shot_ncs_version", "dfu_activity_at")
 _STARTUP_RESCAN_DELAY = 15
 _RESCAN_RETRY_INTERVAL = 30
+_TELEMETRY_RETRY_INTERVAL = 30
 
 
 def _load_state(store: StateStore) -> dict[str, object]:
@@ -423,26 +424,6 @@ def run() -> None:
                 installed_ncp = updater.install(
                     release, selected_target=selected_target, progress=publish_progress
                 )
-                state = _load_state(state_store)
-                post_install_error: str | None = None
-                if selected_target:
-                    assert manifest is not None
-                    try:
-                        state, release = _return_to_automatic_target(
-                            state_store, manifest, settings
-                        )
-                    except ManifestError as err:
-                        post_install_error = str(err)
-                _publish_state(
-                    mqtt_entity,
-                    updater,
-                    state,
-                    release,
-                    error=post_install_error,
-                    target_versions=target_versions,
-                )
-                LOGGER.info("Verified RCP at NCS %s", installed_ncp.ncs_version)
-                next_rescan = None
             except Exception as err:  # Keep the app alive after a controlled update failure.
                 LOGGER.exception("RCP update failed")
                 state = _mark_installed_unknown(state_store, state)
@@ -455,9 +436,42 @@ def run() -> None:
                     target_versions=target_versions,
                 )
                 next_rescan = monotonic() + _RESCAN_RETRY_INTERVAL
+                next_manifest_refresh = monotonic() + settings.manifest_poll_interval
+            else:
+                # ``install`` has committed a post-flash Spinel verification. Do not
+                # turn that successful physical transaction into "unknown" because
+                # optional MQTT telemetry or manual-target cleanup has a later fault.
+                state = _load_state(state_store)
+                post_install_error: str | None = None
+                if selected_target:
+                    assert manifest is not None
+                    try:
+                        state, release = _return_to_automatic_target(
+                            state_store, manifest, settings
+                        )
+                    except (ManifestError, StateError) as err:
+                        post_install_error = str(err)
+                try:
+                    _publish_state(
+                        mqtt_entity,
+                        updater,
+                        state,
+                        release,
+                        error=post_install_error,
+                        target_versions=target_versions,
+                    )
+                except MqttError:
+                    LOGGER.exception(
+                        "RCP update verified, but final MQTT publication failed; "
+                        "keeping the verified installed state"
+                    )
+                    next_manifest_refresh = monotonic() + _TELEMETRY_RETRY_INTERVAL
+                else:
+                    next_manifest_refresh = monotonic() + settings.manifest_poll_interval
+                LOGGER.info("Verified RCP at NCS %s", installed_ncp.ncs_version)
+                next_rescan = None
             finally:
                 operation_busy.clear()
-            next_manifest_refresh = monotonic() + settings.manifest_poll_interval
     finally:
         mqtt_entity.stop()
 

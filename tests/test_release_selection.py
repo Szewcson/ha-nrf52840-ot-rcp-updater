@@ -58,6 +58,7 @@ def _manifest() -> FirmwareManifest:
                             "url": f"https://example.invalid/{version}.elf",
                             "sha256": "0" * 64,
                             "filename": f"{version}.elf",
+                            "signature_url": f"https://example.invalid/{version}.elf.sig",
                         },
                         "release_url": "https://example.invalid/release",
                         "release_summary": "Test release",

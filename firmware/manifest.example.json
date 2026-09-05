@@ -8,7 +8,8 @@
       "artifact": {
         "url": "https://github.com/OWNER/REPOSITORY/releases/download/v3.3.4/nrf52840-ot-rcp-ncs-3.3.4.elf",
         "sha256": "REPLACE_WITH_LOWERCASE_SHA256",
-        "filename": "nrf52840-ot-rcp-ncs-3.3.4.elf"
+        "filename": "nrf52840-ot-rcp-ncs-3.3.4.elf",
+        "signature_url": "https://github.com/OWNER/REPOSITORY/releases/download/v3.3.4/nrf52840-ot-rcp-ncs-3.3.4.elf.sig"
       },
       "dfu_application_version": 300300499,
       "release_url": "https://github.com/OWNER/REPOSITORY/releases/tag/v3.3.4",

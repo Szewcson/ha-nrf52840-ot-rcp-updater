@@ -15,6 +15,11 @@ configuration:
     description: >-
       Require OTBR to be idle, stop it while the RCP is updated, then verify
       that it is healthy again.
+  qemu_usb_reenumeration_workaround:
+    name: QEMU USB re-enumeration workaround
+    description: >-
+      Wait for USB re-enumeration after each RCP and Secure DFU transition.
+      Enable only for unreliable direct USB passthrough in a QEMU guest.
   allow_legacy_rcp:
     name: Allow untagged RCP recovery
     description: >-

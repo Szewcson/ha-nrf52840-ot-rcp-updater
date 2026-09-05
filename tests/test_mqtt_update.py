@@ -71,7 +71,12 @@ class MqttUpdateTests(unittest.TestCase):
             ncs_version="3.3.4",
             zephyr_version="4.4.0",
             dfu_application_version=3_003_004,
-            artifact=Artifact("https://example.invalid/rcp.elf", "0" * 64, "rcp.elf"),
+            artifact=Artifact(
+                "https://example.invalid/rcp.elf",
+                "0" * 64,
+                "rcp.elf",
+                "https://example.invalid/rcp.elf.sig",
+            ),
             release_url="https://example.invalid/release",
             release_summary="Test release",
         )
@@ -115,9 +120,12 @@ class MqttUpdateTests(unittest.TestCase):
         )
         self.assertIn(mqtt_update.STATE_TOPIC, [topic for topic, _ in client.published])
         update_config = json.loads(dict(client.published)[mqtt_update.DISCOVERY_TOPIC])
+        self.assertEqual(update_config["name"], "PCA10059 OpenThread RCP")
         self.assertEqual(update_config["device_class"], "firmware")
         self.assertEqual(update_config["entity_category"], "config")
         self.assertEqual(update_config["origin"], mqtt_update.DISCOVERY_ORIGIN)
+        self.assertEqual(update_config["device"]["name"], "PCA10059 OpenThread RCP Updater")
+        self.assertNotIn("manufacturer", update_config["device"])
 
     def test_publishes_dynamic_target_options_and_diagnostics(self) -> None:
         with patch.object(mqtt_update, "mqtt", _FakeMqtt):

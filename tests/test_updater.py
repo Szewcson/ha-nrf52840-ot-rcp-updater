@@ -5,14 +5,14 @@ import unittest
 from contextlib import contextmanager
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from unittest.mock import patch
+from unittest.mock import call, patch
 
 sys.path.insert(0, str(Path(__file__).parents[1] / "nrf52840_ot_rcp_updater"))
 
 from app.dfu import DfuSelector, DfuTarget, DfuTargetProbe, DfuTransferError
 from app.models import Artifact, FirmwareRelease, NcpVersion, Settings
 from app.spinel import SpinelError
-from app.state import StateStore
+from app.state import StateError, StateStore, update_lock
 from app.updater import RcpUpdater, RescanDeferred, UpdateError
 
 
@@ -21,12 +21,15 @@ def _settings(
     allow_legacy_rcp: bool = True,
     dfu_usb_path: str | None = None,
     device: str = "/dev/null",
+    qemu_usb_reenumeration_workaround: bool = False,
+    safe_update: bool = True,
 ) -> Settings:
     return Settings.from_mapping(
         {
             "device": device,
             "baudrate": 460800,
-            "safe_update": True,
+            "safe_update": safe_update,
+            "qemu_usb_reenumeration_workaround": qemu_usb_reenumeration_workaround,
             "allow_legacy_rcp": allow_legacy_rcp,
             "allow_prereleases": False,
             "dfu_serial_number": dfu_serial_number,
@@ -48,6 +51,7 @@ def _release(version: str, zephyr_version: str = "4.4.0") -> FirmwareRelease:
             url="https://example.invalid/rcp.elf",
             sha256="0" * 64,
             filename="rcp.elf",
+            signature_url="https://example.invalid/rcp.elf.sig",
         ),
         release_url="https://example.invalid/release",
         release_summary="Test release",
@@ -293,6 +297,40 @@ class SafeUpdateFallbackTests(unittest.TestCase):
 
 
 class NrfDfuUpdateTests(unittest.TestCase):
+    def test_keeps_the_transaction_lock_through_durable_verified_state(self) -> None:
+        expected = NcpVersion(
+            raw="HW/PCA10059 NCS/3.4.0 ZEPHYR/4.4.0",
+            hardware="PCA10059",
+            ncs_version="3.4.0",
+            zephyr_version="4.4.0",
+        )
+        with TemporaryDirectory() as directory:
+            state_store = StateStore(Path(directory))
+            updater = RcpUpdater(
+                _settings(safe_update=False),
+                state_store,
+                supervisor=_Supervisor("stopped"),
+                flasher=object(),
+            )
+            updater._spinel = lambda: _Spinel(expected)
+            lock_outcomes: list[str] = []
+
+            def progress(percentage: int, stage: str) -> None:
+                del stage
+                if percentage == 100:
+                    try:
+                        with update_lock(Path(directory)):
+                            lock_outcomes.append("acquired")
+                    except StateError:
+                        lock_outcomes.append("blocked")
+
+            with patch("app.updater.download_artifact", return_value=Path(directory) / "rcp.elf"):
+                self.assertEqual(updater.install(_release("3.4.0"), progress=progress), expected)
+
+            self.assertEqual(lock_outcomes, ["blocked"])
+            with update_lock(Path(directory)):
+                pass
+
     def test_reconciles_a_verified_firmware_after_nrfdfu_reports_a_transfer_error(self) -> None:
         before = NcpVersion(
             raw="HW/PCA10059 NCS/3.5.0-preview1 ZEPHYR/4.4.0",
@@ -453,6 +491,78 @@ class NrfDfuUpdateTests(unittest.TestCase):
                 (100, "Update verified"),
             ],
         )
+
+    def test_qemu_workaround_settles_before_each_first_probe(self) -> None:
+        before = NcpVersion(
+            raw="HW/PCA10059 NCS/3.3.4 ZEPHYR/4.3.99",
+            hardware="PCA10059",
+            ncs_version="3.3.4",
+            zephyr_version="4.3.99",
+        )
+        expected = NcpVersion(
+            raw="HW/PCA10059 NCS/3.4.0 ZEPHYR/4.4.0",
+            hardware="PCA10059",
+            ncs_version="3.4.0",
+            zephyr_version="4.4.0",
+        )
+        with TemporaryDirectory() as directory:
+            firmware = Path(directory) / "rcp.elf"
+            spinel = _Spinel(before, expected)
+            updater = RcpUpdater(
+                _settings(qemu_usb_reenumeration_workaround=True),
+                StateStore(Path(directory)),
+                supervisor=_Supervisor("stopped"),
+                flasher=_Flasher(),
+            )
+            updater._spinel = lambda: spinel
+            progress: list[tuple[int, str]] = []
+
+            with (
+                patch("app.updater.download_artifact", return_value=firmware),
+                patch("app.updater.sleep") as sleep,
+            ):
+                self.assertEqual(
+                    updater.install(
+                        _release("3.4.0"),
+                        progress=lambda percentage, stage: progress.append((percentage, stage)),
+                    ),
+                    expected,
+                )
+
+        self.assertEqual(sleep.call_args_list, [call(8), call(8)])
+        self.assertIn((60, "Waiting for Secure DFU USB re-enumeration"), progress)
+        self.assertIn((85, "Waiting for RCP USB re-enumeration"), progress)
+
+    def test_qemu_workaround_settles_bootloader_recovery_before_spinel(self) -> None:
+        expected = NcpVersion(
+            raw="HW/PCA10059 NCS/3.4.0 ZEPHYR/4.4.0",
+            hardware="PCA10059",
+            ncs_version="3.4.0",
+            zephyr_version="4.4.0",
+        )
+        with TemporaryDirectory() as directory:
+            firmware = Path(directory) / "rcp.elf"
+            flasher = _Flasher()
+            spinel = _BootloaderSpinel(expected)
+            updater = RcpUpdater(
+                _settings(
+                    dfu_serial_number="CC2180B1200E",
+                    qemu_usb_reenumeration_workaround=True,
+                ),
+                StateStore(Path(directory)),
+                supervisor=_Supervisor("stopped"),
+                flasher=flasher,
+            )
+            updater._spinel = lambda: spinel
+
+            with (
+                patch("app.updater.download_artifact", return_value=firmware),
+                patch("app.updater.sleep") as sleep,
+            ):
+                self.assertEqual(updater.install(_release("3.4.0")), expected)
+
+        self.assertFalse(spinel.reset_requested)
+        self.assertEqual(sleep.call_args_list, [call(8)])
 
     def test_recovers_an_already_bootloader_only_rcp_without_resetting_it(self) -> None:
         expected = NcpVersion(

@@ -1,7 +1,7 @@
-name: nRF52840 OT RCP Updater
-version: 0.2.37
+name: PCA10059 OpenThread RCP Updater
+version: 0.3.0
 slug: nrf52840_ot_rcp_updater
-description: Safely updates a PCA10059 OpenThread RCP used by the official OTBR app
+description: Safely updates a PCA10059 RCP used by the Home Assistant Core OpenThread Border Router app
 stage: experimental
 url: https://github.com/Szewcson/ha-nrf52840-ot-rcp-updater
 arch:
@@ -24,6 +24,7 @@ options:
   device: null
   baudrate: "1000000"
   safe_update: true
+  qemu_usb_reenumeration_workaround: false
   allow_legacy_rcp: false
   allow_prereleases: false
   pinned_ncs_minor: ""
@@ -35,9 +36,10 @@ options:
 schema:
   # Select the normal RCP endpoint before starting any Secure DFU recovery.
   device: device(subsystem=tty)
-  # Match the official OTBR selector while keeping the accepted values fixed.
+  # Match the Core OpenThread Border Router selector while keeping values fixed.
   baudrate: list(57600|115200|230400|460800|921600|1000000)
   safe_update: bool
+  qemu_usb_reenumeration_workaround: bool
   allow_legacy_rcp: bool
   allow_prereleases: bool
   pinned_ncs_minor: str?

@@ -246,7 +246,7 @@ class MqttUpdateEntity:
         self._publish_json(
             DISCOVERY_TOPIC,
             {
-                "name": "nRF52840 OT RCP",
+                "name": "PCA10059 OpenThread RCP",
                 "unique_id": "nrf52840_ot_rcp_updater_rcp",
                 "device_class": "firmware",
                 "entity_category": "config",
@@ -301,8 +301,7 @@ class MqttUpdateEntity:
     def _device_info() -> dict[str, object]:
         return {
             "identifiers": ["nrf52840_ot_rcp_updater"],
-            "name": "nRF52840 OT RCP Updater",
-            "manufacturer": "Nordic Semiconductor",
+            "name": "PCA10059 OpenThread RCP Updater",
             "model": "PCA10059",
         }
 

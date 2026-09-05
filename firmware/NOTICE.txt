@@ -1,0 +1,12 @@
+PCA10059 OpenThread RCP firmware notice
+
+This firmware is an independent community build for the PCA10059 board. It is
+not affiliated with, sponsored by, authorized by, or endorsed by Nordic
+Semiconductor ASA, the Open Home Foundation, Nabu Casa, Home Assistant, or the
+OpenThread project. Those names identify source and product compatibility only.
+
+The firmware is built from the nRF Connect SDK for an nRF52840-based product.
+The exact NCS license text, SPDX SBOM, generated notice, and build provenance
+for each firmware ELF are published next to that ELF. The add-on source code is
+licensed under Apache-2.0; the firmware and its dependencies may have different
+terms. This notice is not legal advice.

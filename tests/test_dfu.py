@@ -133,6 +133,22 @@ class NrfDfuFlasherTests(unittest.TestCase):
             [NRFDFU_EXECUTABLE, "--serial", "CC2180B1200E", "--port", "/dev/ttyACM0", "--abort"],
         )
 
+    @patch("app.dfu.shutil.which", return_value="/usr/local/bin/nrfdfu")
+    @patch("app.dfu.subprocess.run")
+    def test_nrfdfu_does_not_inherit_supervisor_or_mqtt_credentials(self, run, which) -> None:
+        del which
+        run.return_value = subprocess.CompletedProcess([], 0, stdout=b"ready\n")
+
+        NrfDfuFlasher()._run([NRFDFU_EXECUTABLE, "--get-images"], 10, "test nrfdfu")
+
+        environment = run.call_args.kwargs["env"]
+        self.assertEqual(environment["PATH"], "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin")
+        self.assertEqual(environment["LANG"], "C.UTF-8")
+        self.assertEqual(environment["LC_ALL"], "C.UTF-8")
+        self.assertNotIn("SUPERVISOR_TOKEN", environment)
+        self.assertNotIn("OT_RCP_MQTT_PASSWORD", environment)
+        self.assertTrue(run.call_args.kwargs["close_fds"])
+
     def test_records_the_normal_rcp_physical_usb_path_not_its_different_serial(self) -> None:
         with TemporaryDirectory() as directory:
             root = Path(directory)

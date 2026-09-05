@@ -23,6 +23,26 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+      - name: Verify updater and image inputs
+        run: |
+          set -eu
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends --yes apparmor-utils python3-venv
+          python3 -m venv "${RUNNER_TEMP}/verify-venv"
+          . "${RUNNER_TEMP}/verify-venv/bin/activate"
+          python -m pip install --disable-pip-version-check --no-cache-dir \
+            --requirement requirements-dev.txt
+          ruff check .
+          python -m unittest discover -s tests -v
+          python -m compileall -q nrf52840_ot_rcp_updater/app tools tests
+          bash -n nrf52840_ot_rcp_updater/run.sh
+          apparmor_parser -Q -K -q nrf52840_ot_rcp_updater/apparmor.txt
+          docker build nrf52840_ot_rcp_updater
+
   discover:
     runs-on: ubuntu-24.04
     outputs:
@@ -76,8 +96,8 @@ jobs:
           echo "releases=${releases}" >> "${GITHUB_OUTPUT}"
 
   build:
-    needs: discover
-    if: needs.discover.outputs.releases != '[]'
+    needs: [discover, verify]
+    if: needs.discover.outputs.releases != '[]' && needs.verify.result == 'success'
     runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
@@ -93,20 +113,30 @@ jobs:
           set -eu
           sudo apt-get update
           sudo apt-get install --no-install-recommends --yes \
+            bzip2 \
             ca-certificates \
             cmake \
             file \
             git \
+            libpopt0 \
+            libxml2-dev \
+            libxslt1-dev \
             ninja-build \
+            python3-dev \
             python3-pip \
             python3-venv \
-            xz-utils
+            xz-utils \
+            zlib1g-dev
           python3 -m venv --system-site-packages "${RUNNER_TEMP}/venv"
           . "${RUNNER_TEMP}/venv/bin/activate"
           python -m pip install --disable-pip-version-check --no-cache-dir "west==1.4.0"
           west init --mr "${NCS_TAG}" -m https://github.com/nrfconnect/sdk-nrf "${RUNNER_TEMP}/ncs"
           cd "${RUNNER_TEMP}/ncs"
           west update
+          expected_ncs_license_sha256="$(jq -r '.ncs_license_sha256' "${GITHUB_WORKSPACE}/firmware/release-policy.json")"
+          test "${expected_ncs_license_sha256}" != "null"
+          actual_ncs_license_sha256="$(sha256sum nrf/LICENSE | awk '{ print $1 }')"
+          test "${actual_ncs_license_sha256}" = "${expected_ncs_license_sha256}"
           # Let the checked-out Zephyr release select its own Python requirements.
           west packages pip --install -- --disable-pip-version-check --no-cache-dir
           # NCS does not expose its extra build requirements through west packages.
@@ -127,6 +157,30 @@ jobs:
             --ncs-root "${RUNNER_TEMP}/ncs" \
             --expected-ncs-version "${NCS_VERSION}" \
             --output-dir "${GITHUB_WORKSPACE}/candidate"
+          python -m pip install --disable-pip-version-check --no-cache-dir \
+            --requirement nrf/scripts/requirements-west-ncs-sbom.txt
+          west ncs-sbom \
+            -d "${GITHUB_WORKSPACE}/candidate/build/coprocessor" \
+            --output-spdx "${GITHUB_WORKSPACE}/candidate/firmware.spdx" \
+            --output-html "${GITHUB_WORKSPACE}/candidate/firmware-notices.html"
+          python "${GITHUB_WORKSPACE}/tools/validate_sbom.py" \
+            --spdx "${GITHUB_WORKSPACE}/candidate/firmware.spdx"
+          cp nrf/LICENSE "${GITHUB_WORKSPACE}/candidate/NCS-LICENSE.txt"
+          cp "${GITHUB_WORKSPACE}/firmware/NOTICE.txt" \
+            "${GITHUB_WORKSPACE}/candidate/PROJECT-NOTICE.txt"
+          west manifest --freeze > "${GITHUB_WORKSPACE}/candidate/west-manifest.yml"
+          cp zephyr/SDK_VERSION "${GITHUB_WORKSPACE}/candidate/zephyr-sdk.txt"
+          artifact="$(jq -er '.artifact' "${GITHUB_WORKSPACE}/candidate/release-metadata.json")"
+          python "${GITHUB_WORKSPACE}/tools/create_firmware_provenance.py" \
+            --metadata "${GITHUB_WORKSPACE}/candidate/release-metadata.json" \
+            --artifact "${GITHUB_WORKSPACE}/candidate/${artifact}" \
+            --ncs-tag "${NCS_TAG}" \
+            --ncs-revision "$(git rev-parse HEAD)" \
+            --ncs-license "${GITHUB_WORKSPACE}/candidate/NCS-LICENSE.txt" \
+            --west-manifest "${GITHUB_WORKSPACE}/candidate/west-manifest.yml" \
+            --toolchain-report "${GITHUB_WORKSPACE}/candidate/zephyr-sdk.txt" \
+            --source-revision "${GITHUB_SHA}" \
+            --output "${GITHUB_WORKSPACE}/candidate/provenance.json"
       - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: nrf52840-ot-rcp-${{ matrix.version }}
@@ -135,9 +189,10 @@ jobs:
           retention-days: 1
 
   publish:
-    needs: [discover, build]
-    if: needs.discover.outputs.releases != '[]' && needs.build.result == 'success'
+    needs: [discover, verify, build]
+    if: needs.discover.outputs.releases != '[]' && needs.verify.result == 'success' && needs.build.result == 'success'
     runs-on: ubuntu-24.04
+    environment: firmware-publisher
     permissions:
       contents: write
     strategy:
@@ -153,13 +208,41 @@ jobs:
           path: candidate
       - name: Publish firmware branch
         env:
+          FIRMWARE_SIGNING_PRIVATE_KEY_B64: ${{ secrets.FIRMWARE_SIGNING_PRIVATE_KEY_B64 }}
           GITHUB_TOKEN: ${{ github.token }}
           NCS_VERSION: ${{ matrix.version }}
           REPOSITORY: ${{ github.repository }}
         run: |
           set -euo pipefail
-          package="$(find candidate -maxdepth 1 -name '*.elf' -type f -print -quit)"
-          test -n "${package}"
+          python3 -m venv "${RUNNER_TEMP}/signing-venv"
+          . "${RUNNER_TEMP}/signing-venv/bin/activate"
+          python -m pip install --disable-pip-version-check --no-cache-dir "cryptography==43.0.0"
+          test -n "${FIRMWARE_SIGNING_PRIVATE_KEY_B64}"
+          signing_key="${RUNNER_TEMP}/firmware-signing-key.pem"
+          trap 'rm -f "${signing_key}"' EXIT
+          printf '%s' "${FIRMWARE_SIGNING_PRIVATE_KEY_B64}" | base64 --decode > "${signing_key}"
+          chmod 0600 "${signing_key}"
+          filename="$(jq -er '.artifact | select(type == "string" and test("^[A-Za-z0-9._+-]+\\.elf$"))' candidate/release-metadata.json)"
+          package="candidate/${filename}"
+          test -f "${package}"
+          expected_sha256="$(jq -er '.sha256 | select(type == "string" and test("^[0-9a-f]{64}$"))' candidate/release-metadata.json)"
+          actual_sha256="$(sha256sum "${package}" | awk '{ print $1 }')"
+          test "${actual_sha256}" = "${expected_sha256}"
+          for evidence in \
+            NCS-LICENSE.txt \
+            PROJECT-NOTICE.txt \
+            firmware.spdx \
+            firmware-notices.html \
+            provenance.json \
+            release-metadata.json \
+            west-manifest.yml \
+            zephyr-sdk.txt; do
+            test -s "candidate/${evidence}"
+          done
+          python tools/sign_firmware.py \
+            --private-key "${signing_key}" \
+            --input "${package}" \
+            --output "${package}.sig"
           store="${RUNNER_TEMP}/firmware-store"
           remote="https://x-access-token:${GITHUB_TOKEN}@github.com/${REPOSITORY}.git"
           git init --initial-branch="${FIRMWARE_BRANCH}" "${store}"
@@ -170,16 +253,55 @@ jobs:
           git -C "${store}" config user.name "github-actions[bot]"
           git -C "${store}" config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           manifest="${store}/${FIRMWARE_MANIFEST}"
-          if [ ! -f "${manifest}" ]; then
+          if [ -f "${manifest}" ]; then
+            test -f "${manifest}.sig"
+            python tools/sign_firmware.py \
+              --public-key nrf52840_ot_rcp_updater/app/firmware_signing_public_key.pem \
+              --input "${manifest}" \
+              --signature "${manifest}.sig"
+          else
             printf '{"releases":[],"schema_version":1}\n' > "${manifest}"
           fi
-          filename="$(basename "${package}")"
           install -D -m 0644 "${package}" "${store}/${FIRMWARE_DIRECTORY}/${filename}"
+          install -D -m 0644 "${package}.sig" "${store}/${FIRMWARE_DIRECTORY}/${filename}.sig"
+          install -D -m 0644 candidate/NCS-LICENSE.txt \
+            "${store}/${FIRMWARE_DIRECTORY}/${filename}.ncs-license.txt"
+          install -D -m 0644 candidate/PROJECT-NOTICE.txt \
+            "${store}/${FIRMWARE_DIRECTORY}/${filename}.project-notice.txt"
+          install -D -m 0644 candidate/firmware.spdx \
+            "${store}/${FIRMWARE_DIRECTORY}/${filename}.sbom.spdx"
+          install -D -m 0644 candidate/firmware-notices.html \
+            "${store}/${FIRMWARE_DIRECTORY}/${filename}.sbom.html"
+          install -D -m 0644 candidate/provenance.json \
+            "${store}/${FIRMWARE_DIRECTORY}/${filename}.provenance.json"
+          install -D -m 0644 candidate/release-metadata.json \
+            "${store}/${FIRMWARE_DIRECTORY}/${filename}.release-metadata.json"
+          install -D -m 0644 candidate/west-manifest.yml \
+            "${store}/${FIRMWARE_DIRECTORY}/${filename}.west-manifest.yml"
+          install -D -m 0644 candidate/zephyr-sdk.txt \
+            "${store}/${FIRMWARE_DIRECTORY}/${filename}.zephyr-sdk.txt"
           python3 tools/publish_manifest.py \
             --manifest "${manifest}" \
             --metadata candidate/release-metadata.json \
+            --artifact "${package}" \
             --artifact-base-url "https://raw.githubusercontent.com/${REPOSITORY}/${FIRMWARE_BRANCH}/${FIRMWARE_DIRECTORY}" \
             --release-url "https://github.com/${REPOSITORY}/tree/${FIRMWARE_BRANCH}"
-          git -C "${store}" add "${FIRMWARE_MANIFEST}" "${FIRMWARE_DIRECTORY}/${filename}"
+          python tools/sign_firmware.py \
+            --private-key "${signing_key}" \
+            --input "${manifest}" \
+            --output "${manifest}.sig"
+          git -C "${store}" add \
+            "${FIRMWARE_MANIFEST}" \
+            "${FIRMWARE_MANIFEST}.sig" \
+            "${FIRMWARE_DIRECTORY}/${filename}" \
+            "${FIRMWARE_DIRECTORY}/${filename}.sig" \
+            "${FIRMWARE_DIRECTORY}/${filename}.ncs-license.txt" \
+            "${FIRMWARE_DIRECTORY}/${filename}.project-notice.txt" \
+            "${FIRMWARE_DIRECTORY}/${filename}.sbom.spdx" \
+            "${FIRMWARE_DIRECTORY}/${filename}.sbom.html" \
+            "${FIRMWARE_DIRECTORY}/${filename}.provenance.json" \
+            "${FIRMWARE_DIRECTORY}/${filename}.release-metadata.json" \
+            "${FIRMWARE_DIRECTORY}/${filename}.west-manifest.yml" \
+            "${FIRMWARE_DIRECTORY}/${filename}.zephyr-sdk.txt"
           git -C "${store}" commit -m "firmware: publish PCA10059 NCS ${NCS_VERSION}"
           git -C "${store}" push origin "HEAD:${FIRMWARE_BRANCH}"
