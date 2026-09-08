@@ -2,23 +2,45 @@
 
 from __future__ import annotations
 
-from hashlib import sha256
-from io import BytesIO
+import base64
+import binascii
 import json
 import os
-from pathlib import Path
+import struct
 import tempfile
+from hashlib import sha256
+from pathlib import Path
 from urllib.error import URLError
 from urllib.request import Request, urlopen
-import zipfile
 
-from .models import Artifact, FirmwareRelease, ValidationError, validate_token, validate_version
+from cryptography.exceptions import InvalidSignature
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 
+from .models import (
+    Artifact,
+    FirmwareRelease,
+    ValidationError,
+    is_prerelease,
+    minor_line,
+    validate_dfu_application_version,
+    validate_token,
+    validate_version,
+    version_key,
+)
 
 MAX_MANIFEST_BYTES = 512 * 1024
-MAX_ARTIFACT_BYTES = 8 * 1024 * 1024
-MAX_ARTIFACT_FILES = 16
-MAX_ARTIFACT_UNCOMPRESSED_BYTES = 16 * 1024 * 1024
+MAX_ARTIFACT_BYTES = 32 * 1024 * 1024
+MAX_SIGNATURE_BYTES = 512
+_ELF32_HEADER_SIZE = 52
+_ELF32_PROGRAM_HEADER_SIZE = 32
+_ELF32_EM_ARM = 40
+_ELF32_PT_LOAD = 1
+_PCA10059_APPLICATION_START = 0x1000
+_PCA10059_FLASH_END = 0x00100000
+_SIGNATURE_PREFIX = "ed25519:"
+_FIRMWARE_SIGNING_PUBLIC_KEY_PATH = Path(__file__).with_name("firmware_signing_public_key.pem")
+_FIRMWARE_SIGNING_PUBLIC_KEY_PEM = _FIRMWARE_SIGNING_PUBLIC_KEY_PATH.read_bytes()
 
 
 class ManifestError(RuntimeError):
@@ -38,6 +60,47 @@ def _fetch(url: str, maximum_size: int) -> bytes:
     if len(data) > maximum_size:
         raise ManifestError(f"download from {url} exceeds the configured size limit")
     return data
+
+
+def _signature_url(url: str) -> str:
+    """Return the detached signature colocated with a signed release file."""
+
+    return f"{url}.sig"
+
+
+def _verify_signature(payload: bytes, signature: bytes, description: str) -> None:
+    """Verify a detached signature with the image-pinned public key.
+
+    A signed manifest makes its artifact hash authoritative, while a detached
+    artifact signature makes each firmware payload independently authentic.
+    The public key is shipped in the add-on image, outside the mutable firmware
+    branch, so replacing a manifest and its SHA-256 cannot authorize an ELF.
+    """
+
+    try:
+        encoded = signature.decode("ascii").strip()
+    except UnicodeDecodeError as err:
+        raise ManifestError(f"{description} signature is not ASCII") from err
+    if not encoded.startswith(_SIGNATURE_PREFIX):
+        raise ManifestError(f"{description} signature has an unsupported format")
+    try:
+        raw_signature = base64.b64decode(
+            encoded.removeprefix(_SIGNATURE_PREFIX), validate=True
+        )
+    except (ValueError, binascii.Error) as err:
+        raise ManifestError(f"{description} signature is not valid base64") from err
+    if len(raw_signature) != 64:
+        raise ManifestError(f"{description} signature has an invalid Ed25519 length")
+    try:
+        public_key = serialization.load_pem_public_key(_FIRMWARE_SIGNING_PUBLIC_KEY_PEM)
+    except (TypeError, ValueError) as err:  # pragma: no cover - image build invariant.
+        raise ManifestError("built-in firmware signing public key is invalid") from err
+    if not isinstance(public_key, Ed25519PublicKey):  # pragma: no cover - image build invariant.
+        raise ManifestError("built-in firmware signing public key is not Ed25519")
+    try:
+        public_key.verify(raw_signature, payload)
+    except InvalidSignature as err:
+        raise ManifestError(f"{description} signature does not match") from err
 
 
 class FirmwareManifest:
@@ -71,11 +134,15 @@ class FirmwareManifest:
                     url=str(artifact_item["url"]),
                     sha256=str(artifact_item["sha256"]),
                     filename=str(artifact_item["filename"]),
+                    signature_url=str(artifact_item["signature_url"]),
                 )
                 release = FirmwareRelease(
                     hardware=validate_token(item["hardware"], "hardware"),
                     ncs_version=validate_version(item["ncs_version"], "ncs_version"),
                     zephyr_version=validate_version(item["zephyr_version"], "zephyr_version"),
+                    dfu_application_version=validate_dfu_application_version(
+                        item["dfu_application_version"], "dfu_application_version"
+                    ),
                     artifact=artifact,
                     release_url=str(item["release_url"]),
                     release_summary=str(item["release_summary"]),
@@ -87,39 +154,91 @@ class FirmwareManifest:
 
     @classmethod
     def download(cls, url: str) -> FirmwareManifest:
-        return cls.from_bytes(_fetch(url, MAX_MANIFEST_BYTES))
+        payload = _fetch(url, MAX_MANIFEST_BYTES)
+        _verify_signature(
+            payload,
+            _fetch(_signature_url(url), MAX_SIGNATURE_BYTES),
+            "release manifest",
+        )
+        return cls.from_bytes(payload)
 
-    def newest_for(self, hardware: str) -> FirmwareRelease:
-        candidates = [release for release in self._releases if release.hardware == hardware]
+    def newest_for(
+        self,
+        hardware: str,
+        allow_prereleases: bool = False,
+        pinned_minor: str | None = None,
+    ) -> FirmwareRelease:
+        """Select the newest allowed release without crossing a policy boundary."""
+
+        candidates = [
+            release
+            for release in self.releases_for(hardware, allow_prereleases=allow_prereleases)
+            if pinned_minor is None or minor_line(release.ncs_version) == pinned_minor
+        ]
         if not candidates:
-            raise ManifestError(f"no supported release for hardware {hardware}")
-        # The NCP exposes NCS, not this project's release label, over Spinel.
-        return max(candidates, key=lambda release: _version_key(release.ncs_version))
+            raise ManifestError(
+                "no release matches the configured NCS channel and minor-line policy"
+            )
+        return max(candidates, key=lambda release: version_key(release.ncs_version))
 
+    def releases_for(
+        self, hardware: str, allow_prereleases: bool = False
+    ) -> tuple[FirmwareRelease, ...]:
+        """Return manifest-verified targets for the runtime firmware selector."""
 
-def _version_key(version: str) -> tuple[int, ...]:
-    base = version.split("-", 1)[0].split("+", 1)[0]
-    return tuple(int(part) for part in base.split("."))
+        return tuple(
+            sorted(
+                (
+                    release
+                    for release in self._releases
+                    if release.hardware == hardware
+                    and (allow_prereleases or not is_prerelease(release.ncs_version))
+                ),
+                key=lambda release: version_key(release.ncs_version),
+            )
+        )
+
+    def release_for(self, hardware: str, ncs_version: str) -> FirmwareRelease:
+        """Return one configured legacy-migration target from the trusted manifest."""
+
+        matches = [
+            release
+            for release in self._releases
+            if release.hardware == hardware and release.ncs_version == ncs_version
+        ]
+        if len(matches) != 1:
+            raise ManifestError(f"no unique {hardware} release for NCS {ncs_version}")
+        return matches[0]
 
 
 def download_artifact(release: FirmwareRelease, destination_directory: Path) -> Path:
-    """Download one manifest-selected package, atomically, after hashing it."""
+    """Download one manifest-selected ELF, atomically, after hashing it."""
 
     destination_directory.mkdir(mode=0o700, parents=True, exist_ok=True)
     target = destination_directory / release.artifact.filename
+    cached = False
     if target.is_file() and target.stat().st_size <= MAX_ARTIFACT_BYTES:
-        cached = target.read_bytes()
-        if sha256(cached).hexdigest() == release.artifact.sha256:
-            _validate_dfu_zip(cached)
-            return target
-
-    data = _fetch(release.artifact.url, MAX_ARTIFACT_BYTES)
+        data = target.read_bytes()
+        cached = sha256(data).hexdigest() == release.artifact.sha256
+    else:
+        data = b""
+    if not cached:
+        data = _fetch(release.artifact.url, MAX_ARTIFACT_BYTES)
     digest = sha256(data).hexdigest()
     if digest != release.artifact.sha256:
-        raise ManifestError("firmware package SHA-256 does not match its release manifest")
-    _validate_dfu_zip(data)
+        raise ManifestError("firmware ELF SHA-256 does not match its release manifest")
+    _verify_signature(
+        data,
+        _fetch(release.artifact.signature_url, MAX_SIGNATURE_BYTES),
+        "firmware ELF",
+    )
+    validate_rcp_elf(data)
+    if cached:
+        return target
 
-    descriptor, temporary_name = tempfile.mkstemp(prefix="download-", suffix=".zip", dir=destination_directory)
+    descriptor, temporary_name = tempfile.mkstemp(
+        prefix="download-", suffix=".elf", dir=destination_directory
+    )
     try:
         with os.fdopen(descriptor, "wb") as temporary_file:
             temporary_file.write(data)
@@ -135,30 +254,51 @@ def download_artifact(release: FirmwareRelease, destination_directory: Path) -> 
     return target
 
 
-def _validate_dfu_zip(data: bytes) -> None:
-    """Reject ZIP bombs and path-shaped input before passing it to nrfutil."""
+def validate_rcp_elf(data: bytes) -> None:
+    """Accept only a bounded 32-bit little-endian ARM ELF in PCA10059 flash."""
 
-    if not data.startswith(b"PK\x03\x04"):
-        raise ManifestError("firmware artifact is not a ZIP file")
-    try:
-        with zipfile.ZipFile(BytesIO(data)) as archive:
-            entries = archive.infolist()
-    except zipfile.BadZipFile as err:
-        raise ManifestError("firmware artifact is not a valid ZIP file") from err
-    if not 1 <= len(entries) <= MAX_ARTIFACT_FILES:
-        raise ManifestError("firmware artifact has an unsafe number of ZIP entries")
+    if len(data) < _ELF32_HEADER_SIZE:
+        raise ManifestError("firmware artifact is too short to be an ELF32 image")
+    if data[:4] != b"\x7fELF":
+        raise ManifestError("firmware artifact is not an ELF file")
+    if data[4:7] != b"\x01\x01\x01":
+        raise ManifestError("firmware artifact must be a 32-bit little-endian ELF")
 
-    total_size = 0
-    names: set[str] = set()
-    for entry in entries:
-        name = entry.filename
-        if name.startswith("/") or "\\" in name or ".." in name.split("/"):
-            raise ManifestError("firmware artifact contains an unsafe ZIP path")
-        if entry.is_dir():
+    e_type, e_machine = struct.unpack_from("<HH", data, 16)
+    if e_type != 2 or e_machine != _ELF32_EM_ARM:
+        raise ManifestError("firmware artifact must be an ARM executable ELF")
+    program_offset = struct.unpack_from("<I", data, 28)[0]
+    program_entry_size, program_count = struct.unpack_from("<HH", data, 42)
+    if program_entry_size < _ELF32_PROGRAM_HEADER_SIZE or program_count == 0:
+        raise ManifestError("firmware ELF has no valid program headers")
+    table_size = program_entry_size * program_count
+    if program_offset > len(data) or table_size > len(data) - program_offset:
+        raise ManifestError("firmware ELF program headers are outside the file")
+
+    has_flash_segment = False
+    for index in range(program_count):
+        offset = program_offset + index * program_entry_size
+        segment_type, file_offset, _, physical_address, file_size = struct.unpack_from(
+            "<IIIII", data, offset
+        )
+        if segment_type != _ELF32_PT_LOAD or file_size == 0:
             continue
-        total_size += entry.file_size
-        names.add(name)
-    if total_size > MAX_ARTIFACT_UNCOMPRESSED_BYTES:
-        raise ManifestError("firmware artifact expands beyond the configured size limit")
-    if "manifest.json" not in names:
-        raise ManifestError("firmware artifact does not contain a Nordic DFU manifest")
+        if file_offset > len(data) or file_size > len(data) - file_offset:
+            raise ManifestError("firmware ELF load segment is outside the file")
+        # Embedded ELF files commonly map their ELF headers at address zero.
+        # nrfdfu-rs ignores this non-firmware segment before emitting flash data.
+        if physical_address == 0:
+            continue
+        if (
+            physical_address < _PCA10059_APPLICATION_START
+            or physical_address > _PCA10059_FLASH_END - file_size
+        ):
+            raise ManifestError("firmware ELF load segment is outside PCA10059 application flash")
+        has_flash_segment = True
+    if not has_flash_segment:
+        raise ManifestError("firmware ELF has no loadable PCA10059 flash segment")
+
+
+# Kept as a private alias until third-party users of the original helper can
+# migrate; new app code uses the explicit public validator above.
+_validate_rcp_elf = validate_rcp_elf

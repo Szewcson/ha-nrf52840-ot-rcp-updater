@@ -6,7 +6,9 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 
 sys.path.insert(0, str(Path(__file__).parents[1]))
+sys.path.insert(0, str(Path(__file__).parents[1] / "nrf52840_ot_rcp_updater"))
 
+from app.models import ncs_dfu_application_version
 from tools.build_rcp import (
     BuildError,
     _read_ncs_version,
@@ -43,6 +45,24 @@ class BuildRcpTests(unittest.TestCase):
             dfu_application_version("3.5.0-preview1"), dfu_application_version("3.5.0-rc1")
         )
         self.assertLess(dfu_application_version("3.5.0-rc1"), dfu_application_version("3.5.0"))
+
+    def test_runtime_and_builder_use_the_same_secure_dfu_version_mapping(self) -> None:
+        # Manual URL/upload validation derives this value at runtime, while the
+        # builder writes it into release metadata. Keep both implementations
+        # aligned for every NCS release form this project accepts.
+        for version in (
+            "3.3.4",
+            "3.4.0-preview1",
+            "3.4.0-preview49",
+            "3.4.0-rc1",
+            "3.4.0-rc49",
+            "3.4.0",
+            "4.999.999",
+        ):
+            with self.subTest(version=version):
+                self.assertEqual(
+                    ncs_dfu_application_version(version), dfu_application_version(version)
+                )
 
     def test_reads_ncs_v340_structured_version_file(self) -> None:
         with TemporaryDirectory() as directory:

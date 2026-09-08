@@ -1,0 +1,16 @@
+diff --git a/src/main.rs b/src/main.rs
+index fe669c0..fd04d39 100644
+--- a/src/main.rs
++++ b/src/main.rs
+@@ -5,0 +6 @@ use std::hash::Hasher;
++use std::path::Path;
+@@ -55,0 +57,4 @@ struct Args {
++    /// Selects one exact USB serial endpoint.
++    #[arg(long)]
++    port: Option<std::path::PathBuf>,
++
+@@ -128,0 +134,4 @@ fn run() -> Result<()> {
++                    && args
++                        .port
++                        .as_ref()
++                        .is_none_or(|path| path == Path::new(&port.port_name))

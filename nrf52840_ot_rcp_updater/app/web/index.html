@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>PCA10059 RCP</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="app.js" defer></script>
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="page-header">
+        <div>
+          <p class="eyebrow">OpenThread radio maintenance</p>
+          <h1>PCA10059 RCP</h1>
+          <p id="headline-status" class="muted">Loading device status...</p>
+        </div>
+        <span id="operation-badge" class="badge" data-state="idle">Idle</span>
+      </header>
+
+      <section class="summary-grid" aria-label="RCP status">
+        <article class="card">
+          <h2>Device</h2>
+          <dl id="device-details" class="details"></dl>
+        </article>
+        <article class="card">
+          <h2>Firmware</h2>
+          <dl id="firmware-details" class="details"></dl>
+          <p id="policy-warning" class="notice" hidden></p>
+        </article>
+        <article class="card">
+          <h2>OTBR</h2>
+          <dl id="otbr-details" class="details"></dl>
+        </article>
+      </section>
+
+      <section class="card advanced-card" aria-labelledby="flash-heading">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Advanced operation</p>
+            <h2 id="flash-heading">Validate and flash firmware</h2>
+          </div>
+          <p class="muted">Validation happens before OTBR is stopped.</p>
+        </div>
+
+        <div class="source-tabs" role="tablist" aria-label="Firmware source">
+          <button type="button" class="source-tab active" data-source="release" role="tab">Release</button>
+          <button type="button" class="source-tab" data-source="url" role="tab">URL</button>
+          <button type="button" class="source-tab" data-source="upload" role="tab">Upload</button>
+        </div>
+
+        <div id="source-release" class="source-panel active" role="tabpanel">
+          <label for="release-select">Known firmware release</label>
+          <select id="release-select"></select>
+          <p class="field-help">Includes older releases permitted by the configured stable or prerelease channel.</p>
+        </div>
+
+        <div id="source-url" class="source-panel" role="tabpanel" hidden>
+          <label for="url-input">HTTPS firmware URL</label>
+          <input id="url-input" type="url" inputmode="url" placeholder="https://example.org/rcp.elf" autocomplete="off">
+          <p class="field-help">Only public HTTPS endpoints are accepted. Local, private, and redirected-to-private addresses are blocked.</p>
+        </div>
+
+        <div id="source-upload" class="source-panel" role="tabpanel" hidden>
+          <label for="file-input">Local firmware ELF</label>
+          <input id="file-input" type="file" accept=".elf,application/octet-stream">
+          <p class="field-help">Up to 4 MiB. The filename is ignored; the file is removed after flash, failure, or expiry.</p>
+        </div>
+
+        <div class="actions">
+          <button id="validate-button" type="button" class="secondary">Validate</button>
+          <button id="flash-button" type="button" class="primary" disabled>Flash validated firmware</button>
+        </div>
+        <p id="action-message" class="message" role="status"></p>
+
+        <div class="validation-grid">
+          <section>
+            <h3>Artifact</h3>
+            <dl id="artifact-details" class="details empty"><dt>Status</dt><dd>No artifact validated</dd></dl>
+          </section>
+          <section>
+            <h3>Preflight</h3>
+            <ul id="preflight-checks" class="check-list"><li>Validate a firmware source to inspect readiness.</li></ul>
+          </section>
+        </div>
+      </section>
+
+      <section class="card operation-card" aria-labelledby="operation-heading">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Single hardware operation</p>
+            <h2 id="operation-heading">Operation status</h2>
+          </div>
+          <p id="operation-stage" class="muted">Idle</p>
+        </div>
+        <div class="progress-track" aria-label="Operation progress">
+          <div id="progress-bar" class="progress-bar"></div>
+        </div>
+        <p id="operation-error" class="message error" hidden></p>
+        <ol id="operation-log" class="operation-log"><li>No operation has run in this app session.</li></ol>
+      </section>
+    </main>
+  </body>
+</html>

@@ -2,13 +2,15 @@
 
 from __future__ import annotations
 
-from contextlib import contextmanager
 import fcntl
 import json
 import os
-from pathlib import Path
 import tempfile
-from typing import Iterator
+from collections.abc import Iterator
+from contextlib import contextmanager
+from pathlib import Path
+
+_MAX_STATE_BYTES = 64 * 1024
 
 
 class StateError(RuntimeError):
@@ -16,7 +18,7 @@ class StateError(RuntimeError):
 
 
 class StateStore:
-    """Keeps only the last verified RCP metadata for non-disruptive UI updates."""
+    """Keeps verified RCP metadata and the completed one-shot request, if any."""
 
     def __init__(self, directory: Path) -> None:
         self._directory = directory
@@ -32,6 +34,10 @@ class StateStore:
         if not self._path.exists():
             return {}
         try:
+            # State is only a small verified-version record. Reject a corrupted
+            # or hostile persistent file before allocating an unbounded string.
+            if self._path.stat().st_size > _MAX_STATE_BYTES:
+                raise StateError(f"updater state exceeds {_MAX_STATE_BYTES} bytes")
             payload = json.loads(self._path.read_text(encoding="utf-8"))
         except (OSError, json.JSONDecodeError) as err:
             raise StateError(f"cannot load updater state: {err}") from err

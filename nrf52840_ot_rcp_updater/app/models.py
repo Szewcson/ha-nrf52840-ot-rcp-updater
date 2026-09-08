@@ -2,19 +2,43 @@
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from pathlib import Path
-import re
 
 
 class ValidationError(ValueError):
     """Raised when external configuration or release metadata is unsafe."""
 
 
-_VERSION_RE = re.compile(r"^[0-9]+(?:\.[0-9]+){1,3}(?:[-+][A-Za-z0-9.]+)?$")
+_VERSION_RE = re.compile(
+    r"^(?P<major>[0-9]+)\.(?P<minor>[0-9]+)\.(?P<patch>[0-9]+)"
+    r"(?:-(?P<prerelease>preview|rc)(?P<sequence>[1-9][0-9]*))?$"
+)
+_MINOR_LINE_RE = re.compile(r"^[0-9]+\.[0-9]+$")
 _TOKEN_RE = re.compile(r"^[A-Za-z0-9._+-]{1,80}$")
 _SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
-_ADDON_SLUG_RE = re.compile(r"^[a-z0-9_]{1,128}$")
+_ARTIFACT_FILENAME_RE = re.compile(r"^[A-Za-z0-9._+-]{1,160}\.elf$")
+_USB_TOPOLOGY_RE = re.compile(r"^[1-9][0-9]*-[1-9][0-9]*(?:\.[1-9][0-9]*)*$")
+
+DEFAULT_BAUDRATE = 1_000_000
+SUPPORTED_HARDWARE = "PCA10059"
+CORE_OTBR_ADDON_SLUG = "core_openthread_border_router"
+# This is the Supervisor-provided alias for the host-network OTBR app. Using
+# it from the internal app network avoids exposing OTBR's REST port on the host.
+CORE_OTBR_API_URL = "http://core-openthread-border-router:8081"
+DEFAULT_SAFE_UPDATE = True
+DEFAULT_ALLOW_LEGACY_RCP = False
+DEFAULT_ALLOW_PRERELEASES = False
+DEFAULT_QEMU_USB_REENUMERATION_WORKAROUND = False
+DEFAULT_DFU_VID_PID = "1915:521f"
+FIRMWARE_MANIFEST_URL = (
+    "https://raw.githubusercontent.com/Szewcson/ha-nrf52840-ot-rcp-updater/"
+    "firmware/manifest.json"
+)
+DEFAULT_MANIFEST_POLL_INTERVAL = 3600
+DEFAULT_IDLE_WINDOW = 20
+DEFAULT_BOOT_TIMEOUT = 90
 
 
 def _require_string(value: object, name: str) -> str:
@@ -30,6 +54,53 @@ def validate_version(value: object, name: str) -> str:
     return version
 
 
+def version_key(value: str) -> tuple[int, int, int, int, int]:
+    """Order the Nordic preview, release-candidate, and final tag forms."""
+
+    version = validate_version(value, "version")
+    match = _VERSION_RE.fullmatch(version)
+    assert match is not None
+    prerelease = match.group("prerelease")
+    if prerelease is None:
+        stage, sequence = 2, 0
+    else:
+        stage = 0 if prerelease == "preview" else 1
+        sequence = int(match.group("sequence") or "0")
+    return (
+        int(match.group("major")),
+        int(match.group("minor")),
+        int(match.group("patch")),
+        stage,
+        sequence,
+    )
+
+
+def is_prerelease(value: str) -> bool:
+    """Return whether a validated NCS version is a Nordic preview or RC."""
+
+    version = validate_version(value, "version")
+    match = _VERSION_RE.fullmatch(version)
+    assert match is not None
+    return match.group("prerelease") is not None
+
+
+def minor_line(value: str) -> str:
+    """Return a normalized major.minor line from a validated NCS version."""
+
+    version = validate_version(value, "version")
+    match = _VERSION_RE.fullmatch(version)
+    assert match is not None
+    return f"{int(match.group('major'))}.{int(match.group('minor'))}"
+
+
+def validate_minor_line(value: object, name: str) -> str:
+    line = _require_string(value, name)
+    if not _MINOR_LINE_RE.fullmatch(line):
+        raise ValidationError(f"{name} must have MAJOR.MINOR form")
+    major, minor = line.split(".")
+    return f"{int(major)}.{int(minor)}"
+
+
 def validate_token(value: object, name: str) -> str:
     token = _require_string(value, name)
     if not _TOKEN_RE.fullmatch(token):
@@ -37,23 +108,81 @@ def validate_token(value: object, name: str) -> str:
     return token
 
 
+def validate_usb_topology(value: object, name: str) -> str:
+    """Validate a Linux USB device topology name, never a filesystem path."""
+
+    topology = _require_string(value, name)
+    if not _USB_TOPOLOGY_RE.fullmatch(topology):
+        raise ValidationError(f"{name} must look like a Linux USB path such as 2-3 or 2-3.1")
+    return topology
+
+
+def validate_dfu_application_version(value: object, name: str) -> int:
+    """Validate the unsigned version used by the stock Secure DFU bootloader."""
+
+    if isinstance(value, bool) or not isinstance(value, int) or not 0 <= value <= 0xFFFFFFFF:
+        raise ValidationError(f"{name} must be an unsigned 32-bit integer")
+    return value
+
+
+def ncs_dfu_application_version(ncs_version: str) -> int:
+    """Return this project's monotonic Secure DFU version for an NCS tag.
+
+    Manual artifacts are accepted only when they carry the same embedded NCS
+    tag emitted by this project's builder.  Keeping the mapping here makes the
+    DFU value explicit at the point where a tagged artifact is admitted.
+    """
+
+    version = validate_version(ncs_version, "ncs_version")
+    match = _VERSION_RE.fullmatch(version)
+    assert match is not None
+    major = int(match.group("major"))
+    minor = int(match.group("minor"))
+    patch = int(match.group("patch"))
+    if any(component > 999 for component in (major, minor, patch)):
+        raise ValidationError("NCS version components must be at most 999")
+
+    prerelease = match.group("prerelease")
+    if prerelease is None:
+        stage = 99
+    else:
+        sequence = int(match.group("sequence") or "0")
+        if sequence > 49:
+            raise ValidationError("NCS prerelease sequence must be at most 49")
+        stage = sequence if prerelease == "preview" else 49 + sequence
+
+    application_version = (major * 1_000_000 + minor * 1_000 + patch) * 100 + stage
+    if application_version > 0xFFFFFFFF:
+        raise ValidationError("NCS version cannot be represented by Secure DFU")
+    return application_version
+
+
+def validate_artifact_filename(value: object, name: str) -> str:
+    """Accept one portable firmware basename, never a filesystem path."""
+
+    filename = _require_string(value, name)
+    if not _ARTIFACT_FILENAME_RE.fullmatch(filename):
+        raise ValidationError(f"{name} must be a simple .elf filename")
+    return filename
+
+
 @dataclass(frozen=True)
 class Artifact:
-    """An immutable Nordic DFU package selected from a release manifest."""
+    """An immutable RCP ELF selected from a release manifest."""
 
     url: str
     sha256: str
     filename: str
+    signature_url: str
 
     def __post_init__(self) -> None:
         if not self.url.startswith("https://"):
             raise ValidationError("artifact URL must use HTTPS")
         if not _SHA256_RE.fullmatch(self.sha256):
             raise ValidationError("artifact SHA-256 must be lowercase hexadecimal")
-        if "/" in self.filename or self.filename in {"", ".", ".."}:
-            raise ValidationError("artifact filename must not contain a path")
-        if not self.filename.endswith(".zip"):
-            raise ValidationError("artifact must be a Nordic DFU .zip package")
+        validate_artifact_filename(self.filename, "artifact filename")
+        if not self.signature_url.startswith("https://"):
+            raise ValidationError("artifact signature URL must use HTTPS")
 
 
 @dataclass(frozen=True)
@@ -63,6 +192,7 @@ class FirmwareRelease:
     hardware: str
     ncs_version: str
     zephyr_version: str
+    dfu_application_version: int
     artifact: Artifact
     release_url: str
     release_summary: str
@@ -71,10 +201,46 @@ class FirmwareRelease:
         validate_token(self.hardware, "hardware")
         validate_version(self.ncs_version, "ncs_version")
         validate_version(self.zephyr_version, "zephyr_version")
+        validate_dfu_application_version(self.dfu_application_version, "dfu_application_version")
         if not self.release_url.startswith("https://"):
             raise ValidationError("release_url must use HTTPS")
         if len(self.release_summary) > 255:
             raise ValidationError("release_summary must fit the Home Assistant update entity")
+
+
+@dataclass(frozen=True)
+class PreparedFirmware:
+    """A locally stored PCA10059 ELF ready for the single updater transaction.
+
+    ``release`` is present only for an artifact authenticated through the
+    signed release manifest.  URL and upload sources must still have exact
+    embedded platform tags, but are intentionally identified as untrusted in
+    the UI because users supplied their bytes directly.
+    """
+
+    path: Path
+    hardware: str
+    ncs_version: str
+    zephyr_version: str
+    dfu_application_version: int
+    sha256: str
+    size: int
+    source: str
+    release: FirmwareRelease | None = None
+
+    def __post_init__(self) -> None:
+        validate_token(self.hardware, "hardware")
+        validate_version(self.ncs_version, "ncs_version")
+        validate_version(self.zephyr_version, "zephyr_version")
+        validate_dfu_application_version(self.dfu_application_version, "dfu_application_version")
+        if not _SHA256_RE.fullmatch(self.sha256):
+            raise ValidationError("firmware SHA-256 must be lowercase hexadecimal")
+        if isinstance(self.size, bool) or not isinstance(self.size, int) or not 1 <= self.size <= 32 * 1024 * 1024:
+            raise ValidationError("firmware size is outside the supported range")
+        if self.source not in {"release", "url", "upload"}:
+            raise ValidationError("firmware source is unsupported")
+        if self.release is not None and self.source != "release":
+            raise ValidationError("only a release artifact may carry release metadata")
 
 
 @dataclass(frozen=True)
@@ -93,13 +259,13 @@ class Settings:
 
     device: Path
     baudrate: int
-    hardware: str
-    otbr_addon_slug: str
-    otbr_api_url: str | None
     safe_update: bool
+    qemu_usb_reenumeration_workaround: bool
     allow_legacy_rcp: bool
+    allow_prereleases: bool
+    pinned_ncs_minor: str | None
     dfu_serial_number: str | None
-    manifest_url: str | None
+    dfu_usb_path: str | None
     manifest_poll_interval: int
     idle_window: int
     boot_timeout: int
@@ -110,8 +276,11 @@ class Settings:
         if not device.startswith("/dev/"):
             raise ValidationError("device must be a Home Assistant mapped /dev path")
 
-        baudrate = options.get("baudrate")
+        baudrate = options.get("baudrate", DEFAULT_BAUDRATE)
+        if isinstance(baudrate, str) and baudrate.isascii() and baudrate.isdecimal():
+            baudrate = int(baudrate)
         if not isinstance(baudrate, int) or baudrate not in {
+            57600,
             115200,
             230400,
             460800,
@@ -120,54 +289,62 @@ class Settings:
         }:
             raise ValidationError("baudrate is not supported by this app")
 
-        hardware = validate_token(options.get("hardware"), "hardware")
-        addon_slug = _require_string(options.get("otbr_addon_slug"), "otbr_addon_slug")
-        if not _ADDON_SLUG_RE.fullmatch(addon_slug):
-            raise ValidationError("otbr_addon_slug has an invalid format")
-
-        api_url = options.get("otbr_api_url")
-        if api_url is not None:
-            api_url = _require_string(api_url, "otbr_api_url").rstrip("/")
-            if not api_url.startswith("http://") and not api_url.startswith("https://"):
-                raise ValidationError("otbr_api_url must use HTTP or HTTPS")
-
-        manifest_url = options.get("manifest_url")
-        if manifest_url is not None:
-            manifest_url = _require_string(manifest_url, "manifest_url")
-            if not manifest_url.startswith("https://"):
-                raise ValidationError("manifest_url must use HTTPS")
-
-        manifest_poll_interval = options.get("manifest_poll_interval")
-        idle_window = options.get("idle_window")
-        boot_timeout = options.get("boot_timeout")
-        if not isinstance(manifest_poll_interval, int) or not 300 <= manifest_poll_interval <= 86400:
+        manifest_poll_interval = options.get(
+            "manifest_poll_interval", DEFAULT_MANIFEST_POLL_INTERVAL
+        )
+        idle_window = options.get("idle_window", DEFAULT_IDLE_WINDOW)
+        boot_timeout = options.get("boot_timeout", DEFAULT_BOOT_TIMEOUT)
+        if (
+            not isinstance(manifest_poll_interval, int)
+            or not 300 <= manifest_poll_interval <= 86400
+        ):
             raise ValidationError("manifest_poll_interval must be between 300 and 86400 seconds")
         if not isinstance(idle_window, int) or not 10 <= idle_window <= 300:
             raise ValidationError("idle_window must be between 10 and 300 seconds")
         if not isinstance(boot_timeout, int) or not 15 <= boot_timeout <= 120:
             raise ValidationError("boot_timeout must be between 15 and 120 seconds")
 
-        def option_bool(name: str) -> bool:
-            value = options.get(name)
+        def option_bool(name: str, default: bool | None = None) -> bool:
+            value = options.get(name, default)
             if not isinstance(value, bool):
                 raise ValidationError(f"{name} must be a boolean")
             return value
 
-        serial_number = options.get("dfu_serial_number")
+        serial_number = _optional_string(options.get("dfu_serial_number"), "dfu_serial_number")
         if serial_number is not None:
             serial_number = validate_token(serial_number, "dfu_serial_number")
+        usb_path = _optional_string(options.get("dfu_usb_path"), "dfu_usb_path")
+        if usb_path is not None:
+            usb_path = validate_usb_topology(usb_path, "dfu_usb_path")
+        allow_legacy_rcp = option_bool("allow_legacy_rcp", default=DEFAULT_ALLOW_LEGACY_RCP)
+        pinned_minor = _optional_string(options.get("pinned_ncs_minor"), "pinned_ncs_minor")
+        if pinned_minor is not None:
+            pinned_minor = validate_minor_line(pinned_minor, "pinned_ncs_minor")
 
         return cls(
             device=Path(device),
             baudrate=baudrate,
-            hardware=hardware,
-            otbr_addon_slug=addon_slug,
-            otbr_api_url=api_url,
-            safe_update=option_bool("safe_update"),
-            allow_legacy_rcp=option_bool("allow_legacy_rcp"),
+            safe_update=option_bool("safe_update", default=DEFAULT_SAFE_UPDATE),
+            qemu_usb_reenumeration_workaround=option_bool(
+                "qemu_usb_reenumeration_workaround",
+                default=DEFAULT_QEMU_USB_REENUMERATION_WORKAROUND,
+            ),
+            allow_legacy_rcp=allow_legacy_rcp,
+            allow_prereleases=option_bool(
+                "allow_prereleases", default=DEFAULT_ALLOW_PRERELEASES
+            ),
+            pinned_ncs_minor=pinned_minor,
             dfu_serial_number=serial_number,
-            manifest_url=manifest_url,
+            dfu_usb_path=usb_path,
             manifest_poll_interval=manifest_poll_interval,
             idle_window=idle_window,
             boot_timeout=boot_timeout,
         )
+
+
+def _optional_string(value: object, name: str) -> str | None:
+    """Normalize omitted or blank Supervisor values before validation."""
+
+    if value is None or value == "":
+        return None
+    return _require_string(value, name)

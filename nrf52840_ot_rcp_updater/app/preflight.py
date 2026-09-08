@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 import json
+from dataclasses import dataclass
 from time import sleep
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
@@ -96,4 +96,3 @@ class OtbrRestClient:
                 response.read(256 * 1024)
         except (HTTPError, URLError, OSError) as err:
             raise PreflightError(f"OTBR did not become REST-ready: {err}") from err
-

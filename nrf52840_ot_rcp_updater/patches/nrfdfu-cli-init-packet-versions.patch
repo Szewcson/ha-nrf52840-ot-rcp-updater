@@ -1,0 +1,30 @@
+diff --git a/src/init_packet.rs b/src/init_packet.rs
+index c1ac361..a01c996 100644
+--- a/src/init_packet.rs
++++ b/src/init_packet.rs
+@@ -218 +218 @@ impl rohs::Message for Packet<'_> {
+-pub fn build_init_packet(image: &[u8]) -> Vec<u8> {
++pub fn build_init_packet(image: &[u8], fw_version: u32, hw_version: u32) -> Vec<u8> {
+@@ -243,4 +243,2 @@ pub fn build_init_packet(image: &[u8]) -> Vec<u8> {
+-        fw_version: 0,
+-        // 52 is the default, the docs do not recommend using it, but it's unclear how to
+-        // accomplish that.
+-        hw_version: 52,
++        fw_version,
++        hw_version,
+diff --git a/src/main.rs b/src/main.rs
+index 6408f09..fe669c0 100644
+--- a/src/main.rs
++++ b/src/main.rs
+@@ -39,0 +40,8 @@ struct Args {
++    /// Application firmware version to include in the Secure DFU init packet.
++    #[arg(long, default_value_t = 0)]
++    fw_version: u32,
++
++    /// Hardware version to include in the Secure DFU init packet.
++    #[arg(long, default_value_t = 52)]
++    hw_version: u32,
++
+@@ -224 +232 @@ fn run_on_port(port: &serialport::SerialPortInfo, args: &Args, image: Option<&[u
+-        let init_packet = init_packet::build_init_packet(image);
++        let init_packet = init_packet::build_init_packet(image, args.fw_version, args.hw_version);

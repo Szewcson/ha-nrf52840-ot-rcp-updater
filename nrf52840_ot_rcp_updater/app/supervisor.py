@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from contextlib import contextmanager
 import json
 import os
+from contextlib import contextmanager
 from time import monotonic, sleep
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
@@ -59,12 +59,41 @@ class SupervisorClient:
         if was_running:
             self.stop_addon(addon_slug)
             self.wait_for_state(addon_slug, {"stopped", "not_running"})
+        operation_error: BaseException | None = None
         try:
             yield was_running
+        except BaseException as err:
+            operation_error = err
+            raise
         finally:
             if was_running:
+                try:
+                    self._restore_addon(addon_slug)
+                except Exception as err:
+                    if operation_error is None:
+                        raise
+                    operation_error.add_note(
+                        f"OTBR could not be restarted after the update failure: {err}"
+                    )
+
+    def _restore_addon(self, addon_slug: str) -> None:
+        """Tolerate Supervisor state propagation while restoring the original owner."""
+
+        last_error: SupervisorError | None = None
+        for _ in range(3):
+            try:
+                if self.addon_state(addon_slug) in {"started", "running"}:
+                    return
                 self.start_addon(addon_slug)
-                self.wait_for_state(addon_slug, {"started", "running"}, timeout=45)
+                self.wait_for_state(addon_slug, {"started", "running"}, timeout=15)
+                return
+            except SupervisorError as err:
+                last_error = err
+                sleep(1)
+        assert last_error is not None
+        raise SupervisorError(
+            f"could not restore {addon_slug} after three attempts: {last_error}"
+        ) from last_error
 
     def _request(self, method: str, path: str) -> dict[str, object]:
         request = Request(
@@ -76,7 +105,12 @@ class SupervisorClient:
         try:
             with urlopen(request, timeout=15) as response:
                 payload = response.read(512 * 1024)
-        except (HTTPError, URLError, OSError) as err:
+        except HTTPError as err:
+            detail = self._http_error_detail(err)
+            raise SupervisorError(
+                f"Supervisor request {method} {path} failed: {err}: {detail}"
+            ) from err
+        except (URLError, OSError) as err:
             raise SupervisorError(f"Supervisor request {method} {path} failed: {err}") from err
         try:
             document = json.loads(payload.decode("utf-8"))
@@ -86,3 +120,18 @@ class SupervisorClient:
             raise SupervisorError(f"Supervisor rejected {method} {path}: {document}")
         return document
 
+    @staticmethod
+    def _http_error_detail(error: HTTPError) -> str:
+        try:
+            payload = error.read(8 * 1024)
+        except OSError:
+            return "unable to read Supervisor error response"
+        if not payload:
+            return "no error detail returned"
+        try:
+            document = json.loads(payload.decode("utf-8"))
+        except (UnicodeDecodeError, json.JSONDecodeError):
+            return payload.decode("utf-8", "replace").strip()[:2048]
+        if isinstance(document, dict) and isinstance(document.get("message"), str):
+            return document["message"][:2048]
+        return str(document)[:2048]

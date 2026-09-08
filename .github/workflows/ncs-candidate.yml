@@ -23,6 +23,26 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+      - name: Verify updater and image inputs
+        run: |
+          set -eu
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends --yes apparmor-utils python3-venv
+          python3 -m venv "${RUNNER_TEMP}/verify-venv"
+          . "${RUNNER_TEMP}/verify-venv/bin/activate"
+          python -m pip install --disable-pip-version-check --no-cache-dir \
+            --requirement requirements-dev.txt
+          ruff check .
+          python -m unittest discover -s tests -v
+          python -m compileall -q nrf52840_ot_rcp_updater/app tools tests
+          bash -n nrf52840_ot_rcp_updater/run.sh
+          apparmor_parser -Q -K -q nrf52840_ot_rcp_updater/apparmor.txt
+          docker build nrf52840_ot_rcp_updater
+
   discover:
     runs-on: ubuntu-24.04
     outputs:
@@ -76,8 +96,8 @@ jobs:
           echo "releases=${releases}" >> "${GITHUB_OUTPUT}"
 
   build:
-    needs: discover
-    if: needs.discover.outputs.releases != '[]'
+    needs: [discover, verify]
+    if: needs.discover.outputs.releases != '[]' && needs.verify.result == 'success'
     runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
@@ -93,20 +113,36 @@ jobs:
           set -eu
           sudo apt-get update
           sudo apt-get install --no-install-recommends --yes \
+            bzip2 \
             ca-certificates \
             cmake \
             file \
             git \
+            libpopt0 \
+            libxml2-dev \
+            libxslt1-dev \
             ninja-build \
+            python3-dev \
             python3-pip \
             python3-venv \
-            xz-utils
+            xz-utils \
+            zlib1g-dev
           python3 -m venv --system-site-packages "${RUNNER_TEMP}/venv"
           . "${RUNNER_TEMP}/venv/bin/activate"
           python -m pip install --disable-pip-version-check --no-cache-dir "west==1.4.0"
           west init --mr "${NCS_TAG}" -m https://github.com/nrfconnect/sdk-nrf "${RUNNER_TEMP}/ncs"
           cd "${RUNNER_TEMP}/ncs"
           west update
+          # NCS build inputs reference these repositories' VCS state. Verify a
+          # real checkout before compiling or deriving SBOM provenance from it.
+          for repository in nrf zephyr; do
+            test -d "${repository}/.git"
+            test "$(git -C "${repository}" rev-parse --is-inside-work-tree)" = "true"
+          done
+          expected_ncs_license_sha256="$(jq -r '.ncs_license_sha256' "${GITHUB_WORKSPACE}/firmware/release-policy.json")"
+          test "${expected_ncs_license_sha256}" != "null"
+          actual_ncs_license_sha256="$(sha256sum nrf/LICENSE | awk '{ print $1 }')"
+          test "${actual_ncs_license_sha256}" = "${expected_ncs_license_sha256}"
           # Let the checked-out Zephyr release select its own Python requirements.
           west packages pip --install -- --disable-pip-version-check --no-cache-dir
           # NCS does not expose its extra build requirements through west packages.
@@ -119,14 +155,113 @@ jobs:
             *--gnu-toolchains*) sdk_toolchain_option=--gnu-toolchains ;;
           esac
           west sdk install \
-            --install-dir "${RUNNER_TEMP}/zephyr-sdk" \
+            --install-dir "${RUNNER_TEMP}/toolchains/zephyr-sdk" \
             "${sdk_toolchain_option}" arm-zephyr-eabi
-          export ZEPHYR_SDK_INSTALL_DIR="${RUNNER_TEMP}/zephyr-sdk"
+          # NCS's built-in runtime-license rules intentionally match the SDK
+          # under toolchains/. Keep that path stable rather than duplicating
+          # its GCC and Picolibc archive license conclusions in this project.
+          export ZEPHYR_SDK_INSTALL_DIR="${RUNNER_TEMP}/toolchains/zephyr-sdk"
           export ZEPHYR_TOOLCHAIN_VARIANT=zephyr
           python "${GITHUB_WORKSPACE}/tools/build_rcp.py" \
             --ncs-root "${RUNNER_TEMP}/ncs" \
             --expected-ncs-version "${NCS_VERSION}" \
             --output-dir "${GITHUB_WORKSPACE}/candidate"
+          # ScanCode 32.4.1's release requirements pin commoncode 32.3.0 and
+          # Click 8.2.1. Newer resolver-selected versions make ScanCode's
+          # mutually-exclusive root-path options fail at startup; see
+          # https://github.com/aboutcode-org/scancode-toolkit/issues/4573.
+          # Keep this workaround specific to that upstream ScanCode release.
+          sbom_constraints="${RUNNER_TEMP}/scancode-32.4.1-constraints.txt"
+          : > "${sbom_constraints}"
+          if grep -Eq '^[[:space:]]*scancode-toolkit\[full\]==32\.4\.1([[:space:];]|$)' \
+            nrf/scripts/requirements-west-ncs-sbom.txt; then
+            printf '%s\n' "commoncode==32.3.0" "click==8.2.1" > "${sbom_constraints}"
+          fi
+          python -m pip install --disable-pip-version-check --no-cache-dir --upgrade \
+            --constraint "${sbom_constraints}" \
+            --requirement nrf/scripts/requirements-west-ncs-sbom.txt
+          python -m pip check
+          # NCS 3.3's experimental build extractor includes .git/index as an
+          # SBOM source. NCS 3.4 already contains this exact VCS filter; fail
+          # closed for any future extractor shape that we have not audited.
+          sbom_extractor="nrf/scripts/west_commands/sbom/ninja_build_extractor.py"
+          if grep -Fqx "        return normalized.endswith(IGNORE_TARGETS)" "${sbom_extractor}"; then
+            git -C nrf apply --check \
+              "${GITHUB_WORKSPACE}/patches/ncs-sbom/0001-exclude-vcs-metadata.patch"
+            git -C nrf apply "${GITHUB_WORKSPACE}/patches/ncs-sbom/0001-exclude-vcs-metadata.patch"
+          elif ! grep -Fqx "        return '.git' in normalized.split('/')" "${sbom_extractor}"; then
+            echo "Unsupported NCS SBOM VCS-metadata filter; refusing publication" >&2
+            exit 1
+          fi
+          # The build extractor can also report a local intermediate ELF or a
+          # preprocessed linker command as source-less objects. Their actual
+          # source inputs are already reported; avoid inventing one license
+          # for those derived link products. Fail closed on a new extractor.
+          sbom_build_input="nrf/scripts/west_commands/sbom/input_build.py"
+          if grep -Fqx "            self.add_file_info(obj.path)" "${sbom_build_input}"; then
+            git -C nrf apply --check \
+              "${GITHUB_WORKSPACE}/patches/ncs-sbom/0002-exclude-derived-link-products.patch"
+            git -C nrf apply \
+              "${GITHUB_WORKSPACE}/patches/ncs-sbom/0002-exclude-derived-link-products.patch"
+          elif ! grep -Fqx "    def is_derived_link_product(self, path: Path) -> bool:" "${sbom_build_input}"; then
+            echo "Unsupported NCS SBOM derived-link-product filter; refusing publication" >&2
+            exit 1
+          fi
+          # NCS 3.3.4's reviewed external-file rules recognize GCC and
+          # Picolibc runtime archives only below a toolchains/ path. Verify
+          # the rules before relying on their supplied license conclusions.
+          toolchain_license="nrf/scripts/west_commands/sbom/data/external-licenses/toolchain.LICENSE"
+          picolibc_license="nrf/scripts/west_commands/sbom/data/external-licenses/toolchain_libs_picolibc.LICENSE"
+          grep -Fqx " * SPDX-License-Identifier: GPL-3.0-OR-LATER WITH GCC-EXCEPTION-3.1" \
+            "${toolchain_license}"
+          grep -Fqx " * NCS-SBOM-Apply-To-File: **/toolchains/**/libgcc.a" \
+            "${toolchain_license}"
+          grep -Fqx " * SPDX-License-Identifier: LicenseRef-west-ncs-sbom-picolibc-runtime" \
+            "${picolibc_license}"
+          grep -Fqx " * NCS-SBOM-Apply-To-File: **/toolchains/**/arm-zephyr-eabi/picolibc/arm-zephyr-eabi/lib*/libc.a" \
+            "${picolibc_license}"
+          python "${GITHUB_WORKSPACE}/tools/create_sbom_license_cache.py" \
+            --workspace "${RUNNER_TEMP}/ncs" \
+            --policy "${GITHUB_WORKSPACE}/firmware/sbom-license-policy.json" \
+            --source-root "zephyr-sdk=${ZEPHYR_SDK_INSTALL_DIR}" \
+            --source-root "build=${GITHUB_WORKSPACE}/candidate/build/coprocessor" \
+            --output "${GITHUB_WORKSPACE}/candidate/sbom-license-cache.json"
+          # NCS's cache detector assigns its JSON list to file.licenses.
+          # Keep native detectors first, then make cache and ScanCode optional:
+          # cache-matched files are skipped by ScanCode and no mutating detector
+          # runs after cache, avoiding NCS's list/set mismatch.
+          west ncs-sbom \
+            -d "${GITHUB_WORKSPACE}/candidate/build/coprocessor" \
+            --input-cache-database "${GITHUB_WORKSPACE}/candidate/sbom-license-cache.json" \
+            --license-detectors spdx-tag,full-text,external-file,git-info,cache-database,scancode-toolkit \
+            --optional-license-detectors cache-database,scancode-toolkit \
+            --output-spdx "${GITHUB_WORKSPACE}/candidate/firmware.spdx" \
+            --output-html "${GITHUB_WORKSPACE}/candidate/firmware-notices.html"
+          python "${GITHUB_WORKSPACE}/tools/validate_sbom.py" \
+            --spdx "${GITHUB_WORKSPACE}/candidate/firmware.spdx"
+          cp nrf/LICENSE "${GITHUB_WORKSPACE}/candidate/NCS-LICENSE.txt"
+          cp "${GITHUB_WORKSPACE}/firmware/NOTICE.txt" \
+            "${GITHUB_WORKSPACE}/candidate/PROJECT-NOTICE.txt"
+          cp "${GITHUB_WORKSPACE}/firmware/sbom-license-policy.json" \
+            "${GITHUB_WORKSPACE}/candidate/sbom-license-policy.json"
+          # NCS deliberately excludes groups that are not inputs to this RCP
+          # build, including nrf-802154. Freeze the active source set rather
+          # than requiring intentionally un-cloned projects for provenance.
+          west manifest --freeze --active-only > "${GITHUB_WORKSPACE}/candidate/west-manifest.yml"
+          cp zephyr/SDK_VERSION "${GITHUB_WORKSPACE}/candidate/zephyr-sdk.txt"
+          artifact="$(jq -er '.artifact' "${GITHUB_WORKSPACE}/candidate/release-metadata.json")"
+          python "${GITHUB_WORKSPACE}/tools/create_firmware_provenance.py" \
+            --metadata "${GITHUB_WORKSPACE}/candidate/release-metadata.json" \
+            --artifact "${GITHUB_WORKSPACE}/candidate/${artifact}" \
+            --ncs-tag "${NCS_TAG}" \
+            --ncs-revision "$(git -C nrf rev-parse HEAD)" \
+            --ncs-license "${GITHUB_WORKSPACE}/candidate/NCS-LICENSE.txt" \
+            --west-manifest "${GITHUB_WORKSPACE}/candidate/west-manifest.yml" \
+            --toolchain-report "${GITHUB_WORKSPACE}/candidate/zephyr-sdk.txt" \
+            --sbom-license-policy "${GITHUB_WORKSPACE}/candidate/sbom-license-policy.json" \
+            --sbom-license-cache "${GITHUB_WORKSPACE}/candidate/sbom-license-cache.json" \
+            --source-revision "${GITHUB_SHA}" \
+            --output "${GITHUB_WORKSPACE}/candidate/provenance.json"
       - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: nrf52840-ot-rcp-${{ matrix.version }}
@@ -135,9 +270,10 @@ jobs:
           retention-days: 1
 
   publish:
-    needs: [discover, build]
-    if: needs.discover.outputs.releases != '[]' && needs.build.result == 'success'
+    needs: [discover, verify, build]
+    if: needs.discover.outputs.releases != '[]' && needs.verify.result == 'success' && needs.build.result == 'success'
     runs-on: ubuntu-24.04
+    environment: firmware-publisher
     permissions:
       contents: write
     strategy:
@@ -153,13 +289,48 @@ jobs:
           path: candidate
       - name: Publish firmware branch
         env:
+          FIRMWARE_SIGNING_PRIVATE_KEY_B64: ${{ secrets.FIRMWARE_SIGNING_PRIVATE_KEY_B64 }}
           GITHUB_TOKEN: ${{ github.token }}
           NCS_VERSION: ${{ matrix.version }}
           REPOSITORY: ${{ github.repository }}
         run: |
           set -euo pipefail
-          package="$(find candidate -maxdepth 1 -name '*.elf' -type f -print -quit)"
-          test -n "${package}"
+          python3 -m venv "${RUNNER_TEMP}/signing-venv"
+          . "${RUNNER_TEMP}/signing-venv/bin/activate"
+          python -m pip install --disable-pip-version-check --no-cache-dir "cryptography==43.0.0"
+          test -n "${FIRMWARE_SIGNING_PRIVATE_KEY_B64}"
+          signing_key="${RUNNER_TEMP}/firmware-signing-key.pem"
+          trap 'rm -f "${signing_key}"' EXIT
+          if ! printf '%s' "${FIRMWARE_SIGNING_PRIVATE_KEY_B64}" \
+            | base64 --decode > "${signing_key}" 2>/dev/null; then
+            rm -f "${signing_key}"
+            echo "FIRMWARE_SIGNING_PRIVATE_KEY_B64 must be standard RFC 4648 Base64 for the unencrypted Ed25519 PEM; do not store the raw PEM, quotes, or a URL-safe Base64 value." >&2
+            exit 1
+          fi
+          chmod 0600 "${signing_key}"
+          filename="$(jq -er '.artifact | select(type == "string" and test("^[A-Za-z0-9._+-]+\\.elf$"))' candidate/release-metadata.json)"
+          package="candidate/${filename}"
+          test -f "${package}"
+          expected_sha256="$(jq -er '.sha256 | select(type == "string" and test("^[0-9a-f]{64}$"))' candidate/release-metadata.json)"
+          actual_sha256="$(sha256sum "${package}" | awk '{ print $1 }')"
+          test "${actual_sha256}" = "${expected_sha256}"
+          for evidence in \
+            NCS-LICENSE.txt \
+            PROJECT-NOTICE.txt \
+            sbom-license-policy.json \
+            sbom-license-cache.json \
+            firmware.spdx \
+            firmware-notices.html \
+            provenance.json \
+            release-metadata.json \
+            west-manifest.yml \
+            zephyr-sdk.txt; do
+            test -s "candidate/${evidence}"
+          done
+          python tools/sign_firmware.py \
+            --private-key "${signing_key}" \
+            --input "${package}" \
+            --output "${package}.sig"
           store="${RUNNER_TEMP}/firmware-store"
           remote="https://x-access-token:${GITHUB_TOKEN}@github.com/${REPOSITORY}.git"
           git init --initial-branch="${FIRMWARE_BRANCH}" "${store}"
@@ -170,16 +341,61 @@ jobs:
           git -C "${store}" config user.name "github-actions[bot]"
           git -C "${store}" config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           manifest="${store}/${FIRMWARE_MANIFEST}"
-          if [ ! -f "${manifest}" ]; then
+          if [ -f "${manifest}" ]; then
+            test -f "${manifest}.sig"
+            python tools/sign_firmware.py \
+              --public-key nrf52840_ot_rcp_updater/app/firmware_signing_public_key.pem \
+              --input "${manifest}" \
+              --signature "${manifest}.sig"
+          else
             printf '{"releases":[],"schema_version":1}\n' > "${manifest}"
           fi
-          filename="$(basename "${package}")"
           install -D -m 0644 "${package}" "${store}/${FIRMWARE_DIRECTORY}/${filename}"
+          install -D -m 0644 "${package}.sig" "${store}/${FIRMWARE_DIRECTORY}/${filename}.sig"
+          install -D -m 0644 candidate/NCS-LICENSE.txt \
+            "${store}/${FIRMWARE_DIRECTORY}/${filename}.ncs-license.txt"
+          install -D -m 0644 candidate/PROJECT-NOTICE.txt \
+            "${store}/${FIRMWARE_DIRECTORY}/${filename}.project-notice.txt"
+          install -D -m 0644 candidate/sbom-license-policy.json \
+            "${store}/${FIRMWARE_DIRECTORY}/${filename}.sbom-license-policy.json"
+          install -D -m 0644 candidate/sbom-license-cache.json \
+            "${store}/${FIRMWARE_DIRECTORY}/${filename}.sbom-license-cache.json"
+          install -D -m 0644 candidate/firmware.spdx \
+            "${store}/${FIRMWARE_DIRECTORY}/${filename}.sbom.spdx"
+          install -D -m 0644 candidate/firmware-notices.html \
+            "${store}/${FIRMWARE_DIRECTORY}/${filename}.sbom.html"
+          install -D -m 0644 candidate/provenance.json \
+            "${store}/${FIRMWARE_DIRECTORY}/${filename}.provenance.json"
+          install -D -m 0644 candidate/release-metadata.json \
+            "${store}/${FIRMWARE_DIRECTORY}/${filename}.release-metadata.json"
+          install -D -m 0644 candidate/west-manifest.yml \
+            "${store}/${FIRMWARE_DIRECTORY}/${filename}.west-manifest.yml"
+          install -D -m 0644 candidate/zephyr-sdk.txt \
+            "${store}/${FIRMWARE_DIRECTORY}/${filename}.zephyr-sdk.txt"
           python3 tools/publish_manifest.py \
             --manifest "${manifest}" \
             --metadata candidate/release-metadata.json \
+            --artifact "${package}" \
             --artifact-base-url "https://raw.githubusercontent.com/${REPOSITORY}/${FIRMWARE_BRANCH}/${FIRMWARE_DIRECTORY}" \
             --release-url "https://github.com/${REPOSITORY}/tree/${FIRMWARE_BRANCH}"
-          git -C "${store}" add "${FIRMWARE_MANIFEST}" "${FIRMWARE_DIRECTORY}/${filename}"
+          python tools/sign_firmware.py \
+            --private-key "${signing_key}" \
+            --input "${manifest}" \
+            --output "${manifest}.sig"
+          git -C "${store}" add \
+            "${FIRMWARE_MANIFEST}" \
+            "${FIRMWARE_MANIFEST}.sig" \
+            "${FIRMWARE_DIRECTORY}/${filename}" \
+            "${FIRMWARE_DIRECTORY}/${filename}.sig" \
+            "${FIRMWARE_DIRECTORY}/${filename}.ncs-license.txt" \
+            "${FIRMWARE_DIRECTORY}/${filename}.project-notice.txt" \
+            "${FIRMWARE_DIRECTORY}/${filename}.sbom-license-policy.json" \
+            "${FIRMWARE_DIRECTORY}/${filename}.sbom-license-cache.json" \
+            "${FIRMWARE_DIRECTORY}/${filename}.sbom.spdx" \
+            "${FIRMWARE_DIRECTORY}/${filename}.sbom.html" \
+            "${FIRMWARE_DIRECTORY}/${filename}.provenance.json" \
+            "${FIRMWARE_DIRECTORY}/${filename}.release-metadata.json" \
+            "${FIRMWARE_DIRECTORY}/${filename}.west-manifest.yml" \
+            "${FIRMWARE_DIRECTORY}/${filename}.zephyr-sdk.txt"
           git -C "${store}" commit -m "firmware: publish PCA10059 NCS ${NCS_VERSION}"
           git -C "${store}" push origin "HEAD:${FIRMWARE_BRANCH}"

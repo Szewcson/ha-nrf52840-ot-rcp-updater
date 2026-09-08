@@ -1,0 +1,34 @@
+diff --git a/scripts/west_commands/sbom/input_build.py b/scripts/west_commands/sbom/input_build.py
+--- a/scripts/west_commands/sbom/input_build.py
++++ b/scripts/west_commands/sbom/input_build.py
+@@ -621,11 +621,30 @@
+                 archive.is_leaf = not self.check_archive_with_ar(archive)
+
+
++    def is_derived_link_product(self, path: Path) -> bool:
++        '''
++        Return True for local linker products that do not represent source inputs.
++
++        The Ninja graph can expose an intermediate ELF or preprocessed linker
++        command as an object with no source edge. Their real source inputs are
++        recorded separately, so including the derived product would duplicate
++        the source SBOM with a file that has no independent license.
++        '''
++        try:
++            path.resolve().relative_to(self.build_dir.resolve())
++        except (OSError, ValueError):
++            return False
++        return path.suffix.lower() == '.elf' or (
++            path.suffix.lower() == '.cmd' and path.name.startswith('linker')
++        )
++
+     def add_file_info(self, path: Path):
+         '''
+         Add output file information using given path.
+         If file is empty and it is not a source code, ignore it.
+         '''
++        if self.is_derived_link_product(path):
++            return
+         if path in self.seen_input_files:
+             return
+         self.seen_input_files.add(path)

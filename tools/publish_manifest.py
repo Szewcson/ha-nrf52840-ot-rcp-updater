@@ -8,6 +8,7 @@ import json
 import os
 import re
 import tempfile
+from hashlib import sha256
 from pathlib import Path
 
 
@@ -62,9 +63,72 @@ def _https_url(value: str, name: str) -> str:
     return value.rstrip("/")
 
 
+def _write_manifest(manifest_path: Path, document: dict[str, object]) -> None:
+    """Atomically persist normalized manifest JSON used by the runtime signer."""
+
+    descriptor, temporary_name = tempfile.mkstemp(
+        prefix="manifest-", suffix=".json", dir=manifest_path.parent
+    )
+    try:
+        with os.fdopen(descriptor, "w", encoding="utf-8") as stream:
+            json.dump(document, stream, indent=2, sort_keys=True)
+            stream.write("\n")
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.replace(temporary_name, manifest_path)
+    finally:
+        try:
+            os.unlink(temporary_name)
+        except FileNotFoundError:
+            pass
+
+
+def migrate_manifest_signatures(manifest_path: Path, artifact_base_url: str) -> None:
+    """Add deterministic detached-signature URLs before enforcing signatures.
+
+    This one-time schema-compatible migration permits established firmware
+    artifacts to receive their own signatures without changing their hashes.
+    """
+
+    artifact_base_url = _https_url(artifact_base_url, "artifact base URL")
+    try:
+        document = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as err:
+        raise PublishError(f"cannot read JSON input: {err}") from err
+    if not isinstance(document, dict) or document.get("schema_version") != 1:
+        raise PublishError("manifest schema_version must be 1")
+    releases = document.get("releases")
+    if not isinstance(releases, list):
+        raise PublishError("manifest releases must be an array")
+    for release in releases:
+        if not isinstance(release, dict) or not isinstance(release.get("artifact"), dict):
+            raise PublishError("existing manifest release artifact is invalid")
+        artifact = release["artifact"]
+        assert isinstance(artifact, dict)
+        filename = _required_string(artifact, "filename", _FILENAME)
+        artifact["signature_url"] = f"{artifact_base_url}/{filename}.sig"
+    _write_manifest(manifest_path, document)
+
+
+def _validate_artifact(filename: str, digest: str, artifact: Path) -> None:
+    """Bind publication metadata to exactly one locally verified ELF file."""
+
+    if artifact.name != filename:
+        raise PublishError("artifact filename does not match release metadata")
+    if not artifact.is_file() or artifact.suffix != ".elf":
+        raise PublishError("artifact file is missing or is not an ELF")
+    try:
+        actual_digest = sha256(artifact.read_bytes()).hexdigest()
+    except OSError as err:
+        raise PublishError(f"cannot hash artifact: {err}") from err
+    if actual_digest != digest:
+        raise PublishError("artifact SHA-256 does not match release metadata")
+
+
 def update_manifest(
     manifest_path: Path,
     metadata_path: Path,
+    artifact_path: Path,
     artifact_base_url: str,
     release_url: str,
 ) -> None:
@@ -89,6 +153,7 @@ def update_manifest(
     dfu_application_version = _required_u32(metadata, "dfu_application_version")
     filename = _required_string(metadata, "artifact", _FILENAME)
     digest = _required_string(metadata, "sha256", _SHA256)
+    _validate_artifact(filename, digest, artifact_path)
     entry = {
         "hardware": hardware,
         "ncs_version": ncs_version,
@@ -98,6 +163,7 @@ def update_manifest(
             "url": f"{artifact_base_url}/{filename}",
             "sha256": digest,
             "filename": filename,
+            "signature_url": f"{artifact_base_url}/{filename}.sig",
         },
         "release_url": release_url,
         "release_summary": f"PCA10059 OpenThread RCP built with NCS {ncs_version} and Zephyr {zephyr_version}.",
@@ -118,37 +184,37 @@ def update_manifest(
         raise PublishError("existing manifest has an invalid NCS version") from err
     document["releases"] = remaining
 
-    descriptor, temporary_name = tempfile.mkstemp(
-        prefix="manifest-", suffix=".json", dir=manifest_path.parent
-    )
-    try:
-        with os.fdopen(descriptor, "w", encoding="utf-8") as stream:
-            json.dump(document, stream, indent=2, sort_keys=True)
-            stream.write("\n")
-            stream.flush()
-            os.fsync(stream.fileno())
-        os.replace(temporary_name, manifest_path)
-    finally:
-        try:
-            os.unlink(temporary_name)
-        except FileNotFoundError:
-            pass
+    _write_manifest(manifest_path, document)
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--manifest", required=True, type=Path)
-    parser.add_argument("--metadata", required=True, type=Path)
+    parser.add_argument("--metadata", type=Path)
+    parser.add_argument("--artifact", type=Path)
     parser.add_argument("--artifact-base-url", required=True)
-    parser.add_argument("--release-url", required=True)
+    parser.add_argument("--release-url")
+    parser.add_argument("--migrate-signatures", action="store_true")
     arguments = parser.parse_args()
     try:
-        update_manifest(
-            arguments.manifest,
-            arguments.metadata,
-            arguments.artifact_base_url,
-            arguments.release_url,
-        )
+        if arguments.migrate_signatures:
+            if arguments.metadata is not None or arguments.artifact is not None:
+                parser.error("signature migration does not accept --metadata or --artifact")
+            migrate_manifest_signatures(arguments.manifest, arguments.artifact_base_url)
+        else:
+            if (
+                arguments.metadata is None
+                or arguments.artifact is None
+                or arguments.release_url is None
+            ):
+                parser.error("publication requires --metadata, --artifact, and --release-url")
+            update_manifest(
+                arguments.manifest,
+                arguments.metadata,
+                arguments.artifact,
+                arguments.artifact_base_url,
+                arguments.release_url,
+            )
     except PublishError as err:
         parser.error(str(err))
     return 0

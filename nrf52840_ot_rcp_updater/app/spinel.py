@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
+import re
+from collections.abc import Iterator
 from dataclasses import dataclass
 from time import monotonic, sleep
-import re
-from typing import Iterator
 
 try:
     import serial
@@ -13,7 +13,6 @@ except ImportError:  # pragma: no cover - the container provides pyserial.
     serial = None
 
 from .models import NcpVersion
-
 
 _HDLC_FLAG = 0x7E
 _HDLC_ESCAPE = 0x7D
@@ -32,12 +31,31 @@ _SPINEL_RESET_BOOTLOADER = 3
 
 _TOKEN_VALUE = r"(?P<{}>[A-Za-z0-9._+-]+)"
 _NCP_FIELDS = {
-    "hardware": re.compile(r"(?:^|[\s;])HW/" + _TOKEN_VALUE.format("hardware") + r"(?:$|[\s;])"),
-    "ncs_version": re.compile(
-        r"(?:^|[\s;])NCS/" + _TOKEN_VALUE.format("ncs_version") + r"(?:$|[\s;])"
+    "hardware": (
+        # Current builds place the board directly after the conventional SoC.
+        re.compile(
+            r"(?:^|[\s;])NRF52840\s+"
+            + _TOKEN_VALUE.format("hardware")
+            + r"(?:$|[\s;])"
+        ),
+        # Retain parsing of project firmware built before the compact format.
+        re.compile(
+            r"(?:^|[\s;])HW/" + _TOKEN_VALUE.format("hardware") + r"(?:$|[\s;])"
+        ),
     ),
-    "zephyr_version": re.compile(
-        r"(?:^|[\s;])ZEPHYR/" + _TOKEN_VALUE.format("zephyr_version") + r"(?:$|[\s;])"
+    "ncs_version": (
+        re.compile(
+            r"(?:^|[\s;])(?:NCS|N)/"
+            + _TOKEN_VALUE.format("ncs_version")
+            + r"(?:$|[\s;])"
+        ),
+    ),
+    "zephyr_version": (
+        re.compile(
+            r"(?:^|[\s;])(?:ZEPHYR|Z)/"
+            + _TOKEN_VALUE.format("zephyr_version")
+            + r"(?:$|[\s;])"
+        ),
     ),
 }
 
@@ -131,13 +149,20 @@ def unpack_uint(data: bytes, offset: int) -> tuple[int, int]:
 
 
 def parse_ncp_version(raw: str) -> NcpVersion:
-    """Parse our additive platform-info tags without requiring a custom property."""
+    """Parse our additive tags from the OpenThread platform-info field.
+
+    New RCPs lead this field with the conventional bare ``NRF52840`` token;
+    older project firmware did not. Restrict parsing to that field so both
+    forms work without treating package or build-date text as updater tags.
+    """
 
     if not raw or "\x00" in raw or len(raw) > 512:
         raise SpinelError("NCP version string is invalid")
+    _prefix, separator, remainder = raw.partition(";")
+    platform_info = remainder.partition(";")[0] if separator else raw
     values: dict[str, str | None] = {}
-    for field, pattern in _NCP_FIELDS.items():
-        match = pattern.search(raw)
+    for field, patterns in _NCP_FIELDS.items():
+        match = next((match for pattern in patterns if (match := pattern.search(platform_info))), None)
         values[field] = match.group(field) if match else None
     return NcpVersion(raw=raw, **values)
 
