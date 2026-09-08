@@ -40,7 +40,11 @@ _PCA10059_APPLICATION_START = 0x1000
 _PCA10059_FLASH_END = 0x00100000
 _SIGNATURE_PREFIX = "ed25519:"
 _FIRMWARE_SIGNING_PUBLIC_KEY_PATH = Path(__file__).with_name("firmware_signing_public_key.pem")
+_FIRMWARE_SIGNING_LEGACY_PUBLIC_KEY_PATH = Path(__file__).with_name(
+    "firmware_signing_legacy_public_key.pem"
+)
 _FIRMWARE_SIGNING_PUBLIC_KEY_PEM = _FIRMWARE_SIGNING_PUBLIC_KEY_PATH.read_bytes()
+_FIRMWARE_SIGNING_LEGACY_PUBLIC_KEY_PEM = _FIRMWARE_SIGNING_LEGACY_PUBLIC_KEY_PATH.read_bytes()
 
 
 class ManifestError(RuntimeError):
@@ -69,12 +73,14 @@ def _signature_url(url: str) -> str:
 
 
 def _verify_signature(payload: bytes, signature: bytes, description: str) -> None:
-    """Verify a detached signature with the image-pinned public key.
+    """Verify a detached signature with an image-pinned firmware public key.
 
     A signed manifest makes its artifact hash authoritative, while a detached
     artifact signature makes each firmware payload independently authentic.
-    The public key is shipped in the add-on image, outside the mutable firmware
+    Both keys are shipped in the add-on image, outside the mutable firmware
     branch, so replacing a manifest and its SHA-256 cannot authorize an ELF.
+    The legacy key only bridges the existing signed branch while its releases
+    are reset and rebuilt with the active replacement key; remove it later.
     """
 
     try:
@@ -91,16 +97,22 @@ def _verify_signature(payload: bytes, signature: bytes, description: str) -> Non
         raise ManifestError(f"{description} signature is not valid base64") from err
     if len(raw_signature) != 64:
         raise ManifestError(f"{description} signature has an invalid Ed25519 length")
-    try:
-        public_key = serialization.load_pem_public_key(_FIRMWARE_SIGNING_PUBLIC_KEY_PEM)
-    except (TypeError, ValueError) as err:  # pragma: no cover - image build invariant.
-        raise ManifestError("built-in firmware signing public key is invalid") from err
-    if not isinstance(public_key, Ed25519PublicKey):  # pragma: no cover - image build invariant.
-        raise ManifestError("built-in firmware signing public key is not Ed25519")
-    try:
-        public_key.verify(raw_signature, payload)
-    except InvalidSignature as err:
-        raise ManifestError(f"{description} signature does not match") from err
+    for public_key_pem in (
+        _FIRMWARE_SIGNING_PUBLIC_KEY_PEM,
+        _FIRMWARE_SIGNING_LEGACY_PUBLIC_KEY_PEM,
+    ):
+        try:
+            public_key = serialization.load_pem_public_key(public_key_pem)
+        except (TypeError, ValueError) as err:  # pragma: no cover - image build invariant.
+            raise ManifestError("built-in firmware signing public key is invalid") from err
+        if not isinstance(public_key, Ed25519PublicKey):  # pragma: no cover - image build invariant.
+            raise ManifestError("built-in firmware signing public key is not Ed25519")
+        try:
+            public_key.verify(raw_signature, payload)
+        except InvalidSignature:
+            continue
+        return
+    raise ManifestError(f"{description} signature does not match")
 
 
 class FirmwareManifest:

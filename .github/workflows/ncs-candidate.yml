@@ -9,6 +9,11 @@ on:
         description: sdk-nrf tag to publish, including v3.5.0-preview1 or v3.5.0-rc1
         required: false
         type: string
+      reset_existing_firmware:
+        description: Reset the signed firmware branch so all releases rebuild with the active key; leave ncs_tag empty
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -97,7 +102,7 @@ jobs:
 
   build:
     needs: [discover, verify]
-    if: needs.discover.outputs.releases != '[]' && needs.verify.result == 'success'
+    if: needs.discover.outputs.releases != '[]' && needs.verify.result == 'success' && (github.event_name != 'workflow_dispatch' || inputs.reset_existing_firmware != true)
     runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
@@ -331,6 +336,10 @@ jobs:
             --private-key "${signing_key}" \
             --input "${package}" \
             --output "${package}.sig"
+          python tools/sign_firmware.py \
+            --public-key nrf52840_ot_rcp_updater/app/firmware_signing_public_key.pem \
+            --input "${package}" \
+            --signature "${package}.sig"
           store="${RUNNER_TEMP}/firmware-store"
           remote="https://x-access-token:${GITHUB_TOKEN}@github.com/${REPOSITORY}.git"
           git init --initial-branch="${FIRMWARE_BRANCH}" "${store}"
@@ -345,6 +354,7 @@ jobs:
             test -f "${manifest}.sig"
             python tools/sign_firmware.py \
               --public-key nrf52840_ot_rcp_updater/app/firmware_signing_public_key.pem \
+              --public-key nrf52840_ot_rcp_updater/app/firmware_signing_legacy_public_key.pem \
               --input "${manifest}" \
               --signature "${manifest}.sig"
           else
@@ -382,6 +392,10 @@ jobs:
             --private-key "${signing_key}" \
             --input "${manifest}" \
             --output "${manifest}.sig"
+          python tools/sign_firmware.py \
+            --public-key nrf52840_ot_rcp_updater/app/firmware_signing_public_key.pem \
+            --input "${manifest}" \
+            --signature "${manifest}.sig"
           git -C "${store}" add \
             "${FIRMWARE_MANIFEST}" \
             "${FIRMWARE_MANIFEST}.sig" \
@@ -398,4 +412,83 @@ jobs:
             "${FIRMWARE_DIRECTORY}/${filename}.west-manifest.yml" \
             "${FIRMWARE_DIRECTORY}/${filename}.zephyr-sdk.txt"
           git -C "${store}" commit -m "firmware: publish PCA10059 NCS ${NCS_VERSION}"
+          git -C "${store}" push origin "HEAD:${FIRMWARE_BRANCH}"
+
+  reset-firmware-branch:
+    needs: verify
+    if: github.event_name == 'workflow_dispatch' && inputs.reset_existing_firmware == true && inputs.ncs_tag == ''
+    runs-on: ubuntu-24.04
+    environment: firmware-publisher
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+      - name: Reset signed firmware branch
+        env:
+          FIRMWARE_SIGNING_PRIVATE_KEY_B64: ${{ secrets.FIRMWARE_SIGNING_PRIVATE_KEY_B64 }}
+          GITHUB_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          python3 -m venv "${RUNNER_TEMP}/signing-venv"
+          . "${RUNNER_TEMP}/signing-venv/bin/activate"
+          python -m pip install --disable-pip-version-check --no-cache-dir "cryptography==43.0.0"
+          test -n "${FIRMWARE_SIGNING_PRIVATE_KEY_B64}"
+          signing_key="${RUNNER_TEMP}/firmware-signing-key.pem"
+          challenge="${RUNNER_TEMP}/firmware-signing-challenge"
+          reset_manifest="${RUNNER_TEMP}/firmware-manifest-reset.json"
+          trap 'rm -f "${signing_key}" "${challenge}" "${challenge}.sig" "${reset_manifest}" "${reset_manifest}.sig"' EXIT
+          if ! printf '%s' "${FIRMWARE_SIGNING_PRIVATE_KEY_B64}" \
+            | base64 --decode > "${signing_key}" 2>/dev/null; then
+            rm -f "${signing_key}"
+            echo "FIRMWARE_SIGNING_PRIVATE_KEY_B64 must be standard RFC 4648 Base64 for the unencrypted Ed25519 PEM; do not store the raw PEM, quotes, or a URL-safe Base64 value." >&2
+            exit 1
+          fi
+          chmod 0600 "${signing_key}"
+          printf '%s\n' "firmware signing key rotation challenge" > "${challenge}"
+          python tools/sign_firmware.py \
+            --private-key "${signing_key}" \
+            --input "${challenge}" \
+            --output "${challenge}.sig"
+          python tools/sign_firmware.py \
+            --public-key nrf52840_ot_rcp_updater/app/firmware_signing_public_key.pem \
+            --input "${challenge}" \
+            --signature "${challenge}.sig"
+          store="${RUNNER_TEMP}/firmware-store"
+          remote="https://x-access-token:${GITHUB_TOKEN}@github.com/${REPOSITORY}.git"
+          git init --initial-branch="${FIRMWARE_BRANCH}" "${store}"
+          git -C "${store}" remote add origin "${remote}"
+          if ! git -C "${store}" fetch --depth=1 origin "${FIRMWARE_BRANCH}"; then
+            echo "cannot reset firmware: the ${FIRMWARE_BRANCH} branch does not exist" >&2
+            exit 1
+          fi
+          git -C "${store}" switch -C "${FIRMWARE_BRANCH}" FETCH_HEAD
+          git -C "${store}" config user.name "github-actions[bot]"
+          git -C "${store}" config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          manifest="${store}/${FIRMWARE_MANIFEST}"
+          test -s "${manifest}"
+          test -s "${manifest}.sig"
+          python tools/sign_firmware.py \
+            --public-key nrf52840_ot_rcp_updater/app/firmware_signing_public_key.pem \
+            --public-key nrf52840_ot_rcp_updater/app/firmware_signing_legacy_public_key.pem \
+            --input "${manifest}" \
+            --signature "${manifest}.sig"
+          printf '{"releases":[],"schema_version":1}\n' > "${reset_manifest}"
+          python tools/sign_firmware.py \
+            --private-key "${signing_key}" \
+            --input "${reset_manifest}" \
+            --output "${reset_manifest}.sig"
+          python tools/sign_firmware.py \
+            --public-key nrf52840_ot_rcp_updater/app/firmware_signing_public_key.pem \
+            --input "${reset_manifest}" \
+            --signature "${reset_manifest}.sig"
+          git -C "${store}" rm -r --ignore-unmatch -- "${FIRMWARE_DIRECTORY}"
+          install -m 0644 "${reset_manifest}" "${manifest}"
+          install -m 0644 "${reset_manifest}.sig" "${manifest}.sig"
+          git -C "${store}" add -- "${FIRMWARE_MANIFEST}" "${FIRMWARE_MANIFEST}.sig"
+          if git -C "${store}" diff --cached --quiet; then
+            echo "Firmware branch is already reset for rebuilding."
+            exit 0
+          fi
+          git -C "${store}" commit -m "firmware: reset release index"
           git -C "${store}" push origin "HEAD:${FIRMWARE_BRANCH}"

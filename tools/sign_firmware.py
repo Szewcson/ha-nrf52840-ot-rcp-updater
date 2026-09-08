@@ -7,6 +7,7 @@ import base64
 import binascii
 import os
 import tempfile
+from collections.abc import Iterable, Sequence
 from pathlib import Path
 
 from cryptography.exceptions import InvalidSignature
@@ -30,8 +31,8 @@ def sign(payload: bytes, private_key_pem: bytes) -> bytes:
     return b"ed25519:" + base64.b64encode(key.sign(payload)) + b"\n"
 
 
-def verify(payload: bytes, signature: bytes, public_key_pem: bytes) -> None:
-    """Reject any signature that is not an Ed25519 signature for ``payload``."""
+def _decode_signature(signature: bytes) -> bytes:
+    """Return the raw Ed25519 signature from the project wire format."""
 
     try:
         encoded = signature.decode("ascii").strip()
@@ -45,16 +46,46 @@ def verify(payload: bytes, signature: bytes, public_key_pem: bytes) -> None:
         raise SigningError("firmware signature is not valid base64") from err
     if len(raw_signature) != 64:
         raise SigningError("firmware signature has an invalid Ed25519 length")
+    return raw_signature
+
+
+def _load_public_key(public_key_pem: bytes) -> Ed25519PublicKey:
+    """Load one valid Ed25519 verifier from image-pinned PEM bytes."""
+
     try:
         key = serialization.load_pem_public_key(public_key_pem)
     except (TypeError, ValueError) as err:
         raise SigningError("firmware verification key is not a PEM public key") from err
     if not isinstance(key, Ed25519PublicKey):
         raise SigningError("firmware verification key must use Ed25519")
+    return key
+
+
+def verify(payload: bytes, signature: bytes, public_key_pem: bytes) -> None:
+    """Reject any signature that is not an Ed25519 signature for ``payload``."""
+
+    raw_signature = _decode_signature(signature)
+    key = _load_public_key(public_key_pem)
     try:
         key.verify(raw_signature, payload)
     except InvalidSignature as err:
         raise SigningError("firmware signature does not match") from err
+
+
+def verify_any(payload: bytes, signature: bytes, public_key_pems: Iterable[bytes]) -> None:
+    """Accept a valid signature from any complete, image-pinned Ed25519 key set."""
+
+    raw_signature = _decode_signature(signature)
+    public_keys = tuple(_load_public_key(public_key_pem) for public_key_pem in public_key_pems)
+    if not public_keys:
+        raise SigningError("at least one firmware verification key is required")
+    for public_key in public_keys:
+        try:
+            public_key.verify(raw_signature, payload)
+        except InvalidSignature:
+            continue
+        return
+    raise SigningError("firmware signature does not match")
 
 
 def sign_file(input_path: Path, private_key_path: Path, output_path: Path) -> None:
@@ -82,11 +113,17 @@ def sign_file(input_path: Path, private_key_path: Path, output_path: Path) -> No
             pass
 
 
-def verify_file(input_path: Path, signature_path: Path, public_key_path: Path) -> None:
+def verify_file(
+    input_path: Path, signature_path: Path, public_key_paths: Sequence[Path]
+) -> None:
     """Verify an existing release file before it is carried into a new manifest."""
 
     try:
-        verify(input_path.read_bytes(), signature_path.read_bytes(), public_key_path.read_bytes())
+        verify_any(
+            input_path.read_bytes(),
+            signature_path.read_bytes(),
+            (public_key_path.read_bytes() for public_key_path in public_key_paths),
+        )
     except OSError as err:
         raise SigningError(f"cannot read signature input: {err}") from err
 
@@ -95,7 +132,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     operation = parser.add_mutually_exclusive_group(required=True)
     operation.add_argument("--private-key", type=Path)
-    operation.add_argument("--public-key", type=Path)
+    operation.add_argument("--public-key", action="append", type=Path)
     parser.add_argument("--input", required=True, type=Path)
     parser.add_argument("--output", type=Path)
     parser.add_argument("--signature", type=Path)
@@ -106,9 +143,8 @@ def main() -> int:
                 parser.error("signing requires --output and does not accept --signature")
             sign_file(arguments.input, arguments.private_key, arguments.output)
         else:
-            if arguments.signature is None or arguments.output is not None:
+            if arguments.signature is None or arguments.output is not None or not arguments.public_key:
                 parser.error("verification requires --signature and does not accept --output")
-            assert arguments.public_key is not None
             verify_file(arguments.input, arguments.signature, arguments.public_key)
     except SigningError as err:
         parser.error(str(err))

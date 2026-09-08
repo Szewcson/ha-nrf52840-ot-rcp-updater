@@ -522,18 +522,22 @@ first verified firmware build.
 
 ### Firmware Signing Setup
 
-The public Ed25519 verifier is compiled into the add-on at
+The active Ed25519 verifier is compiled into the add-on at
 `app/firmware_signing_public_key.pem`. Its DER SHA-256 fingerprint is
-`6048da9611bedad11db1b43743a41abf59f64140f23eab979f45bd6da52f8aea`.
-The matching private key must never be committed or printed in Actions logs.
-Store its base64-encoded PEM as the `FIRMWARE_SIGNING_PRIVATE_KEY_B64` secret
-of the `firmware-publisher` GitHub environment. That environment needs no
-reviewer for automatic publication, but should be restricted to the protected
-`main` branch. Protect `main` with pull-request review and CI. On `firmware`,
-block force pushes and deletion, but allow ordinary fast-forward updates: the
-publication job uses a `GITHUB_TOKEN` push and would otherwise be blocked.
-The signed manifest and ELF verification, not branch mutability, is the
-firmware integrity boundary.
+`03715e0d5084c77c230119639fc46f5e225ff6722cd53e171ec266ffff1b94ca`.
+The `0.4.1` bridge release also contains
+`app/firmware_signing_legacy_public_key.pem`, fingerprint
+`6048da9611bedad11db1b43743a41abf59f64140f23eab979f45bd6da52f8aea`, so it
+can verify existing branch content before old releases are cleared and rebuilt
+with the active key. The matching active private key must never be committed
+or printed in Actions logs. Store its base64-encoded PEM as the
+`FIRMWARE_SIGNING_PRIVATE_KEY_B64` secret of the `firmware-publisher` GitHub
+environment. That environment needs no reviewer for automatic publication,
+but should be restricted to the protected `main` branch. Protect `main` with
+pull-request review and CI. On `firmware`, block force pushes and deletion, but
+allow ordinary fast-forward updates: the publication job uses a `GITHUB_TOKEN`
+push and would otherwise be blocked. The signed manifest and ELF verification,
+not branch mutability, is the firmware integrity boundary.
 
 Before setting that secret, verify that the private PEM is the one matching the
 committed public key. This command must print the fingerprint above; it does
@@ -562,9 +566,69 @@ base64 < /secure/path/firmware-signing-private-key.pem | tr -d '\n' \
 ```
 
 Keep both the original private PEM and its Base64 copy outside the repository,
-and delete the temporary Base64 copy after entering the GitHub secret. A new
-private key will not work unless its public key is intentionally rotated in a
-separate add-on release.
+and delete the temporary Base64 copy after entering the GitHub secret.
+
+### Rotate Firmware Signing Key
+
+Use the local helper to create a replacement unencrypted Ed25519 keypair and
+its GitHub-secret value. It refuses output within this repository, requires a
+private output directory that is not accessible to group or other users, uses
+mode `0600` for secret files, and self-tests the key with this project's actual
+signature format. The helper does not change the add-on verifier or GitHub
+secret itself.
+
+Run it from the repository root, not its parent directory. Create the virtual
+environment first if `.venv/bin/python` does not exist:
+
+```sh
+cd /home/user/proj/ha-nrf52840-ot-rcp-updater
+python3 -m venv .venv
+.venv/bin/pip install -r requirements-dev.txt
+
+KEY_DIR="$HOME/.local/share/ha-nrf52840-ot-rcp-updater/key-rotation-2026-09"
+.venv/bin/python tools/rotate_firmware_signing_key.py generate \
+  --output-dir "$KEY_DIR" \
+  --key-id firmware-signing-2026-09
+```
+
+If you generated the unencrypted Ed25519 PEM independently, use `prepare`
+instead. It validates the existing file and writes only the derived public PEM
+and GitHub-secret Base64 value; it does not make another private-key copy.
+
+```sh
+.venv/bin/python tools/rotate_firmware_signing_key.py prepare \
+  --private-key "$NEW_PRIVATE" \
+  --output-dir "$KEY_DIR" \
+  --key-id firmware-signing-2026-09
+```
+
+Back up the generated private PEM in KeePassXC. Do not share it, commit it, or
+paste it into an issue. Share only the generated public PEM and its printed
+DER SHA-256 fingerprint. Complete a rotation in this order:
+
+1. Release and install an add-on bridge version that trusts both the old and
+   replacement public keys. This repository's `0.4.1` release is that bridge
+   for the active fingerprint above.
+2. Confirm Home Assistant is running that bridge version. Do not replace the
+   GitHub secret earlier: older add-ons trust only the legacy key and would
+   reject newly signed manifests.
+3. Paste the single-line contents of the generated `*-github-secret.b64` file
+   into the `FIRMWARE_SIGNING_PRIVATE_KEY_B64` secret in the
+   `firmware-publisher` GitHub environment.
+4. In GitHub Actions, select **Publish NCS RCP Releases**, choose **Run
+   workflow**, leave `ncs_tag` empty, and enable `reset_existing_firmware`.
+   The job verifies the existing manifest with either trusted key, removes the
+   old published release files, and writes an empty manifest signed by the
+   active key.
+5. Run the workflow a second time with both inputs empty, or wait for its next
+   hourly run. The empty manifest makes the builder rebuild every eligible NCS
+   release from source and publish it with the active key. Retire the legacy
+   public key only in a later add-on release, after bridge users have had time
+   to update.
+
+If the generated Base64 file was deleted after a KeePassXC backup, recreate it
+from the backed-up private PEM with the `prepare` command above. Never create
+or paste a new private key merely to recreate the Base64 value.
 
 When NCS changes its license text, update the reviewed
 `ncs_license_sha256` value in `firmware/release-policy.json` in the same pull
