@@ -1,0 +1,30 @@
+{
+  "artifact": {
+    "filename": "nrf52840-ot-rcp-ncs-3.3.4.elf",
+    "sha256": "5c70cb642fc833c9b4a5b16b3701b0bbae7bccd8ae01e48ad5ad88c687b98d14"
+  },
+  "build_metadata": {
+    "artifact": "nrf52840-ot-rcp-ncs-3.3.4.elf",
+    "dfu_application_version": 300300499,
+    "hardware": "PCA10059",
+    "ncp_version": "OPENTHREAD/ncs-thread-reference-20250402; NRF52840 PCA10059 N/3.3.4 Z/4.3.99; Sep  8 2026 10:48:49",
+    "ncp_version_bytes": 98,
+    "ncs_version": "3.3.4",
+    "platform_info": "NRF52840 PCA10059 N/3.3.4 Z/4.3.99",
+    "sha256": "5c70cb642fc833c9b4a5b16b3701b0bbae7bccd8ae01e48ad5ad88c687b98d14",
+    "zephyr_version": "4.3.99"
+  },
+  "ncs": {
+    "license_sha256": "47d92141c69e74a0166c319a41e5005ce2b87f0498e5dbd5a0c5a34f9ef63954",
+    "resolved_west_manifest_sha256": "175565727ed3b7228f604e6aca0d20464241c3571aecaeddd153c7460e5c4944",
+    "revision": "b096d30d893bebeb8d1c9780c7c95bb9bac43281",
+    "tag": "v3.3.4"
+  },
+  "sbom": {
+    "license_cache_sha256": "8cef60e8b0215025baeda2a4421307e466136a15e88daee6f1a9e8b87effe6f9",
+    "license_policy_sha256": "e9c56bd523398a76b30f5069e958d274e515ba6e08be9b46ee58ae6f5fcfae38"
+  },
+  "schema_version": 1,
+  "source_repository_revision": "2bc22c9e5c59acab2985c7a8ec70029979dcdf26",
+  "toolchain_report_sha256": "68ef209c443d3f4067567f8e4d38fa7ad6f82295620e3bf89692c286dbf5ed28"
+}

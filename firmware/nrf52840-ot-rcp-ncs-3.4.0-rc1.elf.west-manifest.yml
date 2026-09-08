@@ -1,0 +1,302 @@
+manifest:
+  group-filter:
+  - -bsec
+  - -dragoon
+  - -libmodem
+  - -find-my
+  - -nrf-802154
+  - -babblesim
+  - -doc-internal
+  projects:
+  - name: zephyr
+    url: https://github.com/nrfconnect/sdk-zephyr
+    revision: a2bce9d3decd691d4748c2b0f9069845e0c08431
+    west-commands: scripts/west-commands.yml
+  - name: wfa-qt-control-app
+    url: https://github.com/nrfconnect/sdk-wi-fiquicktrack-controlappc
+    revision: 1f19f0b23e42205bab5f34ace335fffa5e7d32ff
+    path: modules/lib/wfa-qt-control-app
+    userdata:
+      ncs:
+        upstream-url: https://github.com/Wi-FiQuickTrack/Wi-FiQuickTrack-ControlAppC
+        upstream-sha: 1225729e8d84075f03bf9fc51eee85d84dfb0091
+        compare-by-default: true
+  - name: mcuboot
+    url: https://github.com/nrfconnect/sdk-mcuboot
+    revision: d2b3671987d1ca54492afe560c2444c3a9dc3000
+    path: bootloader/mcuboot
+  - name: qcbor
+    url: https://github.com/laurencelundblade/QCBOR
+    revision: 751d36583a9ce1a640900c57e13c9b6b8f3a2ba2
+    path: modules/tee/tf-m/qcbor
+  - name: mbedtls
+    url: https://github.com/nrfconnect/sdk-mbedtls
+    revision: 92d44566209a0d94a571cc7f71a4a7b9262f7602
+    path: modules/crypto/mbedtls
+  - name: oberon-psa-crypto
+    url: https://github.com/nrfconnect/sdk-oberon-psa-crypto
+    revision: 3a9005029dae919e3f6d9d4182465a8e2572cf9f
+    path: modules/crypto/oberon-psa-crypto
+  - name: nrfxlib
+    url: https://github.com/nrfconnect/sdk-nrfxlib
+    revision: 45ab53a5b36e67c361af590bfbe02f6c508ff248
+  - name: trusted-firmware-m
+    url: https://github.com/nrfconnect/sdk-trusted-firmware-m
+    revision: e476105018a2bf2dd8f87bca30a8e766846b4048
+    path: modules/tee/tf-m/trusted-firmware-m
+  - name: psa-arch-tests
+    url: https://github.com/nrfconnect/sdk-psa-arch-tests
+    revision: ba0487c40eb2b57676676604b4c17526790dbc94
+    path: modules/tee/tf-m/psa-arch-tests
+  - name: matter
+    url: https://github.com/nrfconnect/sdk-connectedhomeip
+    revision: 106cf3d26c6b3354fc2006aa71684a9905d1af64
+    path: modules/lib/matter
+    west-commands: scripts/west/west-commands.yml
+    submodules:
+    - path: third_party/nlio/repo
+      name: nlio
+    - path: third_party/nlassert/repo
+      name: nlassert
+    - path: third_party/pigweed/repo
+      name: pigweed
+    - path: third_party/jsoncpp/repo
+      name: jsoncpp
+    userdata:
+      ncs:
+        upstream-url: https://github.com/project-chip/connectedhomeip
+        upstream-sha: 181b0cb14ff007ec912f2ba6627e05dfb066c008
+        compare-by-default: false
+  - name: cjson
+    url: https://github.com/nrfconnect/sdk-cjson
+    revision: c6af068b7f05207b28d68880740e4b9ec1e4b50a
+    path: modules/lib/cjson
+    userdata:
+      ncs:
+        upstream-url: https://github.com/DaveGamble/cJSON
+        upstream-sha: d2735278ed1c2e4556f53a7a782063b31331dbf7
+        compare-by-default: false
+  - name: azure-sdk-for-c
+    url: https://github.com/nrfconnect/azure-sdk-for-c
+    revision: 308c171cb4b5eed266649012a68406487ec81fb2
+    path: modules/lib/azure-sdk-for-c
+    userdata:
+      ncs:
+        upstream-url: https://github.com/Azure/azure-sdk-for-c
+        upstream-sha: adc56bc6138a28b5490bce339a31a2581a072092
+        compare-by-default: false
+  - name: cirrus
+    url: https://github.com/nrfconnect/sdk-mcu-drivers
+    revision: 1c837bcc27de9ccc06b020b9500e1547e559a1df
+    path: modules/hal/cirrus-logic
+    userdata:
+      ncs:
+        upstream-url: https://github.com/CirrusLogic/mcu-drivers
+        upstream-sha: 1be6ca7253133a21a1e9fe0fbb4656e17d63a936
+        compare-by-default: false
+  - name: openthread
+    url: https://github.com/nrfconnect/sdk-openthread
+    revision: 0fe68ff23527e8bb9a9821ca96a255fccfbb44a7
+    path: modules/lib/openthread
+    userdata:
+      ncs:
+        upstream-url: https://github.com/openthread/openthread
+        upstream-sha: c6eaeda5a1c1c5dbb24dce7e027340cb8893a77b
+        compare-by-default: false
+  - name: nrf_wifi
+    url: https://github.com/nrfconnect/nrf_wifi
+    revision: d28d7e972a208f5007f745bd0a116d4cde3c4100
+    path: modules/lib/nrf_wifi
+  - name: cmock
+    url: https://github.com/ThrowTheSwitch/cmock
+    revision: f65066f15d8248e6dcb778efb8739904a4512087
+    path: test/cmock
+    submodules: true
+  - name: memfault-firmware-sdk
+    url: https://github.com/memfault/memfault-firmware-sdk
+    revision: 1c22975c2cd44671549ea5ab2517282559203af6
+    path: modules/lib/memfault-firmware-sdk
+  - name: bsim
+    url: https://github.com/BabbleSim/bsim_west
+    revision: a88d3353451387ca490a6a7f7c478a90c4ee05b7
+    path: tools/bsim
+  - name: coremark
+    url: https://github.com/eembc/coremark
+    revision: d5fad6bd094899101a4e5fd53af7298160ced6ab
+    path: modules/benchmark/coremark
+    groups:
+    - benchmark
+  - name: canopennode
+    url: https://github.com/zephyrproject-rtos/canopennode
+    revision: dec12fa3f0d790cafa8414a4c2930ea71ab72ffd
+    path: modules/lib/canopennode
+    groups:
+    - optional
+  - name: chre
+    url: https://github.com/zephyrproject-rtos/chre
+    revision: c4c2f49fdcaa2fed49eb1db027696a5734a010d2
+    path: modules/lib/chre
+    groups:
+    - optional
+  - name: cmsis
+    url: https://github.com/zephyrproject-rtos/cmsis
+    revision: 512cc7e895e8491696b61f7ba8066b4a182569b8
+    path: modules/hal/cmsis
+    groups:
+    - hal
+  - name: cmsis-dsp
+    url: https://github.com/zephyrproject-rtos/cmsis-dsp
+    revision: 97512610ec92058f0119450b9e743eeb7e95b5c8
+    path: modules/lib/cmsis-dsp
+  - name: cmsis-nn
+    url: https://github.com/zephyrproject-rtos/cmsis-nn
+    revision: d20117c9e88cf9018d6fa06744dddac700c3e3a1
+    path: modules/lib/cmsis-nn
+  - name: cmsis_6
+    url: https://github.com/zephyrproject-rtos/CMSIS_6
+    revision: 30a859f44ef8ab4dc8f84b03ed586fd16ccf9d74
+    path: modules/hal/cmsis_6
+    groups:
+    - hal
+  - name: dhara
+    url: https://github.com/zephyrproject-rtos/dhara
+    revision: 6f163ca05e174b168b4d148160b50eeaeeb561fc
+    path: modules/lib/dhara
+  - name: edtt
+    url: https://github.com/zephyrproject-rtos/edtt
+    revision: c282625e694f0b53ea53e13231ea6d2f49411768
+    path: tools/edtt
+    groups:
+    - tools
+  - name: fatfs
+    url: https://github.com/zephyrproject-rtos/fatfs
+    revision: f4ead3bf4a6dab3a07d7b5f5315795c073db568d
+    path: modules/fs/fatfs
+    groups:
+    - fs
+  - name: hal_nordic
+    url: https://github.com/zephyrproject-rtos/hal_nordic
+    revision: 3c08112f3d92c81b98134479c01d3cfd40f54016
+    path: modules/hal/nordic
+    groups:
+    - hal
+  - name: hal_st
+    url: https://github.com/zephyrproject-rtos/hal_st
+    revision: 7a792882847223c72944791e0c48eed6101e6569
+    path: modules/hal/st
+    groups:
+    - hal
+  - name: hal_tdk
+    url: https://github.com/zephyrproject-rtos/hal_tdk
+    revision: fa54cb65535b0ed69564423c9e0bf4e7ee47dcb1
+    path: modules/hal/tdk
+    groups:
+    - hal
+  - name: hal_wurthelektronik
+    url: https://github.com/zephyrproject-rtos/hal_wurthelektronik
+    revision: 7c1297ea071d03289112eb24e789c89c7095c0a2
+    path: modules/hal/wurthelektronik
+    groups:
+    - hal
+  - name: hostap
+    url: https://github.com/zephyrproject-rtos/hostap
+    revision: a50c3c2c78eb3ed9709803eb7479d3df33d7c1bb
+    path: modules/lib/hostap
+  - name: liblc3
+    url: https://github.com/zephyrproject-rtos/liblc3
+    revision: 48bbd3eacd36e99a57317a0a4867002e0b09e183
+    path: modules/lib/liblc3
+  - name: libmetal
+    url: https://github.com/zephyrproject-rtos/libmetal
+    revision: 66e084293b2a7ced5a73fbd247deddba8915883a
+    path: modules/hal/libmetal
+    groups:
+    - hal
+  - name: libsbc
+    url: https://github.com/zephyrproject-rtos/libsbc
+    revision: 8e1beda02acb8972e29e6edbb423f7cafe16e445
+    path: modules/lib/libsbc
+  - name: littlefs
+    url: https://github.com/zephyrproject-rtos/littlefs
+    revision: 8f5ca347843363882619d8f96c00d8dbd88a8e79
+    path: modules/fs/littlefs
+    groups:
+    - fs
+  - name: loramac-node
+    url: https://github.com/zephyrproject-rtos/loramac-node
+    revision: fb00b383072518c918e2258b0916c996f2d4eebe
+    path: modules/lib/loramac-node
+  - name: lvgl
+    url: https://github.com/zephyrproject-rtos/lvgl
+    revision: 85aa60d18b3d5e5588d7b247abf90198f07c8a63
+    path: modules/lib/gui/lvgl
+  - name: mipi-sys-t
+    url: https://github.com/zephyrproject-rtos/mipi-sys-t
+    revision: 5a9d6055b62edc54566d6d0034d9daec91749b98
+    path: modules/debug/mipi-sys-t
+    groups:
+    - debug
+  - name: mldsa-native
+    url: https://github.com/zephyrproject-rtos/mldsa-native
+    revision: 3fc19982839305d305071f0de0c540bc9c9bea8a
+    path: modules/crypto/mldsa-native
+    groups:
+    - crypto
+  - name: nanopb
+    url: https://github.com/zephyrproject-rtos/nanopb
+    revision: 5499fd4c9a478f8139eeb07a82c3b4468d6067f7
+    path: modules/lib/nanopb
+  - name: net-tools
+    url: https://github.com/zephyrproject-rtos/net-tools
+    revision: 64d7acc661ae2772282570f21beab85d02f2f35c
+    path: tools/net-tools
+    groups:
+    - tools
+  - name: nrf_hw_models
+    url: https://github.com/zephyrproject-rtos/nrf_hw_models
+    revision: 158b9710d6e10c57b2c623f8f4178f0bbc85c23f
+    path: modules/bsim_hw_models/nrf_hw_models
+  - name: open-amp
+    url: https://github.com/zephyrproject-rtos/open-amp
+    revision: 5efe7974f9546582e99f5a842a816ea4b65f5227
+    path: modules/lib/open-amp
+  - name: percepio
+    url: https://github.com/zephyrproject-rtos/percepio
+    revision: f9159fe3c79578e8d90c8593e83f9862d9b8962c
+    path: modules/debug/percepio
+    groups:
+    - debug
+  - name: picolibc
+    url: https://github.com/zephyrproject-rtos/picolibc
+    revision: 01254932e8e81085817ed61fd858648584ffe37c
+    path: modules/lib/picolibc
+  - name: segger
+    url: https://github.com/zephyrproject-rtos/segger
+    revision: 50892fdbcf2f570e67baa72b8894a66b16946f72
+    path: modules/debug/segger
+    groups:
+    - debug
+  - name: tf-m-tests
+    url: https://github.com/zephyrproject-rtos/tf-m-tests
+    revision: 7bb7b7999ee74a0aebb9a91fd8056698c552008b
+    path: modules/tee/tf-m/tf-m-tests
+    groups:
+    - testing
+    - tee
+  - name: tf-psa-crypto
+    url: https://github.com/zephyrproject-rtos/tf-psa-crypto
+    revision: dc575a2ddcc8cb16275d24c42a52eaf79ebe2231
+    path: modules/crypto/tf-psa-crypto
+    groups:
+    - crypto
+  - name: uoscore-uedhoc
+    url: https://github.com/zephyrproject-rtos/uoscore-uedhoc
+    revision: dc0ab6345450668de3f9597320a48c5a2d409bb6
+    path: modules/lib/uoscore-uedhoc
+  - name: zcbor
+    url: https://github.com/zephyrproject-rtos/zcbor
+    revision: 9164bd18dcd88ff9d9ef98279501fc1093571017
+    path: modules/lib/zcbor
+  self:
+    path: nrf
+    west-commands: scripts/west-commands.yml
