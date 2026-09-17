@@ -72,6 +72,20 @@
     },
     {
       "artifact": {
+        "filename": "nrf52840-ot-rcp-ncs-3.4.1.elf",
+        "sha256": "a950af3e29bcd3203e02386cdf8208cfa35eb3f31af8076c6304ac9ad8164cac",
+        "signature_url": "https://raw.githubusercontent.com/Szewcson/ha-nrf52840-ot-rcp-updater/firmware/firmware/nrf52840-ot-rcp-ncs-3.4.1.elf.sig",
+        "url": "https://raw.githubusercontent.com/Szewcson/ha-nrf52840-ot-rcp-updater/firmware/firmware/nrf52840-ot-rcp-ncs-3.4.1.elf"
+      },
+      "dfu_application_version": 300400199,
+      "hardware": "PCA10059",
+      "ncs_version": "3.4.1",
+      "release_summary": "PCA10059 OpenThread RCP built with NCS 3.4.1 and Zephyr 4.4.2.",
+      "release_url": "https://github.com/Szewcson/ha-nrf52840-ot-rcp-updater/tree/firmware",
+      "zephyr_version": "4.4.2"
+    },
+    {
+      "artifact": {
         "filename": "nrf52840-ot-rcp-ncs-3.5.0-preview1.elf",
         "sha256": "d52fd73b32fb8fdfc678ec395361bac7ad2c022bfad778084d1db0b88b377889",
         "signature_url": "https://raw.githubusercontent.com/Szewcson/ha-nrf52840-ot-rcp-updater/firmware/firmware/nrf52840-ot-rcp-ncs-3.5.0-preview1.elf.sig",
