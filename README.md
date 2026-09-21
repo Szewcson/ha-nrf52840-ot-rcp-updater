@@ -620,9 +620,8 @@ DER SHA-256 fingerprint. Complete a rotation in this order:
    The job verifies the existing manifest with either trusted key, removes the
    old published release files, and writes an empty manifest signed by the
    active key.
-5. Run the workflow a second time with both inputs empty, or wait for its next
-   hourly run. The empty manifest makes the builder rebuild every eligible NCS
-   release from source and publish it with the active key. Retire the legacy
+5. The same workflow run waits for the reset, then rebuilds every eligible NCS
+   release from source and publishes it with the active key. Retire the legacy
    public key only in a later add-on release, after bridge users have had time
    to update.
 

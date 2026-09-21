@@ -1,0 +1,23 @@
+# Reviewed toolchain notices that affected NCS releases detect through
+# ScanCode but otherwise omit from SPDX ExtractedLicensingInfo records.
+- id: LicenseRef-scancode-red-hat-attribution
+  name: Ralf Corsepius permissive notice
+  text: |
+    Copyright (c) 2004, 2005 by
+    Ralf Corsepius, Ulm/Germany. All rights reserved.
+
+    Permission to use, copy, modify, and distribute this software
+    is freely granted, provided that this notice is preserved.
+
+- id: LicenseRef-scancode-delorie-historical
+  name: DJ Delorie historical notice
+  text: |
+    Copyright (C) 1991 DJ Delorie
+    All rights reserved.
+
+    Redistribution, modification, and use in source and binary forms is permitted
+    provided that the above copyright notice and following paragraph are
+    duplicated in all such forms.
+
+    This file is distributed WITHOUT ANY WARRANTY; without even the implied
+    warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.

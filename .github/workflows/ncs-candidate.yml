@@ -49,6 +49,11 @@ jobs:
           docker build nrf52840_ot_rcp_updater
 
   discover:
+    needs: [verify, reset-firmware-branch]
+    if: >-
+      always() && needs.verify.result == 'success' &&
+      (needs.reset-firmware-branch.result == 'success' ||
+      needs.reset-firmware-branch.result == 'skipped')
     runs-on: ubuntu-24.04
     outputs:
       releases: ${{ steps.releases.outputs.releases }}
@@ -102,7 +107,7 @@ jobs:
 
   build:
     needs: [discover, verify]
-    if: needs.discover.outputs.releases != '[]' && needs.verify.result == 'success' && (github.event_name != 'workflow_dispatch' || inputs.reset_existing_firmware != true)
+    if: needs.discover.outputs.releases != '[]' && needs.verify.result == 'success'
     runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
@@ -225,6 +230,12 @@ jobs:
             "${picolibc_license}"
           grep -Fqx " * NCS-SBOM-Apply-To-File: **/toolchains/**/arm-zephyr-eabi/picolibc/arm-zephyr-eabi/lib*/libc.a" \
             "${picolibc_license}"
+          # NCS 3.3--3.5 forwards two ScanCode-only IDs for toolchain headers
+          # but drops their matched notice text. Extend the disposable NCS
+          # database so the full-text detector emits complete SPDX records.
+          python "${GITHUB_WORKSPACE}/tools/install_ncs_sbom_license_texts.py" \
+            --database nrf/scripts/west_commands/sbom/data/license-texts.yaml \
+            --additions "${GITHUB_WORKSPACE}/firmware/sbom-license-texts.yaml"
           python "${GITHUB_WORKSPACE}/tools/create_sbom_license_cache.py" \
             --workspace "${RUNNER_TEMP}/ncs" \
             --policy "${GITHUB_WORKSPACE}/firmware/sbom-license-policy.json" \

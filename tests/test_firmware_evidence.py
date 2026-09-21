@@ -29,6 +29,10 @@ class FirmwareEvidenceTests(unittest.TestCase):
                         "LicenseConcluded: LicenseRef-Nordic-5-Clause",
                         "LicenseInfoInFile: NOASSERTION",
                         "",
+                        "LicenseID: LicenseRef-Nordic-5-Clause",
+                        "LicenseName: Nordic 5-Clause License",
+                        "ExtractedText: <text>Reviewed Nordic license text</text>",
+                        "",
                     )
                 ),
                 encoding="utf-8",
@@ -70,6 +74,47 @@ class FirmwareEvidenceTests(unittest.TestCase):
                 encoding="utf-8",
             )
             with self.assertRaisesRegex(SbomError, "without LicenseConcluded"):
+                validate_spdx(report)
+
+    def test_rejects_custom_concluded_license_without_a_definition(self) -> None:
+        with TemporaryDirectory() as directory:
+            report = Path(directory) / "firmware.spdx"
+            report.write_text(
+                "\n".join(
+                    (
+                        "SPDXVersion: SPDX-2.2",
+                        "FileName: toolchain-header.h",
+                        "LicenseConcluded: LicenseRef-scancode-example",
+                        "",
+                    )
+                ),
+                encoding="utf-8",
+            )
+            with self.assertRaisesRegex(
+                SbomError, r"without LicenseID/ExtractedText.*LicenseRef-scancode-example"
+            ):
+                validate_spdx(report)
+
+    def test_rejects_custom_concluded_license_without_text(self) -> None:
+        with TemporaryDirectory() as directory:
+            report = Path(directory) / "firmware.spdx"
+            report.write_text(
+                "\n".join(
+                    (
+                        "SPDXVersion: SPDX-2.2",
+                        "FileName: toolchain-header.h",
+                        "LicenseConcluded: LicenseRef-scancode-example",
+                        "",
+                        "LicenseID: LicenseRef-scancode-example",
+                        "LicenseName: Example notice",
+                        "",
+                    )
+                ),
+                encoding="utf-8",
+            )
+            with self.assertRaisesRegex(
+                SbomError, r"without ExtractedText.*LicenseRef-scancode-example"
+            ):
                 validate_spdx(report)
 
     def test_records_resolved_build_evidence_for_the_exact_artifact(self) -> None:

@@ -14,6 +14,9 @@ class SbomError(RuntimeError):
 _MAX_SBOM_BYTES = 32 * 1024 * 1024
 _FILE_NAME_LINE = re.compile(r"^FileName:\s*(?P<name>.+?)\s*$")
 _LICENSE_LINE = re.compile(r"^LicenseConcluded:\s*(?P<license>.+?)\s*$")
+_LICENSE_ID_LINE = re.compile(r"^LicenseID:\s*(?P<license>LicenseRef-[A-Za-z0-9.-]+)\s*$", re.I)
+_EXTRACTED_TEXT_LINE = re.compile(r"^ExtractedText:\s*<text>", re.I)
+_LICENSE_REFERENCE = re.compile(r"(?<![A-Za-z0-9.-])LicenseRef-[A-Za-z0-9.-]+", re.I)
 _UNKNOWN_LICENSE_MARKERS = ("NOASSERTION", "NONE", "LICENSEREF-UNKNOWN")
 
 
@@ -55,8 +58,41 @@ def _file_license_conclusions(document: str) -> list[tuple[str, str | None]]:
     return files
 
 
+def _custom_license_definitions(document: str) -> dict[str, bool]:
+    """Return custom SPDX IDs and whether each includes ExtractedText.
+
+    SPDX 2.2 tag-value documents define custom licenses in the "Other Licensing
+    Information Detected" section. The identifier and its text are required
+    whenever a file concludes a LicenseRef expression.
+    """
+
+    definitions: dict[str, bool] = {}
+    current_id: str | None = None
+    for line in document.splitlines():
+        license_id_match = _LICENSE_ID_LINE.match(line)
+        if license_id_match:
+            current_id = license_id_match.group("license").casefold()
+            definitions[current_id] = False
+            continue
+        if current_id is not None and _EXTRACTED_TEXT_LINE.match(line):
+            definitions[current_id] = True
+    return definitions
+
+
+def _custom_references(files: list[tuple[str, str | None]]) -> dict[str, str]:
+    """Return each custom license reference used in a file conclusion."""
+
+    references: dict[str, str] = {}
+    for _, license_expression in files:
+        if license_expression is None:
+            continue
+        for reference in _LICENSE_REFERENCE.findall(license_expression):
+            references.setdefault(reference.casefold(), reference)
+    return references
+
+
 def validate_spdx(path: Path) -> None:
-    """Require NCS SBOM to conclude a non-placeholder license per used file.
+    """Require complete, non-placeholder license evidence per used file.
 
     NCS marks build-directory analysis as experimental. An unattended publisher
     must therefore stop instead of silently shipping a release if the produced
@@ -90,6 +126,25 @@ def validate_spdx(path: Path) -> None:
         raise SbomError(
             "SPDX SBOM has unknown concluded file licenses; refusing unattended publication: "
             f"{examples}"
+        )
+
+    definitions = _custom_license_definitions(document)
+    references = _custom_references(files)
+    undefined = sorted(reference for key, reference in references.items() if key not in definitions)
+    if undefined:
+        raise SbomError(
+            "SPDX SBOM has custom concluded licenses without LicenseID/ExtractedText "
+            f"definitions; refusing unattended publication: {', '.join(undefined[:4])}"
+        )
+    missing_text = sorted(
+        reference
+        for key, reference in references.items()
+        if not definitions[key]
+    )
+    if missing_text:
+        raise SbomError(
+            "SPDX SBOM has custom concluded licenses without ExtractedText; "
+            f"refusing unattended publication: {', '.join(missing_text[:4])}"
         )
 
 

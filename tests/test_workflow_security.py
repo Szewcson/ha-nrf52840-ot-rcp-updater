@@ -43,7 +43,7 @@ class WorkflowSecurityTests(unittest.TestCase):
         self.assertIn("firmware: reset release index", publish)
         self.assertIn("inputs.ncs_tag == ''", publish)
         self.assertIn("inputs.reset_existing_firmware == true", workflow)
-        self.assertIn("github.event_name != 'workflow_dispatch'", workflow)
+        self.assertNotIn("github.event_name != 'workflow_dispatch'", workflow)
         self.assertNotIn("find candidate", publish)
         self.assertNotIn("gh release", workflow)
         for evidence in (
@@ -75,6 +75,8 @@ class WorkflowSecurityTests(unittest.TestCase):
         )
         self.assertIn("--input-cache-database", workflow)
         self.assertIn("tools/create_sbom_license_cache.py", workflow)
+        self.assertIn("tools/install_ncs_sbom_license_texts.py", workflow)
+        self.assertIn("firmware/sbom-license-texts.yaml", workflow)
         self.assertIn('"build=${GITHUB_WORKSPACE}/candidate/build/coprocessor"', workflow)
         self.assertIn("0001-exclude-vcs-metadata.patch", workflow)
         self.assertIn("0002-exclude-derived-link-products.patch", workflow)
@@ -91,6 +93,19 @@ class WorkflowSecurityTests(unittest.TestCase):
         self.assertIn('--ncs-revision "$(git -C nrf rev-parse HEAD)"', workflow)
         self.assertNotIn('--ncs-revision "$(git rev-parse HEAD)"', workflow)
         self.assertNotIn("grep -Ev '^[[:space:]]*scancode-toolkit'", workflow)
+
+    def test_reset_dispatch_rebuilds_in_the_same_workflow_run(self) -> None:
+        workflow = (
+            Path(__file__).parents[1] / ".github" / "workflows" / "ncs-candidate.yml"
+        ).read_text(encoding="utf-8")
+        discover = workflow[workflow.index("  discover:") : workflow.index("  build:")]
+        build = workflow[workflow.index("  build:") : workflow.index("  publish:")]
+
+        self.assertIn("needs: [verify, reset-firmware-branch]", discover)
+        self.assertIn("always() && needs.verify.result == 'success'", discover)
+        self.assertIn("needs.reset-firmware-branch.result == 'success'", discover)
+        self.assertIn("needs.reset-firmware-branch.result == 'skipped'", discover)
+        self.assertNotIn("inputs.reset_existing_firmware != true", build)
 
     def test_derived_link_product_patch_is_narrow(self) -> None:
         patch = (
