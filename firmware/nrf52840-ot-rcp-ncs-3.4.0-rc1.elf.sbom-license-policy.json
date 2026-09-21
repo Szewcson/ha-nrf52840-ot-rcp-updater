@@ -1,0 +1,392 @@
+{
+  "schema_version": 1,
+  "rules": [
+    {
+      "path_glob": "nrf/VERSION",
+      "license": "LicenseRef-Nordic-5-Clause",
+      "reason": "NCS build-version metadata is an input to the generated version banner; the workflow separately pins and verifies the exact NCS license text.",
+      "evidence": {
+        "path": "nrf/LICENSE",
+        "contains": [
+          "LicenseID:  LicenseRef-Nordic-5-Clause"
+        ]
+      }
+    },
+    {
+      "path_glob": "modules/crypto/mbedtls/library/mbedtls_config_check_*.h",
+      "license": "Apache-2.0 OR GPL-2.0-or-later",
+      "reason": "Mbed TLS generates these included configuration-check headers without individual SPDX tags; its upstream LICENSE declares the dual license for Mbed TLS files.",
+      "evidence": {
+        "path": "modules/crypto/mbedtls/LICENSE",
+        "contains": [
+          "Mbed TLS files are provided under a dual [Apache-2.0]",
+          "OR [GPL-2.0-or-later]"
+        ]
+      }
+    },
+    {
+      "path_glob": "nrfxlib/mpsl/fem/**/libmpsl_fem_*.a",
+      "license": "LicenseRef-Nordic-5-Clause",
+      "reason": "These precompiled FEM archives are linked by the FEM CMake integration, which declares the Nordic 5-Clause SPDX identifier.",
+      "evidence": {
+        "path": "nrfxlib/mpsl/fem/CMakeLists.txt",
+        "contains": [
+          "SPDX-License-Identifier: LicenseRef-Nordic-5-Clause",
+          "zephyr_link_libraries(${LIB_DIR}/libmpsl_fem_${fem_lib_name}.a)"
+        ]
+      }
+    },
+    {
+      "source_root": "zephyr-sdk",
+      "path_glob": "arm-zephyr-eabi/picolibc/include/**/*.h",
+      "license": "BSD-3-Clause",
+      "reason": "NCS 3.3 SDK Picolibc headers can lack SPDX tags. Map only exact source records that its bundled Debian copyright manifest labels Default-1, whose complete text is BSD-3-Clause.",
+      "evidence": {
+        "path": "arm-zephyr-eabi/share/licenses/picolibc/COPYING.picolibc",
+        "contains": [
+          "License: Default-1\n Redistribution and use in source and binary forms, with or without\n modification, are permitted provided that the following conditions\n are met:\n .\n 1. Redistributions of source code must retain the above copyright\n notice, this list of conditions and the following disclaimer.\n .\n 2. Redistributions in binary form must reproduce the above\n copyright notice, this list of conditions and the following\n disclaimer in the documentation and/or other materials provided\n with the distribution.\n .\n 3. Neither the name of the copyright holder nor the names of its\n contributors may be used to endorse or promote products derived\n from this software without specific prior written permission."
+        ]
+      },
+      "picolibc_manifest": {
+        "header_root": "arm-zephyr-eabi/picolibc/include",
+        "source_prefix": "newlib/libc/include",
+        "required_license": "Default-1",
+        "generated_sources": {
+          "picolibc.h": "picolibc.h.in"
+        }
+      }
+    },
+    {
+      "source_root": "zephyr-sdk",
+      "path_glob": "gnu/arm-zephyr-eabi/arm-zephyr-eabi/sys-include/**/*.h",
+      "license": "BSD-3-Clause",
+      "reason": "NCS 3.4 and later SDK Picolibc headers can lack SPDX tags. Map only exact source records that its bundled Debian copyright manifest labels Default-1, whose complete text is BSD-3-Clause.",
+      "evidence": {
+        "path": "gnu/arm-zephyr-eabi/share/licenses/picolibc/COPYING.picolibc",
+        "contains": [
+          "License: Default-1\n Redistribution and use in source and binary forms, with or without\n modification, are permitted provided that the following conditions\n are met:\n .\n 1. Redistributions of source code must retain the above copyright\n notice, this list of conditions and the following disclaimer.\n .\n 2. Redistributions in binary form must reproduce the above\n copyright notice, this list of conditions and the following\n disclaimer in the documentation and/or other materials provided\n with the distribution.\n .\n 3. Neither the name of the copyright holder nor the names of its\n contributors may be used to endorse or promote products derived\n from this software without specific prior written permission."
+        ]
+      },
+      "picolibc_manifest": {
+        "header_root": "gnu/arm-zephyr-eabi/arm-zephyr-eabi/sys-include",
+        "source_prefix": "newlib/libc/include",
+        "required_license": "Default-1",
+        "generated_sources": {
+          "picolibc.h": "picolibc.h.in"
+        }
+      }
+    },
+    {
+      "source_root": "zephyr-sdk",
+      "path_glob": "gnu/arm-zephyr-eabi/lib/gcc/arm-zephyr-eabi/**/include/syslimits.h",
+      "license": "GPL-3.0-or-later WITH GCC-exception-3.1",
+      "reason": "GCC's mkheaders installs this fallback from gcc/gsyslimits.h when no fixed target limits.h exists. The GCC Runtime Library Exception bundled with the SDK applies to this exact installed compiler header; upstream GCC maintainer guidance confirms include-fixed/syslimits.h is covered. Source: https://gcc.gnu.org/pipermail/gcc-help/2012-May/110997.html.",
+      "evidence": {
+        "path": "gnu/arm-zephyr-eabi/share/licenses/gcc/COPYING.RUNTIME",
+        "contains": [
+          "GCC RUNTIME LIBRARY EXCEPTION",
+          "Version 3.1, 31 March 2009",
+          "This GCC Runtime Library Exception (\"Exception\") is an additional"
+        ]
+      }
+    },
+    {
+      "source_root": "zephyr-sdk",
+      "evidence_source_root": "workspace",
+      "path_glob": "gnu/arm-zephyr-eabi/lib/gcc/arm-zephyr-eabi/*/thumb/v7e-m/nofp/space/libgcc.a",
+      "license": "GPL-3.0-or-later WITH GCC-exception-3.1",
+      "reason": "NCS's own SBOM external-file rule assigns the GCC Runtime Library Exception to libgcc.a. Preserve that reviewed conclusion only for the nRF52840 GNU runtime archive when the build extractor reports the SDK under a path not covered by the upstream rule.",
+      "evidence": {
+        "path": "nrf/scripts/west_commands/sbom/data/external-licenses/toolchain.LICENSE",
+        "contains": [
+          "SPDX-License-Identifier: GPL-3.0-OR-LATER WITH GCC-EXCEPTION-3.1",
+          "NCS-SBOM-Apply-To-File: **/toolchains/**/libgcc.a"
+        ]
+      }
+    },
+    {
+      "source_root": "zephyr-sdk",
+      "evidence_source_root": "workspace",
+      "path_glob": "gnu/arm-zephyr-eabi/arm-zephyr-eabi/lib/thumb/v7e-m/nofp/space/libc.a",
+      "license": "LicenseRef-west-ncs-sbom-picolibc-runtime",
+      "reason": "Picolibc libc.a is a bundled multi-license runtime archive. NCS defines a dedicated LicenseRef for the nRF52840 ABI archive, so retain the complete notice set instead of incorrectly reducing it to one SPDX license when Zephyr SDK 1.0.1 reports its relocated layout.",
+      "evidence": {
+        "path": "nrf/scripts/west_commands/sbom/data/license-texts.yaml",
+        "contains": [
+          "- id: LicenseRef-west-ncs-sbom-picolibc-runtime",
+          "The picolibc runtime archives are built from a collection of source files",
+          "toolchain runtime archives libc.a and libm.a from the picolibc directory."
+        ]
+      }
+    },
+    {
+      "source_root": "build",
+      "evidence_source_root": "workspace",
+      "path_glob": "zephyr/include/generated/device-api-sections.ld",
+      "license": "Apache-2.0",
+      "reason": "Zephyr generates this linker fragment from tagged subsystem data with its Apache-2.0 gen_iter_sections.py generator.",
+      "evidence": {
+        "path": "zephyr/scripts/build/gen_iter_sections.py",
+        "contains": [
+          "SPDX-License-Identifier: Apache-2.0",
+          "fp.write(f\"ITERABLE_SECTION_ROM({item}, {alignment})\\n\")"
+        ]
+      }
+    },
+    {
+      "source_root": "build",
+      "evidence_source_root": "workspace",
+      "path_glob": "zephyr/include/generated/*_commit.h",
+      "license": "LicenseRef-Nordic-5-Clause",
+      "reason": "NCS configures its NCS, Zephyr, and application commit headers through its Nordic 5-Clause gen_commit_h.cmake template generator.",
+      "evidence": {
+        "path": "nrf/cmake/gen_commit_h.cmake",
+        "contains": [
+          "SPDX-License-Identifier: LicenseRef-Nordic-5-Clause",
+          "file(READ ${NRF_DIR}/cmake/commit.h.in commit_content)"
+        ]
+      }
+    },
+    {
+      "source_root": "build",
+      "evidence_source_root": "workspace",
+      "path_glob": "zephyr/include/generated/ncs_version.h",
+      "license": "Apache-2.0",
+      "reason": "NCS configures version values into Zephyr's Apache-2.0 version-header template; those version values are factual metadata.",
+      "evidence": {
+        "path": "zephyr/cmake/gen_version_h.cmake",
+        "contains": [
+          "SPDX-License-Identifier: Apache-2.0",
+          "file(READ ${ZEPHYR_BASE}/version.h.in version_content)"
+        ]
+      }
+    },
+    {
+      "source_root": "build",
+      "evidence_source_root": "workspace",
+      "path_glob": "zephyr/include/generated/pm_config.h",
+      "license": "LicenseRef-Nordic-5-Clause",
+      "reason": "NCS generates partition-manager configuration through its Nordic 5-Clause partition_manager_output.py generator.",
+      "evidence": {
+        "path": "nrf/scripts/partition_manager_output.py",
+        "contains": [
+          "SPDX-License-Identifier: LicenseRef-Nordic-5-Clause",
+          "/* File generated by {0}, do not modify */"
+        ]
+      }
+    },
+    {
+      "source_root": "build",
+      "evidence_source_root": "workspace",
+      "path_glob": "zephyr/include/generated/zephyr/*version.h",
+      "license": "Apache-2.0",
+      "reason": "Zephyr configures its kernel and application version headers from its Apache-2.0 version template; substituted version values are factual build metadata.",
+      "evidence": {
+        "path": "zephyr/cmake/gen_version_h.cmake",
+        "contains": [
+          "SPDX-License-Identifier: Apache-2.0",
+          "file(READ ${ZEPHYR_BASE}/version.h.in version_content)",
+          "file(WRITE ${OUT_FILE} \"${version_content}\")"
+        ]
+      }
+    },
+    {
+      "source_root": "build",
+      "evidence_source_root": "workspace",
+      "path_glob": "zephyr/include/generated/snippets-*.ld",
+      "license": "Apache-2.0",
+      "reason": "Zephyr's Apache-2.0 linker extension writes these generated snippet include lists; referenced linker inputs are separately represented in the SBOM.",
+      "evidence": {
+        "path": "zephyr/cmake/modules/extensions.cmake",
+        "contains": [
+          "SPDX-License-Identifier: Apache-2.0",
+          "set(snippet_base       \"${__build_dir}/include/generated\")",
+          "set (include_str \"/* Sort key: \\\"${SORT_KEY}\\\" */#include \\\"${relpath}\\\"\")"
+        ]
+      }
+    },
+    {
+      "source_root": "build",
+      "evidence_source_root": "workspace",
+      "path_glob": "zephyr/include/generated/zephyr/autoconf.h",
+      "license": "ISC",
+      "reason": "Zephyr's ISC-licensed Kconfig frontend writes autoconf.h as configuration macro values derived from the selected build configuration.",
+      "evidence": {
+        "path": "zephyr/scripts/kconfig/kconfig.py",
+        "contains": [
+          "SPDX-License-Identifier: ISC",
+          "print(kconf.write_autoconf(args.header_out))"
+        ]
+      }
+    },
+    {
+      "source_root": "build",
+      "evidence_source_root": "workspace",
+      "path_glob": "zephyr/include/generated/zephyr/devicetree_generated.h",
+      "license": "BSD-3-Clause",
+      "reason": "Zephyr's BSD-3-Clause gen_defines.py generates the devicetree C macro header from the selected device tree.",
+      "evidence": {
+        "path": "zephyr/scripts/dts/gen_defines.py",
+        "contains": [
+          "SPDX-License-Identifier: BSD-3-Clause",
+          "This script uses edtlib to generate a header file from a pickled",
+          "edt file."
+        ]
+      }
+    },
+    {
+      "source_root": "build",
+      "evidence_source_root": "workspace",
+      "path_glob": "zephyr/include/generated/zephyr/heap_constants.h",
+      "license": "Apache-2.0",
+      "reason": "Zephyr's Apache-2.0 heap_constants.c is compiled only by zephyr_constants_library to derive this generated heap-size constants header.",
+      "evidence": {
+        "path": "zephyr/lib/heap/heap_constants.c",
+        "contains": [
+          "SPDX-License-Identifier: Apache-2.0",
+          "Build-time computation of heap sizing constants from actual struct",
+          "only used by zephyr_constants_library() to produce the generated",
+          "heap_constants.h header."
+        ]
+      }
+    },
+    {
+      "source_root": "build",
+      "evidence_source_root": "workspace",
+      "path_glob": "zephyr/include/generated/zephyr/kobj-types-enum.h",
+      "license": "Apache-2.0",
+      "reason": "Zephyr's Apache-2.0 kernel-object generator writes the kernel object type enum header from build metadata.",
+      "evidence": {
+        "path": "zephyr/cmake/kobj.cmake",
+        "contains": [
+          "SPDX-License-Identifier: Apache-2.0",
+          "OUTPUTS ${KOBJ_TYPES} ${KOBJ_OTYPE} ${KOBJ_SIZE}",
+          "--kobj-types-output ${KOBJ_TYPES}"
+        ]
+      }
+    },
+    {
+      "source_root": "build",
+      "evidence_source_root": "workspace",
+      "path_glob": "zephyr/include/generated/zephyr/offsets.h",
+      "license": "Apache-2.0",
+      "reason": "Zephyr's Apache-2.0 offset-header generator derives assembly offsets from the compiled offsets object. Its parameters changed between NCS 3.3 and 3.4, so evidence anchors the stable generator identity rather than its call signature.",
+      "evidence": {
+        "path": "zephyr/scripts/build/gen_offset_header.py",
+        "contains": [
+          "SPDX-License-Identifier: Apache-2.0",
+          "This script scans a specified object file and generates a header file",
+          "def gen_offset_header("
+        ]
+      }
+    },
+    {
+      "source_root": "build",
+      "evidence_source_root": "workspace",
+      "path_glob": "zephyr/include/generated/zephyr/syscall_list.h",
+      "license": "Apache-2.0",
+      "reason": "Zephyr's Apache-2.0 syscall generator writes the generated syscall list from syscall metadata.",
+      "evidence": {
+        "path": "zephyr/scripts/build/gen_syscalls.py",
+        "contains": [
+          "SPDX-License-Identifier: Apache-2.0",
+          "/* auto-generated by gen_syscalls.py, don't edit */",
+          "list_template"
+        ]
+      }
+    },
+    {
+      "source_root": "build",
+      "evidence_source_root": "workspace",
+      "path_glob": "zephyr/include/generated/zephyr/syscalls/**/*.h",
+      "license": "Apache-2.0",
+      "reason": "Zephyr's Apache-2.0 syscall generator writes inline syscall invocation headers from syscall metadata.",
+      "evidence": {
+        "path": "zephyr/scripts/build/gen_syscalls.py",
+        "contains": [
+          "SPDX-License-Identifier: Apache-2.0",
+          "/* auto-generated by gen_syscalls.py, don't edit */",
+          "base_output"
+        ]
+      }
+    },
+    {
+      "source_root": "build",
+      "evidence_source_root": "workspace",
+      "path_glob": "zephyr/isr_tables.c",
+      "license": "Apache-2.0",
+      "reason": "Zephyr's Apache-2.0 ISR-table generator derives this C source from the intermediate linked image.",
+      "evidence": {
+        "path": "zephyr/CMakeLists.txt",
+        "contains": [
+          "SPDX-License-Identifier: Apache-2.0",
+          "# isr_tables.c is generated from ${ZEPHYR_LINK_STAGE_EXECUTABLE} by",
+          "${ZEPHYR_BASE}/scripts/build/gen_isr_tables.py",
+          "OUTPUT isr_tables.c isr_tables_vt.ld isr_tables_swi.ld"
+        ]
+      }
+    },
+    {
+      "source_root": "build",
+      "evidence_source_root": "workspace",
+      "path_glob": "zephyr/misc/generated/configs.c",
+      "license": "Apache-2.0",
+      "reason": "Zephyr's Apache-2.0 CMake logic configures this C source from the Apache-2.0 configs.c template and selected configuration values.",
+      "evidence": {
+        "path": "zephyr/misc/generated/CMakeLists.txt",
+        "contains": [
+          "SPDX-License-Identifier: Apache-2.0",
+          "configure_file(${CMAKE_CURRENT_LIST_DIR}/configs.c.in ${CONFIGS_C})"
+        ]
+      }
+    },
+    {
+      "path_glob": "zephyr/VERSION",
+      "license": "Apache-2.0",
+      "reason": "Zephyr build-version metadata is consumed by the RCP build but has no individual SPDX tag. It is not an exception in Zephyr's central REUSE metadata and is covered by Zephyr's top-level Apache-2.0 license.",
+      "evidence": {
+        "path": "zephyr/LICENSE",
+        "contains": [
+          "Apache License",
+          "Version 2.0, January 2004"
+        ]
+      }
+    },
+    {
+      "path_glob": "zephyr/include/zephyr/linker/ram-end.ld",
+      "license": "Apache-2.0",
+      "reason": "This Zephyr linker-script fragment has no individual SPDX tag. It is not an exception in Zephyr's central REUSE metadata and is covered by Zephyr's top-level Apache-2.0 license.",
+      "evidence": {
+        "path": "zephyr/LICENSE",
+        "contains": [
+          "Apache License",
+          "Version 2.0, January 2004"
+        ]
+      }
+    },
+    {
+      "path_glob": "zephyr/misc/empty_file.c",
+      "license": "Apache-2.0",
+      "reason": "This empty Zephyr compilation unit has no individual SPDX tag. It is not an exception in Zephyr's central REUSE metadata and is covered by Zephyr's top-level Apache-2.0 license.",
+      "evidence": {
+        "path": "zephyr/LICENSE",
+        "contains": [
+          "Apache License",
+          "Version 2.0, January 2004"
+        ]
+      }
+    },
+    {
+      "path_glob": "zephyr/subsys/usb/device_next/usbd_data.ld",
+      "license": "Apache-2.0",
+      "reason": "This Zephyr USB linker-script fragment has no individual SPDX tag. It is not an exception in Zephyr's central REUSE metadata and is covered by Zephyr's top-level Apache-2.0 license.",
+      "evidence": {
+        "path": "zephyr/LICENSE",
+        "contains": [
+          "Apache License",
+          "Version 2.0, January 2004"
+        ]
+      }
+    }
+  ]
+}
