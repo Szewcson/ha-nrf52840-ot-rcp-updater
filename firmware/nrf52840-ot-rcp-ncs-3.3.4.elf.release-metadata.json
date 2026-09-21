@@ -1,0 +1,11 @@
+{
+  "artifact": "nrf52840-ot-rcp-ncs-3.3.4.elf",
+  "dfu_application_version": 300300499,
+  "hardware": "PCA10059",
+  "ncp_version": "OPENTHREAD/ncs-thread-reference-20250402; NRF52840 PCA10059 N/3.3.4 Z/4.3.99; Sep 21 2026 17:55:13",
+  "ncp_version_bytes": 98,
+  "ncs_version": "3.3.4",
+  "platform_info": "NRF52840 PCA10059 N/3.3.4 Z/4.3.99",
+  "sha256": "4e02345a4d352008f3d176f70b7ab7f522a77445e4a99054ff401dc9279cb4f7",
+  "zephyr_version": "4.3.99"
+}
