@@ -1,0 +1,41 @@
+diff --git a/scripts/west_commands/sbom/output_pre_process.py b/scripts/west_commands/sbom/output_pre_process.py
+--- a/scripts/west_commands/sbom/output_pre_process.py
++++ b/scripts/west_commands/sbom/output_pre_process.py
+@@ -19,2 +19,15 @@ def pre_process(data: Data):
+-    data.files.sort(key=lambda f: f.file_path)
++    data.files.sort(key=lambda f: f.file_path)
++    # The source path is only meaningful to the build runner. Prepare the
++    # workspace-relative display path once so output templates never expose it.
++    for file in data.files:
++        file.report_path = file.file_rel_path.as_posix()
++    data.inputs = [
++        (
++            f'{input.rpartition("from the build directory ")[0]}'
++            'from the build directory "<local path>"'
++            if 'from the build directory "' in input
++            else input
++        )
++        for input in data.inputs
++    ]
+     # Convert list of licenses to license expression for each file
+diff --git a/scripts/west_commands/sbom/templates/report.html.jinja b/scripts/west_commands/sbom/templates/report.html.jinja
+--- a/scripts/west_commands/sbom/templates/report.html.jinja
++++ b/scripts/west_commands/sbom/templates/report.html.jinja
+@@ -297,7 +297,7 @@ Version:
+ {%- endif -%}
+ </div>
+ {%- for file_info in files_by_package_and_license[package_id] -%}
+-<a href="file:///{{file_info.file_path|e}}" class="fa">{{file_info.file_path|e}}</a>
++<span class="fa">{{file_info.report_path|e}}</span>
+ {%- if file_info.local_modifications %} <span class="modifications">with local modifications</span>{%- endif %}
+ {% endfor -%}
+ {% endif -%}
+@@ -368,7 +368,7 @@ Version:
+ {%- endif -%}
+ </div>
+ {%- for file_info in files_by_package_and_license[package_id] -%}
+-<a href="file:///{{file_info.file_path|e}}" class="fa">{{file_info.file_path|e}}</a>
++<span class="fa">{{file_info.report_path|e}}</span>
+ {%- if file_info.local_modifications %} <span class="modifications">with local modifications</span>{%- endif %}
+ {% endfor -%}
+ {% endif -%}

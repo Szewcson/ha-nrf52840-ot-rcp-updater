@@ -10,7 +10,7 @@ from tempfile import TemporaryDirectory
 sys.path.insert(0, str(Path(__file__).parents[1]))
 
 from tools.create_firmware_provenance import ProvenanceError, create_provenance
-from tools.validate_sbom import SbomError, validate_spdx
+from tools.validate_sbom import SbomError, validate_notices_html, validate_spdx
 
 
 class FirmwareEvidenceTests(unittest.TestCase):
@@ -116,6 +116,39 @@ class FirmwareEvidenceTests(unittest.TestCase):
                 SbomError, r"without ExtractedText.*LicenseRef-scancode-example"
             ):
                 validate_spdx(report)
+
+    def test_accepts_html_notices_without_local_paths(self) -> None:
+        with TemporaryDirectory() as directory:
+            report = Path(directory) / "firmware-notices.html"
+            report.write_text(
+                '<span class="fa">zephyr/include/zephyr/kernel.h</span>\n'
+                'The "zephyr.elf" file from the build directory "<local path>"\n',
+                encoding="utf-8",
+            )
+
+            validate_notices_html(report)
+
+    def test_rejects_html_notices_with_a_local_file_url(self) -> None:
+        with TemporaryDirectory() as directory:
+            report = Path(directory) / "firmware-notices.html"
+            report.write_text(
+                '<a href="file:///home/runner/work/project/input.c">input.c</a>\n',
+                encoding="utf-8",
+            )
+
+            with self.assertRaisesRegex(SbomError, "runner-local file URL"):
+                validate_notices_html(report)
+
+    def test_rejects_html_notices_with_an_absolute_build_directory(self) -> None:
+        with TemporaryDirectory() as directory:
+            report = Path(directory) / "firmware-notices.html"
+            report.write_text(
+                'The "zephyr.elf" file from the build directory "/home/runner/build"\n',
+                encoding="utf-8",
+            )
+
+            with self.assertRaisesRegex(SbomError, "absolute build-directory path"):
+                validate_notices_html(report)
 
     def test_records_resolved_build_evidence_for_the_exact_artifact(self) -> None:
         with TemporaryDirectory() as directory:

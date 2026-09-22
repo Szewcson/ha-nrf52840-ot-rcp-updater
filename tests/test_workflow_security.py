@@ -77,6 +77,9 @@ class WorkflowSecurityTests(unittest.TestCase):
         self.assertIn("tools/create_sbom_license_cache.py", workflow)
         self.assertIn("tools/install_ncs_sbom_license_texts.py", workflow)
         self.assertIn("firmware/sbom-license-texts.yaml", workflow)
+        self.assertIn("0003-sanitize-report-paths.patch", workflow)
+        self.assertIn("file.report_path = file.file_rel_path.as_posix()", workflow)
+        self.assertIn('--html "${GITHUB_WORKSPACE}/candidate/firmware-notices.html"', workflow)
         self.assertIn('"build=${GITHUB_WORKSPACE}/candidate/build/coprocessor"', workflow)
         self.assertIn("0001-exclude-vcs-metadata.patch", workflow)
         self.assertIn("0002-exclude-derived-link-products.patch", workflow)
@@ -120,6 +123,19 @@ class WorkflowSecurityTests(unittest.TestCase):
         self.assertIn("path.suffix.lower() == '.cmd' and path.name.startswith('linker')", patch)
         self.assertIn("path.resolve().relative_to(self.build_dir.resolve())", patch)
         self.assertNotIn("SOURCE_CODE_SUFFIXES", patch)
+
+    def test_report_path_patch_uses_preprocessed_relative_paths(self) -> None:
+        patch = (
+            Path(__file__).parents[1]
+            / "patches"
+            / "ncs-sbom"
+            / "0003-sanitize-report-paths.patch"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn("file.report_path = file.file_rel_path.as_posix()", patch)
+        self.assertIn('from the build directory "<local path>"', patch)
+        self.assertIn('+<span class="fa">{{file_info.report_path|e}}</span>', patch)
+        self.assertNotIn('+<a href="file:///{{file_info.file_path|e}}"', patch)
 
     def test_pull_request_ci_reuses_the_full_verification_baseline(self) -> None:
         workflow = (Path(__file__).parents[1] / ".github" / "workflows" / "ci.yml").read_text(

@@ -12,11 +12,16 @@ class SbomError(RuntimeError):
 
 
 _MAX_SBOM_BYTES = 32 * 1024 * 1024
+_MAX_HTML_BYTES = 32 * 1024 * 1024
 _FILE_NAME_LINE = re.compile(r"^FileName:\s*(?P<name>.+?)\s*$")
 _LICENSE_LINE = re.compile(r"^LicenseConcluded:\s*(?P<license>.+?)\s*$")
 _LICENSE_ID_LINE = re.compile(r"^LicenseID:\s*(?P<license>LicenseRef-[A-Za-z0-9.-]+)\s*$", re.I)
 _EXTRACTED_TEXT_LINE = re.compile(r"^ExtractedText:\s*<text>", re.I)
 _LICENSE_REFERENCE = re.compile(r"(?<![A-Za-z0-9.-])LicenseRef-[A-Za-z0-9.-]+", re.I)
+_LOCAL_FILE_URL = re.compile(r"\bfile://", re.I)
+_ABSOLUTE_BUILD_DIRECTORY = re.compile(
+    r"from the build directory\s+['\"]/[^'\"\r\n]*['\"]", re.I
+)
 _UNKNOWN_LICENSE_MARKERS = ("NOASSERTION", "NONE", "LICENSEREF-UNKNOWN")
 
 
@@ -148,12 +153,30 @@ def validate_spdx(path: Path) -> None:
         )
 
 
+def validate_notices_html(path: Path) -> None:
+    """Reject runner-local paths and local-file links in published notices."""
+
+    try:
+        if path.stat().st_size > _MAX_HTML_BYTES:
+            raise SbomError(f"HTML notices exceed {_MAX_HTML_BYTES} bytes")
+        document = path.read_text(encoding="utf-8")
+    except OSError as err:
+        raise SbomError(f"cannot read HTML notices: {err}") from err
+    if _LOCAL_FILE_URL.search(document):
+        raise SbomError("HTML notices contain a runner-local file URL")
+    if _ABSOLUTE_BUILD_DIRECTORY.search(document):
+        raise SbomError("HTML notices contain an absolute build-directory path")
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--spdx", required=True, type=Path)
+    parser.add_argument("--html", type=Path)
     arguments = parser.parse_args()
     try:
         validate_spdx(arguments.spdx)
+        if arguments.html is not None:
+            validate_notices_html(arguments.html)
     except SbomError as err:
         parser.error(str(err))
     return 0

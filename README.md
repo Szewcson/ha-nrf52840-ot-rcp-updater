@@ -263,6 +263,12 @@ source-input report: they are intermediate link outputs, while their source,
 archive, and linker-script inputs remain in the SBOM. It cannot exclude a
 prebuilt ELF or linker command outside the selected build directory.
 
+The generated HTML notice uses NCS output preprocessing to replace every
+runner-local file path with its workspace-relative path and to redact the local
+build-directory label. It contains no `file:///` links, which would be broken
+outside CI and would reveal the build runner's filesystem layout. The publisher
+validates both this rule and the SPDX data before releasing a firmware image.
+
 Some real build inputs have no per-file SPDX tag: NCS version metadata,
 generated Mbed TLS configuration checks, MPSL FEM precompiled archives, named
 Zephyr metadata, empty-compilation-unit, and linker-script files, as well as

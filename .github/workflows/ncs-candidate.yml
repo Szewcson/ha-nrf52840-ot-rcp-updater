@@ -236,6 +236,22 @@ jobs:
           python "${GITHUB_WORKSPACE}/tools/install_ncs_sbom_license_texts.py" \
             --database nrf/scripts/west_commands/sbom/data/license-texts.yaml \
             --additions "${GITHUB_WORKSPACE}/firmware/sbom-license-texts.yaml"
+          # Do not publish runner-local paths or broken file:/// links in the
+          # human-facing SBOM notice. The NCS preprocessor has the workspace
+          # relative path for every input, so patch its disposable checkout.
+          sbom_preprocessor="nrf/scripts/west_commands/sbom/output_pre_process.py"
+          sbom_report_template="nrf/scripts/west_commands/sbom/templates/report.html.jinja"
+          if grep -Fqx "    data.files.sort(key=lambda f: f.file_path)" "${sbom_preprocessor}" \
+            && grep -Fqx '<a href="file:///{{file_info.file_path|e}}" class="fa">{{file_info.file_path|e}}</a>' "${sbom_report_template}"; then
+            git -C nrf apply --check \
+              "${GITHUB_WORKSPACE}/patches/ncs-sbom/0003-sanitize-report-paths.patch"
+            git -C nrf apply \
+              "${GITHUB_WORKSPACE}/patches/ncs-sbom/0003-sanitize-report-paths.patch"
+          elif ! grep -Fqx "        file.report_path = file.file_rel_path.as_posix()" "${sbom_preprocessor}" \
+            || ! grep -Fqx '<span class="fa">{{file_info.report_path|e}}</span>' "${sbom_report_template}"; then
+            echo "Unsupported NCS SBOM report-path handling; refusing publication" >&2
+            exit 1
+          fi
           python "${GITHUB_WORKSPACE}/tools/create_sbom_license_cache.py" \
             --workspace "${RUNNER_TEMP}/ncs" \
             --policy "${GITHUB_WORKSPACE}/firmware/sbom-license-policy.json" \
@@ -254,7 +270,8 @@ jobs:
             --output-spdx "${GITHUB_WORKSPACE}/candidate/firmware.spdx" \
             --output-html "${GITHUB_WORKSPACE}/candidate/firmware-notices.html"
           python "${GITHUB_WORKSPACE}/tools/validate_sbom.py" \
-            --spdx "${GITHUB_WORKSPACE}/candidate/firmware.spdx"
+            --spdx "${GITHUB_WORKSPACE}/candidate/firmware.spdx" \
+            --html "${GITHUB_WORKSPACE}/candidate/firmware-notices.html"
           cp nrf/LICENSE "${GITHUB_WORKSPACE}/candidate/NCS-LICENSE.txt"
           cp "${GITHUB_WORKSPACE}/firmware/NOTICE.txt" \
             "${GITHUB_WORKSPACE}/candidate/PROJECT-NOTICE.txt"
