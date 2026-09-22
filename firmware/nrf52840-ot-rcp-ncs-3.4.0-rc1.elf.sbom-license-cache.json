@@ -1,0 +1,2314 @@
+{
+  "files": {
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/device-api-sections.ld": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "174e0bf56f8025cee320fa465e2866f494586190"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/ncs_commit.h": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "b778c7925111c68ce0ee8843e8d7d45f1abb0cca"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/ncs_version.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "f6fd05c1a8aad8bb8b68359880ccd22c242b67b2"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/snippets-data-sections.ld": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "eefa746fb89bfeef1525ade8054870ed7c0a07c7"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/snippets-dtcm-section.ld": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "da39a3ee5e6b4b0d3255bfef95601890afd80709"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/snippets-itcm-section.ld": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "da39a3ee5e6b4b0d3255bfef95601890afd80709"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/snippets-nocache-section.ld": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "da39a3ee5e6b4b0d3255bfef95601890afd80709"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/snippets-noinit.ld": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "da39a3ee5e6b4b0d3255bfef95601890afd80709"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/snippets-pinned-data-sections.ld": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "da39a3ee5e6b4b0d3255bfef95601890afd80709"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/snippets-pinned-ram-sections.ld": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "da39a3ee5e6b4b0d3255bfef95601890afd80709"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/snippets-pinned-rodata.ld": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "da39a3ee5e6b4b0d3255bfef95601890afd80709"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/snippets-ram-sections.ld": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "0dd15af9ad20504caf445aea00f65ead1e9442c7"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/snippets-ramfunc-section.ld": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "da39a3ee5e6b4b0d3255bfef95601890afd80709"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/snippets-rodata.ld": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "da39a3ee5e6b4b0d3255bfef95601890afd80709"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/snippets-rom-sections.ld": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "da39a3ee5e6b4b0d3255bfef95601890afd80709"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/snippets-rom-start.ld": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "8bff7d5abbd3441a9a9359436d7349612fe10a8c"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/snippets-rwdata.ld": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "0babcced93669488ae7f462fa2f8e5d90972e24a"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/snippets-sections.ld": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "d87e47112a3a36dfc2c232977c78a6862ea837f5"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/snippets-text-sections.ld": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "da39a3ee5e6b4b0d3255bfef95601890afd80709"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/autoconf.h": {
+      "license": [
+        "ISC"
+      ],
+      "sha1": "de3c1823b2d6173c7d78ab0b8a57766091391982"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/devicetree_generated.h": {
+      "license": [
+        "BSD-3-Clause"
+      ],
+      "sha1": "177495c0a59f3e2011f62930a42078ee9e9f9c54"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/heap_constants.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "2ae17f7de8ac602b0dba7b91570263dbf5a05bcf"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/kobj-types-enum.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "60f04340f1afb717a7e9bdef905972fe6a1ddf64"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/offsets.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "f735961c09a714f1b6ba2f84cc17f0cbaa5a3c99"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscall_list.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "ebcdb64ea9e1e1287a451af1f552bead7b284a2a"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/adc.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "96ef34a2ec41de11501dc643776b27b2ae435b24"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/arch.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "7e8b78eb4f27db1170e3a8679d497c72b1277e04"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/atomic_c.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "52e008716f1084e42a6e34414e44b4694211ea09"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/auxdisplay.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "32a20ac5b15e3c003f446c6d3d011d9b1fa33378"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/bbram.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "2c7a6067fe8e3f996feb8c7c68854a5cda49b212"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/biometrics.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "e1b10557820ea0c78ade872d6561e964cf434df9"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/cache.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "51e9ac0c4933b61f442cdf8d8d584af5dd576deb"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/can.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "a34d957c96372c41e33fc91d378eeaec515b2b17"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/charger.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "6548be9870b448a2a5bf17a0d9b723db4790c798"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/clock.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "9ba408186dc08fa1bd3a73728f459d2f0e54857e"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/comparator.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "7781cf8c3d89e2a30bb9d54dbf4dba8ea6f5c590"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/counter.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "589948b3003b8ea70433aa322825fbf0bfc41c07"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/crc.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "b6ff1dfb72ab34430938d0f30e6b7c13345c5a7f"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/dac.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "4d3159a2452c5e91089a9b648aaf18626a646bbd"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/dai.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "7b6a1ea334abf84b70d9e802625b4b270862966e"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/demand_paging.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "e5756c065276a155553d973ecc0912d4ee380ce2"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/device.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "af3bce9420ba4150fe9078114f439a008c73dfa6"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/devmux.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "b055211c3449d6e15c629b5f139b8a44eecc6ea0"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/eeprom.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "51198bc8e5e1a11dfe84156728c0ede6a501f7c7"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/emul_fuel_gauge.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "b3bbc6e1fc32a49af98f3cc93fd077d73cf88eef"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/entropy.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "1f9fac47c986b8d4f0ef5b84c2916af5c663638d"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/errno_private.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "b952ef57924e885a3097b572066946c7aea143d2"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/error.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "e2fdac968da59cd0edb88fafe51af926b63f396b"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/espi.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "a4577def4d15cd672288ec2d25fabe581b32000f"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/espi_saf.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "1a17852e8acb216468cc317df756c50c9e977e75"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/ethernet.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "c8f008b332d78028cac3bc812ffb5903c7ee04c0"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/fdtable.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "09ed3767b2fbfe420633948a56b80fc1d08dfde7"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/flash.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "d29307a44383897f1ce4aa110956332ce8e0d855"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/flash_simulator.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "96842101464a28aa01d8158339830fa7e6c1ef6d"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/fuel_gauge.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "5549326aa1cd04b279be6ebb78899c604dc713f3"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/gnss.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "6100bb365f6d0fa8ef2c150b69cf00ed08cb8d5a"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/gpio.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "73472e5182b5e2697f9ab0469bcbab1775b942da"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/haptics.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "d85c8951e66aba1c26db947a158764188f750295"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/hwinfo.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "8193af700a503696249983de05d03de4aa8e36e7"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/i2c.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "fb939e58f2273fbd1685f5b6a655d2f22c248b2e"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/i2s.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "073038f0e188cd66aa239d05319a498ba19d59a4"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/i3c.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "f48a2c11d4ae40f7fe1b9e0351da624506fa1a80"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/input_renesas_ra_ctsu.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "a08649603dfdc8a59655d764dde6c25f14049fb7"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/input_renesas_rx_ctsu.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "3ed81258e08bb291fb7c59a514915baf4f513b8a"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/ipm.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "370919ba6685c4b2f36810518e02f34af7104f63"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/ivshmem.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "a341b4083a97258665b24141692f3a66025315f4"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/kernel.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "9040e4c0134b293f08d498b6c1d7f9258de5a89d"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/kobject.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "206c4634d4bc228b38048bc83b433fa2e0d3eb13"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/led.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "e1d49302712dfa692aeea21e9baf286e966b2b98"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/libc-hooks.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "1e5c754e0fb8d773734588789401d3de8c7409e9"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/llext.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "03b1899e9b77e115968c51dee2a212d12752ce68"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/log_ctrl.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "76c3e5049b422043f3ade30ab8b48385a418813c"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/log_msg.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "5ad3e9dfb6e2bdde9c6264545af98800d5a5eb2e"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/maxim_ds3231.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "f5261ac23b3e4e2adc0419bfc2d6bfd3afbf445d"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/mbox.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "fabb769841182ca961cb3664e2fc7d272e226825"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/mdio.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "3a1a6679761fc32da6ae57bb53fb55275c4ed0e0"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/mspi.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "67be069a3e46b3e09a03f2cbd92745f8f1a56480"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/mutex.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "aa7340d70cb689592a8ed5be33b39424f03636d8"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/net_if.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "767137a44fe76d3c8e60a4523a80a3c85502538f"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/net_ip.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "de9e3fdd6aaef9c23fb437685b7e290b60eff004"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/nrf_qspi_nor.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "1fbfcd678a12e158074b12a3f852c8de35591689"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/opamp.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "4cb373767a43641de01523e191926d166033c5a7"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/otp.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "c3cae81315746628e5fe7c3cc59b1f8c87071b48"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/peci.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "74a7f8e7197b0015bfcade2786b6769ef31e6569"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/ps2.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "bbdf94dc10c1d87f61c916b9f945dffb6d2b0331"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/psi5.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "a7fc654819e2c3b3295ce12db16c8aee83530dba"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/ptp_clock.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "338c80b072a18d11a323737d3615f3c35ac8b9e3"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/pwm.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "2168bd98f50b7eb4cfa1395aff599e53ee715559"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/random.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "0fc1732d884d79ab375065563cd5839defa44857"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/renesas_elc.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "6d28d6059f44e602ee4b2c60e297b0016c0afc86"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/reset.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "cc7bebd6b34e58d35962b7c5808d56dc8a0ad02c"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/retained_mem.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "f2737772c86577e3eead3b5f65cbff56d59d2795"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/rtc.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "52a74a7310e411f5f5d490a677b21ee4328319ce"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/rtio.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "2ec76ec1172173656a78027301ffe4d1ecd84c11"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/sdhc.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "dd51187265f51c59ec17b5ffd1227f8a00633a69"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/sensor.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "cf77bb9f10851b8adb922ce250dbd0e00406fc0a"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/sent.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "b012f7bc0adf79787db12572edd5a5eace699e34"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/sip_svc_driver.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "deb016215328571331caa834151d9d8fb4dbdaf0"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/smbus.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "5edf778192931f62895e8a50814773ec6482bbfb"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/socket.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "19ceb076c6a31da0279208dedad0b833caa9fc5e"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/socket_service.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "d3e38f2caffe429dfa16f77bd4c676aef1735181"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/spi.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "39fe67dd0bbd569a6a0dd32fca67b8d283647c07"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/stepper.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "f284411f20d2d9ec1b7f3fe1c287c6ea6305a658"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/stepper_ctrl.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "a5f1b4688e0aa3d3d36614552964efbbdd2ac457"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/swdp.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "634259baf28b95833832765fa983d0d9127d6ec0"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/syscon.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "d736b569dbabe413ece45af449e414dc128eb51a"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/tee.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "98e77be3da86f7bef3555a10b5aedc38aa1eae41"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/time_units.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "02ca38aa96744346100ea15525afebb121db070f"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/timeaware_gpio.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "aaa1f59136e8b2f4876e7f4aeb0248b97a904e57"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/uart.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "8a7162f5c5a6f89d886afa365c3398531442dd37"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/updatehub.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "a4025bb5b47ecb3a2875dd81ea069598f6c25d62"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/usb_bc12.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "4da3d35144e3b95cd21538ba8f20e9279f189552"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/w1.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "8258461476fb3e9c8ff41a313571a1360606bbaf"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/watchdog.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "ea2abbf71c44ca2883a7b853b8404e0373c3e017"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/version.h": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "478481724873f874d8d6bca20c1b13a43850b36e"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr_commit.h": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "f7d6a45b3b8763ed3f341e1665e6140c83660ddf"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/isr_tables.c": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "8dfd662830754fc44ecf35f3bb19294cd608a6a6"
+    },
+    "../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/misc/generated/configs.c": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "38a92da1c8fb53f38975c8a71ff84643836d0553"
+    },
+    "../toolchains/zephyr-sdk/gnu/arm-zephyr-eabi/arm-zephyr-eabi/lib/thumb/v7e-m/nofp/space/libc.a": {
+      "license": [
+        "LicenseRef-west-ncs-sbom-picolibc-runtime"
+      ],
+      "sha1": "7cd435cc8ea4f9b774fe3d193a348b38fe917761"
+    },
+    "../toolchains/zephyr-sdk/gnu/arm-zephyr-eabi/arm-zephyr-eabi/sys-include/_newlib_version.h": {
+      "license": [
+        "BSD-3-Clause"
+      ],
+      "sha1": "150c4d42f97d4800529297e772dc132253c51c1d"
+    },
+    "../toolchains/zephyr-sdk/gnu/arm-zephyr-eabi/arm-zephyr-eabi/sys-include/alloca.h": {
+      "license": [
+        "BSD-3-Clause"
+      ],
+      "sha1": "1de9a34668537fda6ad6ed85405addf67d957ba6"
+    },
+    "../toolchains/zephyr-sdk/gnu/arm-zephyr-eabi/arm-zephyr-eabi/sys-include/arpa/inet.h": {
+      "license": [
+        "BSD-3-Clause"
+      ],
+      "sha1": "7dd6caa8beb7a59c7998a7676cf5909cea6fbccd"
+    },
+    "../toolchains/zephyr-sdk/gnu/arm-zephyr-eabi/arm-zephyr-eabi/sys-include/bits/types/mbstate_t.h": {
+      "license": [
+        "BSD-3-Clause"
+      ],
+      "sha1": "d4e35a4a522391234d515c2daf506e4733ce985d"
+    },
+    "../toolchains/zephyr-sdk/gnu/arm-zephyr-eabi/arm-zephyr-eabi/sys-include/cpio.h": {
+      "license": [
+        "BSD-3-Clause"
+      ],
+      "sha1": "42ae4f3d01e8e680b87c705ec4e6d98a69e98cf6"
+    },
+    "../toolchains/zephyr-sdk/gnu/arm-zephyr-eabi/arm-zephyr-eabi/sys-include/libgen.h": {
+      "license": [
+        "BSD-3-Clause"
+      ],
+      "sha1": "00810f1efdf4f3064be5dc0e87a049ce0c3f21b6"
+    },
+    "../toolchains/zephyr-sdk/gnu/arm-zephyr-eabi/arm-zephyr-eabi/sys-include/limits.h": {
+      "license": [
+        "BSD-3-Clause"
+      ],
+      "sha1": "d757171c4f1cc7bbf5140ca4140600fa34849222"
+    },
+    "../toolchains/zephyr-sdk/gnu/arm-zephyr-eabi/arm-zephyr-eabi/sys-include/machine/_default_types.h": {
+      "license": [
+        "BSD-3-Clause"
+      ],
+      "sha1": "46e66f006bc503df85579302909c621093c14cac"
+    },
+    "../toolchains/zephyr-sdk/gnu/arm-zephyr-eabi/arm-zephyr-eabi/sys-include/machine/_endian.h": {
+      "license": [
+        "BSD-3-Clause"
+      ],
+      "sha1": "3b7a24127c4e366729acf0e5ff7f6cc81845a856"
+    },
+    "../toolchains/zephyr-sdk/gnu/arm-zephyr-eabi/arm-zephyr-eabi/sys-include/machine/_time.h": {
+      "license": [
+        "BSD-3-Clause"
+      ],
+      "sha1": "319a572916655febce62dfe64ecc2bd22bf3d991"
+    },
+    "../toolchains/zephyr-sdk/gnu/arm-zephyr-eabi/arm-zephyr-eabi/sys-include/machine/_types.h": {
+      "license": [
+        "BSD-3-Clause"
+      ],
+      "sha1": "36581deeedab3b2161f43e6cadf1844014e4b764"
+    },
+    "../toolchains/zephyr-sdk/gnu/arm-zephyr-eabi/arm-zephyr-eabi/sys-include/machine/acle-compat.h": {
+      "license": [
+        "BSD-3-Clause"
+      ],
+      "sha1": "52f989d35a21c56267e8e4d7d0e527d8e11127db"
+    },
+    "../toolchains/zephyr-sdk/gnu/arm-zephyr-eabi/arm-zephyr-eabi/sys-include/machine/ansi.h": {
+      "license": [
+        "BSD-3-Clause"
+      ],
+      "sha1": "6f9a6ad3b291ec681725c713800f10ac185589f9"
+    },
+    "../toolchains/zephyr-sdk/gnu/arm-zephyr-eabi/arm-zephyr-eabi/sys-include/machine/endian.h": {
+      "license": [
+        "BSD-3-Clause"
+      ],
+      "sha1": "a44f1ea6a43f75a0788a9d6a7746cd9105a304a4"
+    },
+    "../toolchains/zephyr-sdk/gnu/arm-zephyr-eabi/arm-zephyr-eabi/sys-include/machine/malloc.h": {
+      "license": [
+        "BSD-3-Clause"
+      ],
+      "sha1": "128c8d5e1d87bb9bfb9269b736542f30323d80d0"
+    },
+    "../toolchains/zephyr-sdk/gnu/arm-zephyr-eabi/arm-zephyr-eabi/sys-include/machine/param.h": {
+      "license": [
+        "BSD-3-Clause"
+      ],
+      "sha1": "a6632fe99baeb0ff636b5753e62304c0d45547cb"
+    },
+    "../toolchains/zephyr-sdk/gnu/arm-zephyr-eabi/arm-zephyr-eabi/sys-include/machine/stdlib.h": {
+      "license": [
+        "BSD-3-Clause"
+      ],
+      "sha1": "1a49a539b91f97650c6ead1f66ed5af91daf9467"
+    },
+    "../toolchains/zephyr-sdk/gnu/arm-zephyr-eabi/arm-zephyr-eabi/sys-include/machine/termios.h": {
+      "license": [
+        "BSD-3-Clause"
+      ],
+      "sha1": "3c4881bdfc0ab33c692af8c46cdc597035e56ceb"
+    },
+    "../toolchains/zephyr-sdk/gnu/arm-zephyr-eabi/arm-zephyr-eabi/sys-include/memory.h": {
+      "license": [
+        "BSD-3-Clause"
+      ],
+      "sha1": "bc8b442d0f6ee6dd7e1b0235387cead69b5865d8"
+    },
+    "../toolchains/zephyr-sdk/gnu/arm-zephyr-eabi/arm-zephyr-eabi/sys-include/picolibc.h": {
+      "license": [
+        "BSD-3-Clause"
+      ],
+      "sha1": "f4b829e52ed1a71f6707e083de91e4462782a67d"
+    },
+    "../toolchains/zephyr-sdk/gnu/arm-zephyr-eabi/arm-zephyr-eabi/sys-include/ssp/stdlib.h": {
+      "license": [
+        "BSD-3-Clause"
+      ],
+      "sha1": "2b597523750e514b52ccaf81565fe6bf6b218fce"
+    },
+    "../toolchains/zephyr-sdk/gnu/arm-zephyr-eabi/arm-zephyr-eabi/sys-include/ssp/wchar.h": {
+      "license": [
+        "BSD-3-Clause"
+      ],
+      "sha1": "aa6a3625deb9537c43661c0d04122b99af6597e9"
+    },
+    "../toolchains/zephyr-sdk/gnu/arm-zephyr-eabi/arm-zephyr-eabi/sys-include/stdio.h": {
+      "license": [
+        "BSD-3-Clause"
+      ],
+      "sha1": "093564a65910dafef08dd79e395e6224bd3167ab"
+    },
+    "../toolchains/zephyr-sdk/gnu/arm-zephyr-eabi/arm-zephyr-eabi/sys-include/sys/_default_fcntl.h": {
+      "license": [
+        "BSD-3-Clause"
+      ],
+      "sha1": "ee80945d3228a3833337acb9c1088aa341018497"
+    },
+    "../toolchains/zephyr-sdk/gnu/arm-zephyr-eabi/arm-zephyr-eabi/sys-include/sys/_locale.h": {
+      "license": [
+        "BSD-3-Clause"
+      ],
+      "sha1": "03df72d3a04da374eed3f26e863f5ae359a1cae8"
+    },
+    "../toolchains/zephyr-sdk/gnu/arm-zephyr-eabi/arm-zephyr-eabi/sys-include/sys/_tz_structs.h": {
+      "license": [
+        "BSD-3-Clause"
+      ],
+      "sha1": "dec3dd2fee172f00b3621ff0fcdcf025ac2e450c"
+    },
+    "../toolchains/zephyr-sdk/gnu/arm-zephyr-eabi/arm-zephyr-eabi/sys-include/sys/custom_file.h": {
+      "license": [
+        "BSD-3-Clause"
+      ],
+      "sha1": "f01133524ee7cbd57fcdc1355ffa7e414e85c8c6"
+    },
+    "../toolchains/zephyr-sdk/gnu/arm-zephyr-eabi/arm-zephyr-eabi/sys-include/sys/dir.h": {
+      "license": [
+        "BSD-3-Clause"
+      ],
+      "sha1": "a846927b1f6d4ddf9d3ba5072e65ccd36709fd17"
+    },
+    "../toolchains/zephyr-sdk/gnu/arm-zephyr-eabi/arm-zephyr-eabi/sys-include/sys/lock.h": {
+      "license": [
+        "BSD-3-Clause"
+      ],
+      "sha1": "90eec2ca5d17d0e145d71e6a2c26aa5d4713b053"
+    },
+    "../toolchains/zephyr-sdk/gnu/arm-zephyr-eabi/arm-zephyr-eabi/sys-include/sys/string.h": {
+      "license": [
+        "BSD-3-Clause"
+      ],
+      "sha1": "6cd7d480f789e6c3378b09b3e6528274c6332770"
+    },
+    "../toolchains/zephyr-sdk/gnu/arm-zephyr-eabi/arm-zephyr-eabi/sys-include/tar.h": {
+      "license": [
+        "BSD-3-Clause"
+      ],
+      "sha1": "caddb2e9bbd8b6f243674161cba54f1c14967ffb"
+    },
+    "../toolchains/zephyr-sdk/gnu/arm-zephyr-eabi/arm-zephyr-eabi/sys-include/wctype.h": {
+      "license": [
+        "BSD-3-Clause"
+      ],
+      "sha1": "724df8691f6f8de9526e2b0f179c478b4446ab09"
+    },
+    "../toolchains/zephyr-sdk/gnu/arm-zephyr-eabi/lib/gcc/arm-zephyr-eabi/14.3.0/include/syslimits.h": {
+      "license": [
+        "GPL-3.0-or-later WITH GCC-exception-3.1"
+      ],
+      "sha1": "238c8a1b9ec309de5bac212baf0a655a56da3a28"
+    },
+    "../toolchains/zephyr-sdk/gnu/arm-zephyr-eabi/lib/gcc/arm-zephyr-eabi/14.3.0/thumb/v7e-m/nofp/space/libgcc.a": {
+      "license": [
+        "GPL-3.0-or-later WITH GCC-exception-3.1"
+      ],
+      "sha1": "edffa3267325a42627b0643fac7784795d981525"
+    },
+    "modules/crypto/mbedtls/library/mbedtls_config_check_before.h": {
+      "license": [
+        "Apache-2.0 OR GPL-2.0-or-later"
+      ],
+      "sha1": "54147b40efc82fec8adca406b8d419dfc29b105f"
+    },
+    "modules/crypto/mbedtls/library/mbedtls_config_check_final.h": {
+      "license": [
+        "Apache-2.0 OR GPL-2.0-or-later"
+      ],
+      "sha1": "e16d472f07ec0dfca560fba49340da5a9d263db4"
+    },
+    "modules/crypto/mbedtls/library/mbedtls_config_check_user.h": {
+      "license": [
+        "Apache-2.0 OR GPL-2.0-or-later"
+      ],
+      "sha1": "72e3d6d0de0106bba8a10f7ab8bfaab127fbdc09"
+    },
+    "nrf/VERSION": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "01adf0b4aafddd945a61fffb21890ff4417d05c6"
+    },
+    "nrfxlib/mpsl/fem/common/lib/nrf52/hard-float/libmpsl_fem_common.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "0d995565e0adf50016e288a21454afab66c237a3"
+    },
+    "nrfxlib/mpsl/fem/common/lib/nrf52/soft-float/libmpsl_fem_common.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "6da8697f2ee2cbbd2afc29f33a984efde59cec75"
+    },
+    "nrfxlib/mpsl/fem/common/lib/nrf52/softfp-float/libmpsl_fem_common.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "28d43bb8450600cf3d95c9a41fc9ad2685dfcaad"
+    },
+    "nrfxlib/mpsl/fem/common/lib/nrf52_bsim/soft-float/libmpsl_fem_common.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "74d6b7548383f05695d675c27ab4f711907a1717"
+    },
+    "nrfxlib/mpsl/fem/common/lib/nrf53/soft-float/libmpsl_fem_common.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "82de834d3582da852d006cbe199fcbfda55f2a30"
+    },
+    "nrfxlib/mpsl/fem/common/lib/nrf53_bsim/soft-float/libmpsl_fem_common.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "729098d1764d03888a0874044f5c1d70fe26d218"
+    },
+    "nrfxlib/mpsl/fem/common/lib/nrf54h/hard-float/libmpsl_fem_common.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "872abdbe217fa44029e15d5168d82f081bba55e9"
+    },
+    "nrfxlib/mpsl/fem/common/lib/nrf54h/soft-float/libmpsl_fem_common.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "46a446318e2123a37296476f12bb87758e766979"
+    },
+    "nrfxlib/mpsl/fem/common/lib/nrf54h/softfp-float/libmpsl_fem_common.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "a7407492ed0c41dcacceefe9a78faa4db0c79256"
+    },
+    "nrfxlib/mpsl/fem/common/lib/nrf54l/hard-float/libmpsl_fem_common.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "961587ddc478fd4fd0c9f071e3da9540669184cc"
+    },
+    "nrfxlib/mpsl/fem/common/lib/nrf54l/soft-float/libmpsl_fem_common.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "e836a899bce788fa6b0b0ec28e5ac736b7149848"
+    },
+    "nrfxlib/mpsl/fem/common/lib/nrf54l/softfp-float/libmpsl_fem_common.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "21208cf80055ebc01b1a0247193d0f281541d1cb"
+    },
+    "nrfxlib/mpsl/fem/common/lib/nrf54l_bsim/soft-float/libmpsl_fem_common.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "1c0cabb2e07c617a06cecf60f2e88ef381b944f6"
+    },
+    "nrfxlib/mpsl/fem/common/lib/nrf54l_ns/hard-float/libmpsl_fem_common.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "4a0058f57983e1359a8e2ad25c699119188fb04f"
+    },
+    "nrfxlib/mpsl/fem/common/lib/nrf54l_ns/soft-float/libmpsl_fem_common.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "64471ed6b511ef25e37b74d87562e12d80a48514"
+    },
+    "nrfxlib/mpsl/fem/common/lib/nrf54l_ns/softfp-float/libmpsl_fem_common.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "6f22a0c120b33cd50bf6fe138869b7cea5b73f92"
+    },
+    "nrfxlib/mpsl/fem/common/lib/nrf54lm/hard-float/libmpsl_fem_common.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "961587ddc478fd4fd0c9f071e3da9540669184cc"
+    },
+    "nrfxlib/mpsl/fem/common/lib/nrf54lm/soft-float/libmpsl_fem_common.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "e836a899bce788fa6b0b0ec28e5ac736b7149848"
+    },
+    "nrfxlib/mpsl/fem/common/lib/nrf54lm/softfp-float/libmpsl_fem_common.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "21208cf80055ebc01b1a0247193d0f281541d1cb"
+    },
+    "nrfxlib/mpsl/fem/common/lib/nrf54lm_ns/hard-float/libmpsl_fem_common.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "4a0058f57983e1359a8e2ad25c699119188fb04f"
+    },
+    "nrfxlib/mpsl/fem/common/lib/nrf54lm_ns/soft-float/libmpsl_fem_common.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "64471ed6b511ef25e37b74d87562e12d80a48514"
+    },
+    "nrfxlib/mpsl/fem/common/lib/nrf54lm_ns/softfp-float/libmpsl_fem_common.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "6f22a0c120b33cd50bf6fe138869b7cea5b73f92"
+    },
+    "nrfxlib/mpsl/fem/common/lib/nrf54ls/soft-float/libmpsl_fem_common.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "0a18be84b4b0a16f7b34d5162f6da33366b9d41c"
+    },
+    "nrfxlib/mpsl/fem/common/lib/nrf54lv/hard-float/libmpsl_fem_common.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "961587ddc478fd4fd0c9f071e3da9540669184cc"
+    },
+    "nrfxlib/mpsl/fem/common/lib/nrf54lv/soft-float/libmpsl_fem_common.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "e836a899bce788fa6b0b0ec28e5ac736b7149848"
+    },
+    "nrfxlib/mpsl/fem/common/lib/nrf54lv/softfp-float/libmpsl_fem_common.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "21208cf80055ebc01b1a0247193d0f281541d1cb"
+    },
+    "nrfxlib/mpsl/fem/common/lib/nrf54lv_ns/hard-float/libmpsl_fem_common.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "4a0058f57983e1359a8e2ad25c699119188fb04f"
+    },
+    "nrfxlib/mpsl/fem/common/lib/nrf54lv_ns/soft-float/libmpsl_fem_common.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "64471ed6b511ef25e37b74d87562e12d80a48514"
+    },
+    "nrfxlib/mpsl/fem/common/lib/nrf54lv_ns/softfp-float/libmpsl_fem_common.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "6f22a0c120b33cd50bf6fe138869b7cea5b73f92"
+    },
+    "nrfxlib/mpsl/fem/common/lib/nrf71/hard-float/libmpsl_fem_common.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "37c72f4da0220eba9fb3616525027b95dd483e2c"
+    },
+    "nrfxlib/mpsl/fem/common/lib/nrf71/soft-float/libmpsl_fem_common.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "58d391f3055143ca3b57b4497f1a25b73adfee11"
+    },
+    "nrfxlib/mpsl/fem/common/lib/nrf71/softfp-float/libmpsl_fem_common.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "eda0b0aba529678ff222a740e7b861f376123cab"
+    },
+    "nrfxlib/mpsl/fem/nrf21540_gpio/lib/nrf52/hard-float/libmpsl_fem_nrf21540_gpio.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "1b484a64a75fde9b9c268f34dd166ceba057a98e"
+    },
+    "nrfxlib/mpsl/fem/nrf21540_gpio/lib/nrf52/soft-float/libmpsl_fem_nrf21540_gpio.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "dadbddda93776efe5919111e39d79bc6e478a3fa"
+    },
+    "nrfxlib/mpsl/fem/nrf21540_gpio/lib/nrf52/softfp-float/libmpsl_fem_nrf21540_gpio.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "46772fe57dc79ab8a7ac86b766b5d281807ef441"
+    },
+    "nrfxlib/mpsl/fem/nrf21540_gpio/lib/nrf52_bsim/soft-float/libmpsl_fem_nrf21540_gpio.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "54f7a853a572689b7a52bf9ca8576412813b31fb"
+    },
+    "nrfxlib/mpsl/fem/nrf21540_gpio/lib/nrf53/soft-float/libmpsl_fem_nrf21540_gpio.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "3567969d7c55cadad72db434fe71da580d307c8f"
+    },
+    "nrfxlib/mpsl/fem/nrf21540_gpio/lib/nrf53_bsim/soft-float/libmpsl_fem_nrf21540_gpio.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "5548d6a195e96d24351848b9cc14d2accced4390"
+    },
+    "nrfxlib/mpsl/fem/nrf21540_gpio/lib/nrf54h/hard-float/libmpsl_fem_nrf21540_gpio.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "3d57270f76ebc7599c2319400a0d5dac46621d99"
+    },
+    "nrfxlib/mpsl/fem/nrf21540_gpio/lib/nrf54h/soft-float/libmpsl_fem_nrf21540_gpio.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "7772f4bf07ea14c78dc28c736f273495fb3c978c"
+    },
+    "nrfxlib/mpsl/fem/nrf21540_gpio/lib/nrf54h/softfp-float/libmpsl_fem_nrf21540_gpio.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "07d88411ba8ab80496b0622470bcd9aabae4bad7"
+    },
+    "nrfxlib/mpsl/fem/nrf21540_gpio/lib/nrf54l/hard-float/libmpsl_fem_nrf21540_gpio.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "7222316bdd3a3871ec36c1485422796397287da2"
+    },
+    "nrfxlib/mpsl/fem/nrf21540_gpio/lib/nrf54l/soft-float/libmpsl_fem_nrf21540_gpio.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "fc4bf361614774fbad55c912992eb4f92d12619a"
+    },
+    "nrfxlib/mpsl/fem/nrf21540_gpio/lib/nrf54l/softfp-float/libmpsl_fem_nrf21540_gpio.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "45df099e91f3c9c1527492a57b2569a6cafd974e"
+    },
+    "nrfxlib/mpsl/fem/nrf21540_gpio/lib/nrf54l_bsim/soft-float/libmpsl_fem_nrf21540_gpio.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "a0e5e18fb3e2eeef6e5b2f0c7715f3f182c14b10"
+    },
+    "nrfxlib/mpsl/fem/nrf21540_gpio/lib/nrf54l_ns/hard-float/libmpsl_fem_nrf21540_gpio.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "1162ea61aa6c29d62455292a236b2d0c42d79fec"
+    },
+    "nrfxlib/mpsl/fem/nrf21540_gpio/lib/nrf54l_ns/soft-float/libmpsl_fem_nrf21540_gpio.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "91543afc436a71d7fd8d26a4e822256bd7623c2e"
+    },
+    "nrfxlib/mpsl/fem/nrf21540_gpio/lib/nrf54l_ns/softfp-float/libmpsl_fem_nrf21540_gpio.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "ff4fbde62b563662aa18cf625534564640271ca7"
+    },
+    "nrfxlib/mpsl/fem/nrf21540_gpio/lib/nrf54lm/hard-float/libmpsl_fem_nrf21540_gpio.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "7222316bdd3a3871ec36c1485422796397287da2"
+    },
+    "nrfxlib/mpsl/fem/nrf21540_gpio/lib/nrf54lm/soft-float/libmpsl_fem_nrf21540_gpio.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "fc4bf361614774fbad55c912992eb4f92d12619a"
+    },
+    "nrfxlib/mpsl/fem/nrf21540_gpio/lib/nrf54lm/softfp-float/libmpsl_fem_nrf21540_gpio.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "45df099e91f3c9c1527492a57b2569a6cafd974e"
+    },
+    "nrfxlib/mpsl/fem/nrf21540_gpio/lib/nrf54lm_ns/hard-float/libmpsl_fem_nrf21540_gpio.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "1162ea61aa6c29d62455292a236b2d0c42d79fec"
+    },
+    "nrfxlib/mpsl/fem/nrf21540_gpio/lib/nrf54lm_ns/soft-float/libmpsl_fem_nrf21540_gpio.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "91543afc436a71d7fd8d26a4e822256bd7623c2e"
+    },
+    "nrfxlib/mpsl/fem/nrf21540_gpio/lib/nrf54lm_ns/softfp-float/libmpsl_fem_nrf21540_gpio.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "ff4fbde62b563662aa18cf625534564640271ca7"
+    },
+    "nrfxlib/mpsl/fem/nrf21540_gpio/lib/nrf54ls/soft-float/libmpsl_fem_nrf21540_gpio.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "0b7389863a064efb7d06da3c3593387fcff48d6d"
+    },
+    "nrfxlib/mpsl/fem/nrf21540_gpio/lib/nrf54lv/hard-float/libmpsl_fem_nrf21540_gpio.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "7222316bdd3a3871ec36c1485422796397287da2"
+    },
+    "nrfxlib/mpsl/fem/nrf21540_gpio/lib/nrf54lv/soft-float/libmpsl_fem_nrf21540_gpio.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "fc4bf361614774fbad55c912992eb4f92d12619a"
+    },
+    "nrfxlib/mpsl/fem/nrf21540_gpio/lib/nrf54lv/softfp-float/libmpsl_fem_nrf21540_gpio.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "45df099e91f3c9c1527492a57b2569a6cafd974e"
+    },
+    "nrfxlib/mpsl/fem/nrf21540_gpio/lib/nrf54lv_ns/hard-float/libmpsl_fem_nrf21540_gpio.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "1162ea61aa6c29d62455292a236b2d0c42d79fec"
+    },
+    "nrfxlib/mpsl/fem/nrf21540_gpio/lib/nrf54lv_ns/soft-float/libmpsl_fem_nrf21540_gpio.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "91543afc436a71d7fd8d26a4e822256bd7623c2e"
+    },
+    "nrfxlib/mpsl/fem/nrf21540_gpio/lib/nrf54lv_ns/softfp-float/libmpsl_fem_nrf21540_gpio.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "ff4fbde62b563662aa18cf625534564640271ca7"
+    },
+    "nrfxlib/mpsl/fem/nrf21540_gpio/lib/nrf71/hard-float/libmpsl_fem_nrf21540_gpio.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "cc17865c1bf0c360b9a129e0c9b27db7b8d7bfd1"
+    },
+    "nrfxlib/mpsl/fem/nrf21540_gpio/lib/nrf71/soft-float/libmpsl_fem_nrf21540_gpio.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "c15b83ccb8e0f1100d7c6d1a300fadc8a75d774f"
+    },
+    "nrfxlib/mpsl/fem/nrf21540_gpio/lib/nrf71/softfp-float/libmpsl_fem_nrf21540_gpio.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "63646d5a09860f4ddabe95da2370628ea503fdf0"
+    },
+    "nrfxlib/mpsl/fem/nrf21540_gpio_spi/lib/nrf52/hard-float/libmpsl_fem_nrf21540_gpio_spi.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "7cec193e95427d4b04bd3b4cb63fc644dc54fc19"
+    },
+    "nrfxlib/mpsl/fem/nrf21540_gpio_spi/lib/nrf52/soft-float/libmpsl_fem_nrf21540_gpio_spi.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "3557f16a746033f82b6e150f0ed5d28a8a088775"
+    },
+    "nrfxlib/mpsl/fem/nrf21540_gpio_spi/lib/nrf52/softfp-float/libmpsl_fem_nrf21540_gpio_spi.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "2533b38d9f50293784e77a0317c7dda1804c635d"
+    },
+    "nrfxlib/mpsl/fem/nrf21540_gpio_spi/lib/nrf52_bsim/soft-float/libmpsl_fem_nrf21540_gpio_spi.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "d965d4232088258c631bb77d1ca9bd721cbe312b"
+    },
+    "nrfxlib/mpsl/fem/nrf21540_gpio_spi/lib/nrf53/soft-float/libmpsl_fem_nrf21540_gpio_spi.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "36db71cf3887a22eb8a82fa6a794c79613f661e5"
+    },
+    "nrfxlib/mpsl/fem/nrf21540_gpio_spi/lib/nrf53_bsim/soft-float/libmpsl_fem_nrf21540_gpio_spi.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "b1e991727fdc9beb385bf9d33d3494871e05509c"
+    },
+    "nrfxlib/mpsl/fem/nrf21540_gpio_spi/lib/nrf54h/hard-float/libmpsl_fem_nrf21540_gpio_spi.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "75199f84273da6ddc0ed113914016e91e583140c"
+    },
+    "nrfxlib/mpsl/fem/nrf21540_gpio_spi/lib/nrf54h/soft-float/libmpsl_fem_nrf21540_gpio_spi.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "ff3487096c192b62dcd9daccd2171bfc8fed2b9b"
+    },
+    "nrfxlib/mpsl/fem/nrf21540_gpio_spi/lib/nrf54h/softfp-float/libmpsl_fem_nrf21540_gpio_spi.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "4f244d7e7b5219c21c4c0bd3d633dde55972aa42"
+    },
+    "nrfxlib/mpsl/fem/nrf21540_gpio_spi/lib/nrf54l/hard-float/libmpsl_fem_nrf21540_gpio_spi.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "9cf8a04c4df6c73ecb9d0f1d8ee7a35deff5644a"
+    },
+    "nrfxlib/mpsl/fem/nrf21540_gpio_spi/lib/nrf54l/soft-float/libmpsl_fem_nrf21540_gpio_spi.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "600a504bc15c572d9aea79f4804a474a63445b3c"
+    },
+    "nrfxlib/mpsl/fem/nrf21540_gpio_spi/lib/nrf54l/softfp-float/libmpsl_fem_nrf21540_gpio_spi.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "0336eb3e418cc2b13a6e42e00b10bd4c0a96a6c1"
+    },
+    "nrfxlib/mpsl/fem/nrf21540_gpio_spi/lib/nrf54l_bsim/soft-float/libmpsl_fem_nrf21540_gpio_spi.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "4b55407888525bb871ccb798b130c996574cab3d"
+    },
+    "nrfxlib/mpsl/fem/nrf21540_gpio_spi/lib/nrf54l_ns/hard-float/libmpsl_fem_nrf21540_gpio_spi.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "99b0d47eb670a07699f8dcf3cd22a5a3626430dd"
+    },
+    "nrfxlib/mpsl/fem/nrf21540_gpio_spi/lib/nrf54l_ns/soft-float/libmpsl_fem_nrf21540_gpio_spi.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "ada74113c82c0360a5ad63e2ed8b1185d2343865"
+    },
+    "nrfxlib/mpsl/fem/nrf21540_gpio_spi/lib/nrf54l_ns/softfp-float/libmpsl_fem_nrf21540_gpio_spi.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "45fdcbf9601ea54bd4577712e7f442bdc93f7c7d"
+    },
+    "nrfxlib/mpsl/fem/nrf21540_gpio_spi/lib/nrf54lm/hard-float/libmpsl_fem_nrf21540_gpio_spi.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "9cf8a04c4df6c73ecb9d0f1d8ee7a35deff5644a"
+    },
+    "nrfxlib/mpsl/fem/nrf21540_gpio_spi/lib/nrf54lm/soft-float/libmpsl_fem_nrf21540_gpio_spi.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "600a504bc15c572d9aea79f4804a474a63445b3c"
+    },
+    "nrfxlib/mpsl/fem/nrf21540_gpio_spi/lib/nrf54lm/softfp-float/libmpsl_fem_nrf21540_gpio_spi.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "0336eb3e418cc2b13a6e42e00b10bd4c0a96a6c1"
+    },
+    "nrfxlib/mpsl/fem/nrf21540_gpio_spi/lib/nrf54lm_ns/hard-float/libmpsl_fem_nrf21540_gpio_spi.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "99b0d47eb670a07699f8dcf3cd22a5a3626430dd"
+    },
+    "nrfxlib/mpsl/fem/nrf21540_gpio_spi/lib/nrf54lm_ns/soft-float/libmpsl_fem_nrf21540_gpio_spi.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "ada74113c82c0360a5ad63e2ed8b1185d2343865"
+    },
+    "nrfxlib/mpsl/fem/nrf21540_gpio_spi/lib/nrf54lm_ns/softfp-float/libmpsl_fem_nrf21540_gpio_spi.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "45fdcbf9601ea54bd4577712e7f442bdc93f7c7d"
+    },
+    "nrfxlib/mpsl/fem/nrf21540_gpio_spi/lib/nrf54ls/soft-float/libmpsl_fem_nrf21540_gpio_spi.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "70f696c0487f57308a8107ee049f6f965796a8d3"
+    },
+    "nrfxlib/mpsl/fem/nrf21540_gpio_spi/lib/nrf54lv/hard-float/libmpsl_fem_nrf21540_gpio_spi.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "9cf8a04c4df6c73ecb9d0f1d8ee7a35deff5644a"
+    },
+    "nrfxlib/mpsl/fem/nrf21540_gpio_spi/lib/nrf54lv/soft-float/libmpsl_fem_nrf21540_gpio_spi.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "600a504bc15c572d9aea79f4804a474a63445b3c"
+    },
+    "nrfxlib/mpsl/fem/nrf21540_gpio_spi/lib/nrf54lv/softfp-float/libmpsl_fem_nrf21540_gpio_spi.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "0336eb3e418cc2b13a6e42e00b10bd4c0a96a6c1"
+    },
+    "nrfxlib/mpsl/fem/nrf21540_gpio_spi/lib/nrf54lv_ns/hard-float/libmpsl_fem_nrf21540_gpio_spi.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "99b0d47eb670a07699f8dcf3cd22a5a3626430dd"
+    },
+    "nrfxlib/mpsl/fem/nrf21540_gpio_spi/lib/nrf54lv_ns/soft-float/libmpsl_fem_nrf21540_gpio_spi.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "ada74113c82c0360a5ad63e2ed8b1185d2343865"
+    },
+    "nrfxlib/mpsl/fem/nrf21540_gpio_spi/lib/nrf54lv_ns/softfp-float/libmpsl_fem_nrf21540_gpio_spi.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "45fdcbf9601ea54bd4577712e7f442bdc93f7c7d"
+    },
+    "nrfxlib/mpsl/fem/nrf21540_gpio_spi/lib/nrf71/hard-float/libmpsl_fem_nrf21540_gpio_spi.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "af456bcf0dc47b5925bf267b60bf5bd6191cb8e8"
+    },
+    "nrfxlib/mpsl/fem/nrf21540_gpio_spi/lib/nrf71/soft-float/libmpsl_fem_nrf21540_gpio_spi.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "724fa312a70705f8df37982ba0a4f2097f5f8ee4"
+    },
+    "nrfxlib/mpsl/fem/nrf21540_gpio_spi/lib/nrf71/softfp-float/libmpsl_fem_nrf21540_gpio_spi.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "d59f70dac0c6fab0cb94b86783264065678efddc"
+    },
+    "nrfxlib/mpsl/fem/nrf2220/lib/nrf52/hard-float/libmpsl_fem_nrf2220.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "3febca9fb0e05a950ed4349d1a6bd74f3c161535"
+    },
+    "nrfxlib/mpsl/fem/nrf2220/lib/nrf52/soft-float/libmpsl_fem_nrf2220.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "2aea06562c116926bc1a490319979409e27e208e"
+    },
+    "nrfxlib/mpsl/fem/nrf2220/lib/nrf52/softfp-float/libmpsl_fem_nrf2220.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "62d8aa884f1f936e69992fb1fed17c1c7c0d355d"
+    },
+    "nrfxlib/mpsl/fem/nrf2220/lib/nrf52_bsim/soft-float/libmpsl_fem_nrf2220.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "a8a113685476f260e1cf74ac248baeb4c878f00d"
+    },
+    "nrfxlib/mpsl/fem/nrf2220/lib/nrf53/soft-float/libmpsl_fem_nrf2220.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "a626664129b304b908e515bb057076598bed1cc1"
+    },
+    "nrfxlib/mpsl/fem/nrf2220/lib/nrf53_bsim/soft-float/libmpsl_fem_nrf2220.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "0135b2ab5eadf38fe3c8a1c2a9304b1e09c0e81b"
+    },
+    "nrfxlib/mpsl/fem/nrf2220/lib/nrf54h/hard-float/libmpsl_fem_nrf2220.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "dfd22869a95123b9bcd9c3e03652b5d53b416945"
+    },
+    "nrfxlib/mpsl/fem/nrf2220/lib/nrf54h/soft-float/libmpsl_fem_nrf2220.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "d298ff30bfe51c109865bd99c2bbfc5e70cf7345"
+    },
+    "nrfxlib/mpsl/fem/nrf2220/lib/nrf54h/softfp-float/libmpsl_fem_nrf2220.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "2520d1796abd5d934fca1e6f7904434394dc7aa4"
+    },
+    "nrfxlib/mpsl/fem/nrf2220/lib/nrf54l/hard-float/libmpsl_fem_nrf2220.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "cd80639e87e65ebbbb74048df86dee0e6f63ffbd"
+    },
+    "nrfxlib/mpsl/fem/nrf2220/lib/nrf54l/soft-float/libmpsl_fem_nrf2220.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "b6cb040523ba21252635844a89ac9678f8a00431"
+    },
+    "nrfxlib/mpsl/fem/nrf2220/lib/nrf54l/softfp-float/libmpsl_fem_nrf2220.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "f2a9b1ed91aa87a09c2a61dff3f1566b19dad4f5"
+    },
+    "nrfxlib/mpsl/fem/nrf2220/lib/nrf54l_bsim/soft-float/libmpsl_fem_nrf2220.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "b7374c2fa530fc0ce8a8d245300ae428bba818eb"
+    },
+    "nrfxlib/mpsl/fem/nrf2220/lib/nrf54l_ns/hard-float/libmpsl_fem_nrf2220.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "cd80639e87e65ebbbb74048df86dee0e6f63ffbd"
+    },
+    "nrfxlib/mpsl/fem/nrf2220/lib/nrf54l_ns/soft-float/libmpsl_fem_nrf2220.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "b6cb040523ba21252635844a89ac9678f8a00431"
+    },
+    "nrfxlib/mpsl/fem/nrf2220/lib/nrf54l_ns/softfp-float/libmpsl_fem_nrf2220.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "f2a9b1ed91aa87a09c2a61dff3f1566b19dad4f5"
+    },
+    "nrfxlib/mpsl/fem/nrf2220/lib/nrf54lm/hard-float/libmpsl_fem_nrf2220.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "cd80639e87e65ebbbb74048df86dee0e6f63ffbd"
+    },
+    "nrfxlib/mpsl/fem/nrf2220/lib/nrf54lm/soft-float/libmpsl_fem_nrf2220.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "b6cb040523ba21252635844a89ac9678f8a00431"
+    },
+    "nrfxlib/mpsl/fem/nrf2220/lib/nrf54lm/softfp-float/libmpsl_fem_nrf2220.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "f2a9b1ed91aa87a09c2a61dff3f1566b19dad4f5"
+    },
+    "nrfxlib/mpsl/fem/nrf2220/lib/nrf54lm_ns/hard-float/libmpsl_fem_nrf2220.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "cd80639e87e65ebbbb74048df86dee0e6f63ffbd"
+    },
+    "nrfxlib/mpsl/fem/nrf2220/lib/nrf54lm_ns/soft-float/libmpsl_fem_nrf2220.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "b6cb040523ba21252635844a89ac9678f8a00431"
+    },
+    "nrfxlib/mpsl/fem/nrf2220/lib/nrf54lm_ns/softfp-float/libmpsl_fem_nrf2220.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "f2a9b1ed91aa87a09c2a61dff3f1566b19dad4f5"
+    },
+    "nrfxlib/mpsl/fem/nrf2220/lib/nrf54ls/soft-float/libmpsl_fem_nrf2220.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "b6cb040523ba21252635844a89ac9678f8a00431"
+    },
+    "nrfxlib/mpsl/fem/nrf2220/lib/nrf54lv/hard-float/libmpsl_fem_nrf2220.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "cd80639e87e65ebbbb74048df86dee0e6f63ffbd"
+    },
+    "nrfxlib/mpsl/fem/nrf2220/lib/nrf54lv/soft-float/libmpsl_fem_nrf2220.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "b6cb040523ba21252635844a89ac9678f8a00431"
+    },
+    "nrfxlib/mpsl/fem/nrf2220/lib/nrf54lv/softfp-float/libmpsl_fem_nrf2220.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "f2a9b1ed91aa87a09c2a61dff3f1566b19dad4f5"
+    },
+    "nrfxlib/mpsl/fem/nrf2220/lib/nrf54lv_ns/hard-float/libmpsl_fem_nrf2220.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "cd80639e87e65ebbbb74048df86dee0e6f63ffbd"
+    },
+    "nrfxlib/mpsl/fem/nrf2220/lib/nrf54lv_ns/soft-float/libmpsl_fem_nrf2220.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "b6cb040523ba21252635844a89ac9678f8a00431"
+    },
+    "nrfxlib/mpsl/fem/nrf2220/lib/nrf54lv_ns/softfp-float/libmpsl_fem_nrf2220.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "f2a9b1ed91aa87a09c2a61dff3f1566b19dad4f5"
+    },
+    "nrfxlib/mpsl/fem/nrf2220/lib/nrf71/hard-float/libmpsl_fem_nrf2220.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "ae8d58b34dd4b5c36df311a1a93bf092870ddd81"
+    },
+    "nrfxlib/mpsl/fem/nrf2220/lib/nrf71/soft-float/libmpsl_fem_nrf2220.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "7ad64f34782ad4b49858e3a2462f646927b7cc9e"
+    },
+    "nrfxlib/mpsl/fem/nrf2220/lib/nrf71/softfp-float/libmpsl_fem_nrf2220.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "e780bcbeeb21b0fee7525e8786f19e9e38cdd35e"
+    },
+    "nrfxlib/mpsl/fem/nrf2240/lib/nrf52/hard-float/libmpsl_fem_nrf2240.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "80a0961803c52f8ad3a2f056da1fae6a48bd2866"
+    },
+    "nrfxlib/mpsl/fem/nrf2240/lib/nrf52/soft-float/libmpsl_fem_nrf2240.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "7349f934ecba27ab9d7d5a25d9c9cd50dc9a09a0"
+    },
+    "nrfxlib/mpsl/fem/nrf2240/lib/nrf52/softfp-float/libmpsl_fem_nrf2240.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "c3e46b828f4ec359e4129685742cebe0049ec07b"
+    },
+    "nrfxlib/mpsl/fem/nrf2240/lib/nrf52_bsim/soft-float/libmpsl_fem_nrf2240.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "1a446cfb65f7b381a40d193d04cd27ecf0ddd66a"
+    },
+    "nrfxlib/mpsl/fem/nrf2240/lib/nrf53/soft-float/libmpsl_fem_nrf2240.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "e42440357b456cd439f0d3a15fa6545208cbb827"
+    },
+    "nrfxlib/mpsl/fem/nrf2240/lib/nrf53_bsim/soft-float/libmpsl_fem_nrf2240.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "4d07c68a0156c7d37f9c6f667c43e28d454a1204"
+    },
+    "nrfxlib/mpsl/fem/nrf2240/lib/nrf54h/hard-float/libmpsl_fem_nrf2240.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "faa2d4cd704b5b58749d445d10d4672db6c5c2fb"
+    },
+    "nrfxlib/mpsl/fem/nrf2240/lib/nrf54h/soft-float/libmpsl_fem_nrf2240.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "fa236ea29651c15c0977b82a1a90552a234fc252"
+    },
+    "nrfxlib/mpsl/fem/nrf2240/lib/nrf54h/softfp-float/libmpsl_fem_nrf2240.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "26ca9ae44adc09ef3800957e5f82278152849178"
+    },
+    "nrfxlib/mpsl/fem/nrf2240/lib/nrf54l/hard-float/libmpsl_fem_nrf2240.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "b16d2a81cafef657890a732c44872425d0551c2c"
+    },
+    "nrfxlib/mpsl/fem/nrf2240/lib/nrf54l/soft-float/libmpsl_fem_nrf2240.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "896343252100ea9e6f98f0a5793ed218ae00642f"
+    },
+    "nrfxlib/mpsl/fem/nrf2240/lib/nrf54l/softfp-float/libmpsl_fem_nrf2240.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "0c354f1b937ae07d1d439e97994672eb05238d25"
+    },
+    "nrfxlib/mpsl/fem/nrf2240/lib/nrf54l_bsim/soft-float/libmpsl_fem_nrf2240.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "f6ea8326638d2e6025a7605a6893bafcd2d67c7e"
+    },
+    "nrfxlib/mpsl/fem/nrf2240/lib/nrf54l_ns/hard-float/libmpsl_fem_nrf2240.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "b16d2a81cafef657890a732c44872425d0551c2c"
+    },
+    "nrfxlib/mpsl/fem/nrf2240/lib/nrf54l_ns/soft-float/libmpsl_fem_nrf2240.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "896343252100ea9e6f98f0a5793ed218ae00642f"
+    },
+    "nrfxlib/mpsl/fem/nrf2240/lib/nrf54l_ns/softfp-float/libmpsl_fem_nrf2240.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "0c354f1b937ae07d1d439e97994672eb05238d25"
+    },
+    "nrfxlib/mpsl/fem/nrf2240/lib/nrf54lm/hard-float/libmpsl_fem_nrf2240.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "b16d2a81cafef657890a732c44872425d0551c2c"
+    },
+    "nrfxlib/mpsl/fem/nrf2240/lib/nrf54lm/soft-float/libmpsl_fem_nrf2240.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "896343252100ea9e6f98f0a5793ed218ae00642f"
+    },
+    "nrfxlib/mpsl/fem/nrf2240/lib/nrf54lm/softfp-float/libmpsl_fem_nrf2240.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "0c354f1b937ae07d1d439e97994672eb05238d25"
+    },
+    "nrfxlib/mpsl/fem/nrf2240/lib/nrf54lm_ns/hard-float/libmpsl_fem_nrf2240.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "b16d2a81cafef657890a732c44872425d0551c2c"
+    },
+    "nrfxlib/mpsl/fem/nrf2240/lib/nrf54lm_ns/soft-float/libmpsl_fem_nrf2240.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "896343252100ea9e6f98f0a5793ed218ae00642f"
+    },
+    "nrfxlib/mpsl/fem/nrf2240/lib/nrf54lm_ns/softfp-float/libmpsl_fem_nrf2240.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "0c354f1b937ae07d1d439e97994672eb05238d25"
+    },
+    "nrfxlib/mpsl/fem/nrf2240/lib/nrf54ls/soft-float/libmpsl_fem_nrf2240.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "896343252100ea9e6f98f0a5793ed218ae00642f"
+    },
+    "nrfxlib/mpsl/fem/nrf2240/lib/nrf54lv/hard-float/libmpsl_fem_nrf2240.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "b16d2a81cafef657890a732c44872425d0551c2c"
+    },
+    "nrfxlib/mpsl/fem/nrf2240/lib/nrf54lv/soft-float/libmpsl_fem_nrf2240.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "896343252100ea9e6f98f0a5793ed218ae00642f"
+    },
+    "nrfxlib/mpsl/fem/nrf2240/lib/nrf54lv/softfp-float/libmpsl_fem_nrf2240.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "0c354f1b937ae07d1d439e97994672eb05238d25"
+    },
+    "nrfxlib/mpsl/fem/nrf2240/lib/nrf54lv_ns/hard-float/libmpsl_fem_nrf2240.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "b16d2a81cafef657890a732c44872425d0551c2c"
+    },
+    "nrfxlib/mpsl/fem/nrf2240/lib/nrf54lv_ns/soft-float/libmpsl_fem_nrf2240.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "896343252100ea9e6f98f0a5793ed218ae00642f"
+    },
+    "nrfxlib/mpsl/fem/nrf2240/lib/nrf54lv_ns/softfp-float/libmpsl_fem_nrf2240.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "0c354f1b937ae07d1d439e97994672eb05238d25"
+    },
+    "nrfxlib/mpsl/fem/nrf2240/lib/nrf71/hard-float/libmpsl_fem_nrf2240.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "2915faf78c4cf7b76edde24e5bd0bd94616567dc"
+    },
+    "nrfxlib/mpsl/fem/nrf2240/lib/nrf71/soft-float/libmpsl_fem_nrf2240.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "cabdc1f4bfb3bb225b1601227f4770127b2f73c4"
+    },
+    "nrfxlib/mpsl/fem/nrf2240/lib/nrf71/softfp-float/libmpsl_fem_nrf2240.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "b572fe668b5358efbfb8aef474ba850d767a0990"
+    },
+    "nrfxlib/mpsl/fem/nrf22xx/lib/nrf52/hard-float/libmpsl_fem_nrf22xx.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "a1d5f197747a1a2b598e0f50b664ccbe2a70caca"
+    },
+    "nrfxlib/mpsl/fem/nrf22xx/lib/nrf52/soft-float/libmpsl_fem_nrf22xx.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "75cf6057e16cb94c40e74a99e24d974f45340f0a"
+    },
+    "nrfxlib/mpsl/fem/nrf22xx/lib/nrf52/softfp-float/libmpsl_fem_nrf22xx.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "332c537bb47f28d4e036df57dd0bd0dd355d7e8e"
+    },
+    "nrfxlib/mpsl/fem/nrf22xx/lib/nrf52_bsim/soft-float/libmpsl_fem_nrf22xx.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "e7e35eab7e2da62a90ad142ae07eaf5a97549e8e"
+    },
+    "nrfxlib/mpsl/fem/nrf22xx/lib/nrf53/soft-float/libmpsl_fem_nrf22xx.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "13bf40c9c5d8ca7fea1aa5432ed2663311e1a2e2"
+    },
+    "nrfxlib/mpsl/fem/nrf22xx/lib/nrf53_bsim/soft-float/libmpsl_fem_nrf22xx.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "951f4216113194e23614dde4c98a8beae9f95646"
+    },
+    "nrfxlib/mpsl/fem/nrf22xx/lib/nrf54h/hard-float/libmpsl_fem_nrf22xx.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "41a8581b0e6aad714989c71cb3d42097d5ce9388"
+    },
+    "nrfxlib/mpsl/fem/nrf22xx/lib/nrf54h/soft-float/libmpsl_fem_nrf22xx.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "a9e908ed594f868ebeb2cd7d40de376fdb9ffbf6"
+    },
+    "nrfxlib/mpsl/fem/nrf22xx/lib/nrf54h/softfp-float/libmpsl_fem_nrf22xx.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "e460c8bffec5987d2fc893e6b9600332b79bbd54"
+    },
+    "nrfxlib/mpsl/fem/nrf22xx/lib/nrf54l/hard-float/libmpsl_fem_nrf22xx.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "ed82db8bfb1fe6aa0541d697b6e006297a5d04ea"
+    },
+    "nrfxlib/mpsl/fem/nrf22xx/lib/nrf54l/soft-float/libmpsl_fem_nrf22xx.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "84173f50e1003d622321dade21f6e968a1c67256"
+    },
+    "nrfxlib/mpsl/fem/nrf22xx/lib/nrf54l/softfp-float/libmpsl_fem_nrf22xx.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "f8493e8a0a754d79a449ff3aa44fc62b085484ce"
+    },
+    "nrfxlib/mpsl/fem/nrf22xx/lib/nrf54l_bsim/soft-float/libmpsl_fem_nrf22xx.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "177884f6cf23cd92294c32d40b015619db82abec"
+    },
+    "nrfxlib/mpsl/fem/nrf22xx/lib/nrf54l_ns/hard-float/libmpsl_fem_nrf22xx.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "4cb09ca16c0f3de0efbc6e1313f86f56635d8ca2"
+    },
+    "nrfxlib/mpsl/fem/nrf22xx/lib/nrf54l_ns/soft-float/libmpsl_fem_nrf22xx.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "cf77654c104f877d2ff62eb9749f8a67e2e902ed"
+    },
+    "nrfxlib/mpsl/fem/nrf22xx/lib/nrf54l_ns/softfp-float/libmpsl_fem_nrf22xx.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "306120d376f6459cce206334b4ec3b9f0ae36a75"
+    },
+    "nrfxlib/mpsl/fem/nrf22xx/lib/nrf54lm/hard-float/libmpsl_fem_nrf22xx.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "ed82db8bfb1fe6aa0541d697b6e006297a5d04ea"
+    },
+    "nrfxlib/mpsl/fem/nrf22xx/lib/nrf54lm/soft-float/libmpsl_fem_nrf22xx.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "84173f50e1003d622321dade21f6e968a1c67256"
+    },
+    "nrfxlib/mpsl/fem/nrf22xx/lib/nrf54lm/softfp-float/libmpsl_fem_nrf22xx.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "f8493e8a0a754d79a449ff3aa44fc62b085484ce"
+    },
+    "nrfxlib/mpsl/fem/nrf22xx/lib/nrf54lm_ns/hard-float/libmpsl_fem_nrf22xx.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "4cb09ca16c0f3de0efbc6e1313f86f56635d8ca2"
+    },
+    "nrfxlib/mpsl/fem/nrf22xx/lib/nrf54lm_ns/soft-float/libmpsl_fem_nrf22xx.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "cf77654c104f877d2ff62eb9749f8a67e2e902ed"
+    },
+    "nrfxlib/mpsl/fem/nrf22xx/lib/nrf54lm_ns/softfp-float/libmpsl_fem_nrf22xx.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "306120d376f6459cce206334b4ec3b9f0ae36a75"
+    },
+    "nrfxlib/mpsl/fem/nrf22xx/lib/nrf54ls/soft-float/libmpsl_fem_nrf22xx.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "55c362f1d63875d4660d40cb70572fcfca6b5e12"
+    },
+    "nrfxlib/mpsl/fem/nrf22xx/lib/nrf54lv/hard-float/libmpsl_fem_nrf22xx.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "ed82db8bfb1fe6aa0541d697b6e006297a5d04ea"
+    },
+    "nrfxlib/mpsl/fem/nrf22xx/lib/nrf54lv/soft-float/libmpsl_fem_nrf22xx.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "84173f50e1003d622321dade21f6e968a1c67256"
+    },
+    "nrfxlib/mpsl/fem/nrf22xx/lib/nrf54lv/softfp-float/libmpsl_fem_nrf22xx.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "f8493e8a0a754d79a449ff3aa44fc62b085484ce"
+    },
+    "nrfxlib/mpsl/fem/nrf22xx/lib/nrf54lv_ns/hard-float/libmpsl_fem_nrf22xx.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "4cb09ca16c0f3de0efbc6e1313f86f56635d8ca2"
+    },
+    "nrfxlib/mpsl/fem/nrf22xx/lib/nrf54lv_ns/soft-float/libmpsl_fem_nrf22xx.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "cf77654c104f877d2ff62eb9749f8a67e2e902ed"
+    },
+    "nrfxlib/mpsl/fem/nrf22xx/lib/nrf54lv_ns/softfp-float/libmpsl_fem_nrf22xx.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "306120d376f6459cce206334b4ec3b9f0ae36a75"
+    },
+    "nrfxlib/mpsl/fem/nrf22xx/lib/nrf71/hard-float/libmpsl_fem_nrf22xx.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "1367b6ba429ac4bbde3e73908247d89a417a8628"
+    },
+    "nrfxlib/mpsl/fem/nrf22xx/lib/nrf71/soft-float/libmpsl_fem_nrf22xx.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "e5a7e52f0e1d512f26ac964e51c4103845cd9024"
+    },
+    "nrfxlib/mpsl/fem/nrf22xx/lib/nrf71/softfp-float/libmpsl_fem_nrf22xx.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "579bf9ce6a6f05b2435651e6690a88b837eb9343"
+    },
+    "nrfxlib/mpsl/fem/simple_gpio/lib/nrf52/hard-float/libmpsl_fem_simple_gpio.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "c42a1591f8fe393d55da23cfd31ce9bd29025b6b"
+    },
+    "nrfxlib/mpsl/fem/simple_gpio/lib/nrf52/soft-float/libmpsl_fem_simple_gpio.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "8e83f4aaaae0d908f3574803f09b11c6b7fc6548"
+    },
+    "nrfxlib/mpsl/fem/simple_gpio/lib/nrf52/softfp-float/libmpsl_fem_simple_gpio.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "d1c7016545820a9ce134f23ede0f349b56657f26"
+    },
+    "nrfxlib/mpsl/fem/simple_gpio/lib/nrf52_bsim/soft-float/libmpsl_fem_simple_gpio.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "7f68ba1024a994ad68ecd07c44aa63be413aee8f"
+    },
+    "nrfxlib/mpsl/fem/simple_gpio/lib/nrf53/soft-float/libmpsl_fem_simple_gpio.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "cb4595f29ac94032488f76c9a2dab48dbad6c5f8"
+    },
+    "nrfxlib/mpsl/fem/simple_gpio/lib/nrf53_bsim/soft-float/libmpsl_fem_simple_gpio.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "97c97690b33e95a47f5dbd44955c6b3c918eb8a8"
+    },
+    "nrfxlib/mpsl/fem/simple_gpio/lib/nrf54h/hard-float/libmpsl_fem_simple_gpio.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "bae3689ae84eacca650a3df45dea32772e137706"
+    },
+    "nrfxlib/mpsl/fem/simple_gpio/lib/nrf54h/soft-float/libmpsl_fem_simple_gpio.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "8286bbff03dce403b6b426f578f2c8341c18f333"
+    },
+    "nrfxlib/mpsl/fem/simple_gpio/lib/nrf54h/softfp-float/libmpsl_fem_simple_gpio.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "3a6cc5944c22e18e243fd72a084d51f46195ad51"
+    },
+    "nrfxlib/mpsl/fem/simple_gpio/lib/nrf54l/hard-float/libmpsl_fem_simple_gpio.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "5d2a8c3e9e84a2d7aeeae8b4187ee19c98b70b05"
+    },
+    "nrfxlib/mpsl/fem/simple_gpio/lib/nrf54l/soft-float/libmpsl_fem_simple_gpio.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "0be4fd1b8402d358cf4687abc15df17020a58c49"
+    },
+    "nrfxlib/mpsl/fem/simple_gpio/lib/nrf54l/softfp-float/libmpsl_fem_simple_gpio.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "cfbb634883834cfe6fc67a99df4c85dfd663faf9"
+    },
+    "nrfxlib/mpsl/fem/simple_gpio/lib/nrf54l_bsim/soft-float/libmpsl_fem_simple_gpio.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "31dba08cb9c8f8d1fdcc5e673def73de409ac946"
+    },
+    "nrfxlib/mpsl/fem/simple_gpio/lib/nrf54l_ns/hard-float/libmpsl_fem_simple_gpio.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "32d15b187d67d07a508b54984a7b8440f0bf2f70"
+    },
+    "nrfxlib/mpsl/fem/simple_gpio/lib/nrf54l_ns/soft-float/libmpsl_fem_simple_gpio.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "59e2b625ac7eb446b635621e54c9059ac9dbe94e"
+    },
+    "nrfxlib/mpsl/fem/simple_gpio/lib/nrf54l_ns/softfp-float/libmpsl_fem_simple_gpio.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "1a82851b5053118242835be1c0f8c583bb9cb54c"
+    },
+    "nrfxlib/mpsl/fem/simple_gpio/lib/nrf54lm/hard-float/libmpsl_fem_simple_gpio.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "5d2a8c3e9e84a2d7aeeae8b4187ee19c98b70b05"
+    },
+    "nrfxlib/mpsl/fem/simple_gpio/lib/nrf54lm/soft-float/libmpsl_fem_simple_gpio.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "0be4fd1b8402d358cf4687abc15df17020a58c49"
+    },
+    "nrfxlib/mpsl/fem/simple_gpio/lib/nrf54lm/softfp-float/libmpsl_fem_simple_gpio.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "cfbb634883834cfe6fc67a99df4c85dfd663faf9"
+    },
+    "nrfxlib/mpsl/fem/simple_gpio/lib/nrf54lm_ns/hard-float/libmpsl_fem_simple_gpio.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "32d15b187d67d07a508b54984a7b8440f0bf2f70"
+    },
+    "nrfxlib/mpsl/fem/simple_gpio/lib/nrf54lm_ns/soft-float/libmpsl_fem_simple_gpio.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "59e2b625ac7eb446b635621e54c9059ac9dbe94e"
+    },
+    "nrfxlib/mpsl/fem/simple_gpio/lib/nrf54lm_ns/softfp-float/libmpsl_fem_simple_gpio.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "1a82851b5053118242835be1c0f8c583bb9cb54c"
+    },
+    "nrfxlib/mpsl/fem/simple_gpio/lib/nrf54ls/soft-float/libmpsl_fem_simple_gpio.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "810558f9d06479ad50ba919e31a3de9636cc200e"
+    },
+    "nrfxlib/mpsl/fem/simple_gpio/lib/nrf54lv/hard-float/libmpsl_fem_simple_gpio.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "5d2a8c3e9e84a2d7aeeae8b4187ee19c98b70b05"
+    },
+    "nrfxlib/mpsl/fem/simple_gpio/lib/nrf54lv/soft-float/libmpsl_fem_simple_gpio.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "0be4fd1b8402d358cf4687abc15df17020a58c49"
+    },
+    "nrfxlib/mpsl/fem/simple_gpio/lib/nrf54lv/softfp-float/libmpsl_fem_simple_gpio.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "cfbb634883834cfe6fc67a99df4c85dfd663faf9"
+    },
+    "nrfxlib/mpsl/fem/simple_gpio/lib/nrf54lv_ns/hard-float/libmpsl_fem_simple_gpio.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "32d15b187d67d07a508b54984a7b8440f0bf2f70"
+    },
+    "nrfxlib/mpsl/fem/simple_gpio/lib/nrf54lv_ns/soft-float/libmpsl_fem_simple_gpio.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "59e2b625ac7eb446b635621e54c9059ac9dbe94e"
+    },
+    "nrfxlib/mpsl/fem/simple_gpio/lib/nrf54lv_ns/softfp-float/libmpsl_fem_simple_gpio.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "1a82851b5053118242835be1c0f8c583bb9cb54c"
+    },
+    "nrfxlib/mpsl/fem/simple_gpio/lib/nrf71/hard-float/libmpsl_fem_simple_gpio.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "dc646f4900ab13f68db4f630e328fafabc11e16d"
+    },
+    "nrfxlib/mpsl/fem/simple_gpio/lib/nrf71/soft-float/libmpsl_fem_simple_gpio.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "7bdf137909c7dd146b0474df599a8e404315776f"
+    },
+    "nrfxlib/mpsl/fem/simple_gpio/lib/nrf71/softfp-float/libmpsl_fem_simple_gpio.a": {
+      "license": [
+        "LicenseRef-Nordic-5-Clause"
+      ],
+      "sha1": "10630d4e861d6e94d24ee6969fdcf399cf5ba16a"
+    },
+    "zephyr/VERSION": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "23ec77d4baeba156559a41525234e91975ebde7c"
+    },
+    "zephyr/include/zephyr/linker/ram-end.ld": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "b1b03fd1e37b138c2817a7dd14b169efe1d5db8b"
+    },
+    "zephyr/misc/empty_file.c": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "da39a3ee5e6b4b0d3255bfef95601890afd80709"
+    },
+    "zephyr/subsys/usb/device_next/usbd_data.ld": {
+      "license": [
+        "Apache-2.0"
+      ],
+      "sha1": "02b618a4b72a49ad3b1ce63612bfeeac129b6ed8"
+    }
+  }
+}
