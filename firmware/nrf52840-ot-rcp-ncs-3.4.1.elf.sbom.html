@@ -1,0 +1,2590 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>SBOM Report</title>
+	<style>
+		@import url('https://fonts.googleapis.com/css2?family=Lato&family=Roboto+Slab&display=swap');
+		/* Nordic Default Theme */
+		body {
+			font-family: Lato,proxima-nova,Helvetica Neue,Arial,sans-serif;
+			color: #404040;
+			margin: 51px;
+			font-size: 16px;
+			background-color: white;
+		}
+		pre {
+			font-family: SFMono-Regular,Menlo,Monaco,Consolas,Liberation Mono,Courier New,Courier,monospace;
+			font-size: 12px;
+			line-height: 1.4;
+			padding: 12px;
+			border: 1px solid #e1e4e5;
+			margin: 1px 0 24px;
+			background: #f8f8f8;
+			min-width: fit-content;
+		}
+		pre.list {
+			padding: 0px 12px 12px;
+		}
+		h1 {
+			font-family: Roboto Slab,ff-tisa-web-pro,Georgia,Arial,sans-serif;
+			border-top: 1px solid #ddd;
+			padding-top: 20px;
+			margin-top: 0px;
+			margin-bottom: 24px;
+		}
+		h2 {
+			font-family: Roboto Slab,ff-tisa-web-pro,Georgia,Arial,sans-serif;
+			border-top: 1px solid #ddd;
+			padding-top: 24px;
+			margin-top: 0px;
+			margin-bottom: 24px;
+		}
+		a {
+			color: #00a9ce;
+			text-decoration: none;
+		}
+		a:hover {
+			color: #0077C8;
+		}
+		div, p {
+			line-height: 24px;
+			margin-block-start: 1em;
+			margin-block-end: 1em;
+			margin-inline-start: 0px;
+			margin-inline-end: 0px;
+		}
+		.src {
+			font-family: SFMono-Regular,Menlo,Monaco,Consolas,Liberation Mono,Courier New,Courier,monospace;
+			font-size: 12px;
+		}
+		.fa {
+			text-decoration: none;
+			color: #404040;
+		}
+		.fa:hover {
+			text-decoration: none;
+			color: #0077C8;
+		}
+		div.package {
+			background: #e7f2fa;
+			color: #404040;
+			padding: 8px 12px;
+			margin: 16px 0px 8px;
+			line-height: 1.7;
+			border: 1px solid #e1e4e5;
+		}
+		span.modifications {
+			font-weight: bold;
+			display: inline-block;
+			border: 1px solid #e1e4e5;
+			padding: 3px 7px 2px;
+			border-radius: 4px;
+			background-color: white;
+		}
+		div.note-header {
+			background: #6ab0de;
+			color: white;
+			font-weight: bold;
+			padding: 4px 4px 4px 12px;
+			margin-bottom: 0px;
+		}
+		div.note-content {
+			background: #e7f2fa;
+			color: #404040;
+			padding: 12px;
+			margin-top: 0px;
+		}
+		a#scroll-up {
+			line-height: normal;
+			position: fixed;
+			bottom: 20px;
+			right: 20px;
+			display: block;
+			background: #6ab0de;
+			width: 56px;
+			height: 50px;
+			border-radius: 28px;
+			color: white;
+			text-align: center;
+			font-size: 30px;
+			padding-top: 6px;
+			box-shadow: 1px 3px 10px 0px #222222
+		}
+		a#scroll-up:hover {
+			box-shadow: 1px 3px 14px 3px #222222
+		}
+		span[class^="-icon-"] {
+			width: 14px;
+			height: 14px;
+			vertical-align: -1px;
+			display: inline-block;
+			background-size: 100% 100%;
+		}
+		span.-icon-exclamation {
+			background-image: url('data:image/svg+xml;charset=utf-8,%3C%3Fxml%20version%3D%221.0%22%20encoding%3D%22UTF-8%22%3F%3E%3Csvg%20version%3D%221.1%22%20viewBox%3D%220%200%2016%2016%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Ccircle%20cx%3D%228%22%20cy%3D%228%22%20r%3D%228%22%20fill%3D%22%23fff%22%2F%3E%3Crect%20x%3D%226.5%22%20y%3D%222.5%22%20width%3D%223%22%20height%3D%227%22%20fill%3D%22%236ab0de%22%2F%3E%3Crect%20x%3D%226.5%22%20y%3D%2210.5%22%20width%3D%223%22%20height%3D%223%22%20fill%3D%22%236ab0de%22%2F%3E%3C%2Fsvg%3E');
+		}
+		/* Dark Color Theme */
+		@media (prefers-color-scheme: dark) {
+			body {
+				color: #cccccc;
+				background-color: #292929;
+			}
+			pre {
+				border: 1px solid #474747;
+				background: #333333;
+			}
+			h2, h1 {
+				border-top-color: #444444;
+			}
+			a:hover {
+				color: #66d1e9;
+			}
+			.fa {
+				color: #cccccc;
+			}
+			.fa:hover {
+				color: #66d1e9;
+			}
+			div.package {
+				background: #2c3e49;
+				color: #cccccc;
+				border: 1px solid #474747;
+			}
+			span.modifications {
+				border: 1px solid #474747;
+				background-color: #292929;
+			}
+			div.note-header, a#scroll-up {
+				background: #447291;
+			}
+			div.note-content {
+				background: #2c3e49;
+				color: #cccccc;
+			}
+		}
+		/* Visual Studio Code Color Theme */
+		html[style*="--vscode"] body {
+			color: var(--vscode-editor-foreground);
+			background-color: var(--vscode-editor-background);
+		}
+		html[style*="--vscode"] pre {
+			border: 1px solid var(--vscode-panel-border);
+			background: var(--vscode-sideBar-background);
+		}
+		html[style*="--vscode"] h2, html[style*="--vscode"] h1 {
+			border-top-color: var(--vscode-panel-border);
+		}
+		html[style*="--vscode"] a {
+			color: var(--vscode-textLink-foreground);
+			text-decoration: none;
+		}
+		html[style*="--vscode"] a:hover {
+			text-decoration: underline;
+			color: var(--vscode-textLink-activeForeground);
+		}
+		html[style*="--vscode"] .fa {
+			color: var(--vscode-foreground);
+		}
+		html[style*="--vscode"] .fa:hover {
+			text-decoration: none;
+			color: var(--vscode-textLink-activeForeground);
+		}
+		html[style*="--vscode"] div.package {
+			background: var(--vscode-quickInput-background);
+			color: var(--vscode-quickInput-foreground);
+			border: 1px solid var(--vscode-panel-border);
+		}
+		html[style*="--vscode"] span.modifications {
+			border: 1px solid var(--vscode-panel-border);
+			background-color: var(--vscode-quickInput-background);
+		}
+		html[style*="--vscode"] div.note-header, html[style*="--vscode"] a#scroll-up {
+			text-decoration: none;
+			background: var(--vscode-button-background);
+			color: var(--vscode-button-foreground);
+		}
+		html[style*="--vscode"] div.note-content {
+			background: var(--vscode-quickInput-background);
+			color: var(--vscode-quickInput-foreground);
+		}
+	</style>
+</head>
+
+<body>
+	<a id="scroll-up" href="#">▲</a>
+
+	<h1>Software Bill of Material Report</h1>
+
+	
+
+	
+	<div class="note-header">
+		<span class="-icon-exclamation"></span>&nbsp; Note
+	</div>
+	<div class="note-content">
+		Some of the licenses were detected by an external tool <a href="https://github.com/nexB/scancode-toolkit">ScanCode Toolkit</a>.
+		You can read more about it in the <a href="https://scancode-toolkit.readthedocs.io/">ScanCode Toolkit Documentation</a>.
+	</div>
+	
+
+	<div>This report was generated from the following inputs:</div>
+	<ul>
+		
+		<li><span class="src">The &#34;zephyr/zephyr.elf&#34; file from the build directory &#34;&lt;local path&gt;&#34;</span></li>
+		
+	</ul>
+
+	<div>The files are covered by the following licenses:</div>
+	<ul>
+		
+		
+		<li><a href="#LICENSEREF-NORDIC-5-CLAUSE">LicenseRef-Nordic-5-Clause</a></li>
+		
+		
+		
+		<li><a href="#LICENSEREF-SCANCODE-DELORIE-HISTORICAL">LicenseRef-scancode-delorie-historical</a></li>
+		
+		
+		
+		<li><a href="#LICENSEREF-SCANCODE-RED-HAT-ATTRIBUTION">LicenseRef-scancode-red-hat-attribution</a></li>
+		
+		
+		
+		<li><a href="#LICENSEREF-WEST-NCS-SBOM-NEWLIB-RUNTIME">LicenseRef-west-ncs-sbom-newlib-runtime</a></li>
+		
+		
+		
+		<li><a href="#APACHE-2.0 OR GPL-2.0-OR-LATER">Apache-2.0 OR GPL-2.0-or-later</a></li>
+		
+		
+		
+		<li><a href="#GPL-3.0-OR-LATER WITH GCC-EXCEPTION-3.1">GPL-3.0-or-later WITH GCC-EXCEPTION-3.1</a></li>
+		
+		
+		
+		<li><a href="#APACHE-2.0">Apache-2.0</a></li>
+		
+		
+		
+		<li><a href="#BSD-2-CLAUSE">BSD-2-Clause</a></li>
+		
+		
+		
+		<li><a href="#BSD-2-CLAUSE-FREEBSD">BSD-2-Clause-FreeBSD</a></li>
+		
+		
+		
+		<li><a href="#BSD-3-CLAUSE">BSD-3-Clause</a></li>
+		
+		
+		
+		
+		
+		
+		
+		<li><a href="#ISC">ISC</a></li>
+		
+		
+		
+		<li><a href="#OAR">OAR</a></li>
+		
+		
+		
+	</ul>
+
+	<div>The files are obtained from the following sources:</div>
+	<ul>
+		
+		
+		
+		
+		
+		<li><a href="#package#GIT#HTTPS://GITHUB.COM/NRFCONNECT/SDK-HAL_NORDIC#69865C20DC4AFBDD27060AD1E81AF1B62D31F7AF">nrfconnect/sdk-hal_nordic, version 69865c20dc4afbdd27060ad1e81af1b62d31f7af</a></li>
+		
+		
+		
+		<li><a href="#package#GIT#HTTPS://GITHUB.COM/NRFCONNECT/SDK-MBEDTLS#804249DDCDCF78A16F9BE760B9FF1F65C2F29D9E">nrfconnect/sdk-mbedtls, version 804249ddcdcf78a16f9be760b9ff1f65c2f29d9e</a></li>
+		
+		
+		
+		<li><a href="#package#GIT#HTTPS://GITHUB.COM/NRFCONNECT/SDK-NRF#B20F8619BA9A5530F8C34B0A130D829947CFE55D">nrfconnect/sdk-nrf, version b20f8619ba9a5530f8c34b0a130d829947cfe55d</a></li>
+		
+		
+		
+		<li><a href="#package#GIT#HTTPS://GITHUB.COM/NRFCONNECT/SDK-NRFXLIB#BB715183A57AC501907B63DF2079C3FBCD067641">nrfconnect/sdk-nrfxlib, version bb715183a57ac501907b63df2079c3fbcd067641</a></li>
+		
+		
+		
+		<li><a href="#package#GIT#HTTPS://GITHUB.COM/NRFCONNECT/SDK-OBERON-PSA-CRYPTO#E8DB62ED0FBA5028E7AE0EBA7B1FB63436AE6416">nrfconnect/sdk-oberon-psa-crypto, version e8db62ed0fba5028e7ae0eba7b1fb63436ae6416</a></li>
+		
+		
+		
+		<li><a href="#package#GIT#HTTPS://GITHUB.COM/NRFCONNECT/SDK-OPENTHREAD#0FE68FF23527E8BB9A9821CA96A255FCCFBB44A7">nrfconnect/sdk-openthread, version 0fe68ff23527e8bb9a9821ca96a255fccfbb44a7</a></li>
+		
+		
+		
+		<li><a href="#package#GIT#HTTPS://GITHUB.COM/NRFCONNECT/SDK-ZEPHYR#33FA6A7AAC6A4401D16A67CB9F27A3483FA02DD6">nrfconnect/sdk-zephyr, version 33fa6a7aac6a4401d16a67cb9f27a3483fa02dd6</a></li>
+		
+		
+		
+		
+		
+		<li><a href="#package#GIT#HTTPS://GITHUB.COM/ZEPHYRPROJECT-RTOS/CMSIS_6#30A859F44EF8AB4DC8F84B03ED586FD16CCF9D74">zephyrproject-rtos/CMSIS_6, version 30a859f44ef8ab4dc8f84b03ed586fd16ccf9d74</a></li>
+		
+		
+		
+		<li><a href="#package#TOOLCHAIN#ZEPHYR#1.0.1">zephyr, version 1.0.1</a></li>
+		
+		
+		
+		<li><a href="#no-package">Unknown source</a> that cannot be detected automatically</li>
+		
+	</ul>
+
+	<div>The texts of the following licenses are added to this report:</div>
+	<ul>
+		
+			<li><a href="#text-LICENSEREF-NORDIC-5-CLAUSE">LicenseRef-Nordic-5-Clause</a></li>
+		
+			<li><a href="#text-LICENSEREF-SCANCODE-DELORIE-HISTORICAL">LicenseRef-scancode-delorie-historical</a></li>
+		
+			<li><a href="#text-LICENSEREF-SCANCODE-RED-HAT-ATTRIBUTION">LicenseRef-scancode-red-hat-attribution</a></li>
+		
+			<li><a href="#text-LICENSEREF-WEST-NCS-SBOM-NEWLIB-RUNTIME">LicenseRef-west-ncs-sbom-newlib-runtime</a></li>
+		
+	</ul>
+
+	<h1 id="license-details">License details</h1>
+
+	
+
+	
+	
+	<h2 id="LICENSEREF-NORDIC-5-CLAUSE">LicenseRef-Nordic-5-Clause</h2>
+	<div>
+		
+			
+				Non-standard SPDX License:
+			
+			
+				Nordic 5-Clause License
+			
+			
+			
+				<br /><a href="#text-LICENSEREF-NORDIC-5-CLAUSE">The license text</a> is added to this report.
+			
+		
+	</div>
+	<pre class="list">
+<div class="package" id="package##LICENSEREF-NORDIC-5-CLAUSE">Repository: Unknown
+Version:    NoneVersion</div><span class="fa">../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/generated/library_nrf_security_psa/nrf-config.h</span>
+<span class="fa">../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/generated/library_nrf_security_psa/nrf-psa-crypto-config.h</span>
+<span class="fa">../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/generated/library_nrf_security_psa/nrf-psa-crypto-user-config.h</span>
+<span class="fa">../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/ncs_commit.h</span>
+<span class="fa">../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr_commit.h</span>
+<div class="package" id="package#GIT#HTTPS://GITHUB.COM/NRFCONNECT/SDK-NRF#B20F8619BA9A5530F8C34B0A130D829947CFE55D#LICENSEREF-NORDIC-5-CLAUSE">Repository: <a href="#package#GIT#HTTPS://GITHUB.COM/NRFCONNECT/SDK-NRF#B20F8619BA9A5530F8C34B0A130D829947CFE55D">nrfconnect/sdk-nrf</a>
+Version:    b20f8619ba9a5530f8c34b0a130d829947cfe55d</div><span class="fa">nrf/VERSION</span>
+<span class="fa">nrf/drivers/entropy/entropy_cc3xx.c</span>
+<span class="fa">nrf/drivers/hw_cc3xx/hw_cc3xx.c</span>
+<span class="fa">nrf/drivers/mpsl/clock_control/nrfx_clock_mpsl.c</span>
+<span class="fa">nrf/drivers/mpsl/clock_control/nrfx_power_clock.h</span>
+<span class="fa">nrf/drivers/mpsl/flash_sync/flash_sync_mpsl.c</span>
+<span class="fa">nrf/include/mpsl/mpsl_assert.h</span>
+<span class="fa">nrf/include/mpsl/mpsl_work.h</span>
+<span class="fa">nrf/lib/boot_banner/banner.c</span>
+<span class="fa">nrf/lib/multithreading_lock/multithreading_lock.c</span>
+<span class="fa">nrf/lib/multithreading_lock/multithreading_lock.h</span>
+<span class="fa">nrf/modules/nrfxlib/nrf_802154/sl/platform/nrf_802154_hp_timer.c</span>
+<span class="fa">nrf/modules/nrfxlib/nrf_802154/sl/platform/nrf_802154_platform_sl_lptimer_zephyr.c</span>
+<span class="fa">nrf/modules/openthread/platform/radio_nrf5.c</span>
+<span class="fa">nrf/modules/openthread/platform/radio_nrf5.h</span>
+<span class="fa">nrf/samples/openthread/coprocessor/src/main.c</span>
+<span class="fa">nrf/samples/openthread/coprocessor/src/nrf_802154_radio_wrapper.c</span>
+<span class="fa">nrf/samples/openthread/coprocessor/src/nrf_802154_radio_wrapper.h</span>
+<span class="fa">nrf/subsys/mpsl/fem/api_init/mpsl_fem_api_init.c</span>
+<span class="fa">nrf/subsys/mpsl/hwres/mpsl_hwres.c</span>
+<span class="fa">nrf/subsys/mpsl/init/mpsl_init.c</span>
+<span class="fa">nrf/subsys/nrf_security/include/psa/crypto_driver_config.h</span>
+<span class="fa">nrf/subsys/nrf_security/include/psa/crypto_driver_contexts_composites.h</span>
+<span class="fa">nrf/subsys/nrf_security/include/psa/crypto_driver_contexts_key_derivation.h</span>
+<span class="fa">nrf/subsys/nrf_security/include/psa/crypto_driver_contexts_primitives.h</span>
+<span class="fa">nrf/subsys/nrf_security/src/psa_crypto_driver_wrappers.c</span>
+<span class="fa">nrf/subsys/nrf_security/src/threading/include/threading_alt.h</span>
+<span class="fa">nrf/subsys/nrf_security/src/threading/threading_alt.c</span>
+<span class="fa">nrf/subsys/nrf_security/src/utils/nrf_security_core.c</span>
+<span class="fa">nrf/subsys/nrf_security/src/utils/nrf_security_core.h</span>
+<span class="fa">nrf/subsys/nrf_security/src/utils/nrf_security_events.c</span>
+<span class="fa">nrf/subsys/nrf_security/src/utils/nrf_security_events.h</span>
+<span class="fa">nrf/subsys/nrf_security/src/utils/nrf_security_mem_helpers.c</span>
+<span class="fa">nrf/subsys/nrf_security/src/utils/nrf_security_mem_helpers.h</span>
+<span class="fa">nrf/subsys/nrf_security/src/utils/nrf_security_mutexes.c</span>
+<span class="fa">nrf/subsys/nrf_security/src/utils/nrf_security_mutexes.h</span>
+<span class="fa">nrf/subsys/nrf_security/src/zephyr/psa_crypto_init.c</span>
+<div class="package" id="package#GIT#HTTPS://GITHUB.COM/NRFCONNECT/SDK-NRFXLIB#BB715183A57AC501907B63DF2079C3FBCD067641#LICENSEREF-NORDIC-5-CLAUSE">Repository: <a href="#package#GIT#HTTPS://GITHUB.COM/NRFCONNECT/SDK-NRFXLIB#BB715183A57AC501907B63DF2079C3FBCD067641">nrfconnect/sdk-nrfxlib</a>
+Version:    bb715183a57ac501907b63df2079c3fbcd067641</div><span class="fa">nrfxlib/crypto/nrf_cc310_platform/include/nrf_cc3xx_platform.h</span>
+<span class="fa">nrfxlib/crypto/nrf_cc310_platform/include/nrf_cc3xx_platform_abort.h</span>
+<span class="fa">nrfxlib/crypto/nrf_cc310_platform/include/nrf_cc3xx_platform_ctr_drbg.h</span>
+<span class="fa">nrfxlib/crypto/nrf_cc310_platform/include/nrf_cc3xx_platform_defines.h</span>
+<span class="fa">nrfxlib/crypto/nrf_cc310_platform/include/nrf_cc3xx_platform_mutex.h</span>
+<span class="fa">nrfxlib/crypto/nrf_cc310_platform/lib/cortex-m4/soft-float/no-interrupts/libnrf_cc310_platform_0.9.23.a</span>
+<span class="fa">nrfxlib/crypto/nrf_cc310_platform/src/nrf_cc3xx_platform_abort_zephyr.c</span>
+<span class="fa">nrfxlib/crypto/nrf_cc310_platform/src/nrf_cc3xx_platform_mutex_zephyr.c</span>
+<span class="fa">nrfxlib/crypto/nrf_oberon/include/ocrypto_aes_cbc_pkcs.h</span>
+<span class="fa">nrfxlib/crypto/nrf_oberon/include/ocrypto_aes_ccm.h</span>
+<span class="fa">nrfxlib/crypto/nrf_oberon/include/ocrypto_ecdh_p256.h</span>
+<span class="fa">nrfxlib/crypto/nrf_oberon/include/ocrypto_sha224.h</span>
+<span class="fa">nrfxlib/crypto/nrf_oberon/include/ocrypto_sha256.h</span>
+<span class="fa">nrfxlib/crypto/nrf_oberon/include/ocrypto_types_p256.h</span>
+<span class="fa">nrfxlib/crypto/nrf_oberon/include/ocrypto_version.h</span>
+<span class="fa">nrfxlib/crypto/nrf_oberon/lib/cortex-m4/soft-float/liboberon_3.0.20.a</span>
+<span class="fa">nrfxlib/mpsl/fem/common/lib/nrf52/soft-float/libmpsl_fem_common.a</span>
+<span class="fa">nrfxlib/mpsl/fem/include/mpsl_fem_config_common.h</span>
+<span class="fa">nrfxlib/mpsl/fem/include/mpsl_fem_init.h</span>
+<span class="fa">nrfxlib/mpsl/fem/include/mpsl_fem_types.h</span>
+<span class="fa">nrfxlib/mpsl/fem/include/protocol/mpsl_fem_protocol_api.h</span>
+<span class="fa">nrfxlib/mpsl/fem/nrf21540_gpio/lib/nrf52/soft-float/libmpsl_fem_nrf21540_gpio.a</span>
+<span class="fa">nrfxlib/mpsl/fem/nrf21540_gpio_spi/lib/nrf52/soft-float/libmpsl_fem_nrf21540_gpio_spi.a</span>
+<span class="fa">nrfxlib/mpsl/fem/nrf2220/lib/nrf52/soft-float/libmpsl_fem_nrf2220.a</span>
+<span class="fa">nrfxlib/mpsl/fem/nrf2240/lib/nrf52/soft-float/libmpsl_fem_nrf2240.a</span>
+<span class="fa">nrfxlib/mpsl/fem/nrf22xx/lib/nrf52/soft-float/libmpsl_fem_nrf22xx.a</span>
+<span class="fa">nrfxlib/mpsl/fem/simple_gpio/lib/nrf52/soft-float/libmpsl_fem_simple_gpio.a</span>
+<span class="fa">nrfxlib/mpsl/include/mpsl.h</span>
+<span class="fa">nrfxlib/mpsl/include/mpsl_clock.h</span>
+<span class="fa">nrfxlib/mpsl/include/mpsl_ecb.h</span>
+<span class="fa">nrfxlib/mpsl/include/mpsl_hwres.h</span>
+<span class="fa">nrfxlib/mpsl/include/mpsl_hwres_ppi.h</span>
+<span class="fa">nrfxlib/mpsl/include/mpsl_temp.h</span>
+<span class="fa">nrfxlib/mpsl/include/mpsl_timeslot.h</span>
+<span class="fa">nrfxlib/mpsl/include/mpsl_tx_power.h</span>
+<span class="fa">nrfxlib/mpsl/include/nrf_errno.h</span>
+<span class="fa">nrfxlib/mpsl/lib/nrf52/soft-float/libmpsl.a</span>
+<span class="fa">nrfxlib/nrf_802154/sl/sl/include/nrf_802154_sl_periphs.h</span>
+<span class="fa">nrfxlib/nrf_802154/sl/sl/lib/nrf52840/soft-float/libnrf-802154-sl.a</span>
+<div class="package" id="package#GIT#HTTPS://GITHUB.COM/NRFCONNECT/SDK-OBERON-PSA-CRYPTO#E8DB62ED0FBA5028E7AE0EBA7B1FB63436AE6416#LICENSEREF-NORDIC-5-CLAUSE">Repository: <a href="#package#GIT#HTTPS://GITHUB.COM/NRFCONNECT/SDK-OBERON-PSA-CRYPTO#E8DB62ED0FBA5028E7AE0EBA7B1FB63436AE6416">nrfconnect/sdk-oberon-psa-crypto</a>
+Version:    e8db62ed0fba5028e7ae0eba7b1fb63436ae6416</div><span class="fa">modules/crypto/oberon-psa-crypto/drivers/oberon/oberon_aead.c</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/drivers/oberon/oberon_aead.h</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/drivers/oberon/oberon_check_unsupported.h</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/drivers/oberon/oberon_cipher.c</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/drivers/oberon/oberon_cipher.h</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/drivers/oberon/oberon_ec_keys.c</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/drivers/oberon/oberon_ec_keys.h</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/drivers/oberon/oberon_ecdh.c</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/drivers/oberon/oberon_ecdh.h</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/drivers/oberon/oberon_ecdsa.c</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/drivers/oberon/oberon_ecdsa.h</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/drivers/oberon/oberon_eddsa.c</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/drivers/oberon/oberon_eddsa.h</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/drivers/oberon/oberon_hash.c</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/drivers/oberon/oberon_hash.h</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/drivers/oberon/oberon_helpers.c</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/drivers/oberon/oberon_helpers.h</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/drivers/oberon/oberon_jpake.c</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/drivers/oberon/oberon_jpake.h</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/drivers/oberon/oberon_key_derivation.c</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/drivers/oberon/oberon_key_derivation.h</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/drivers/oberon/oberon_key_management.c</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/drivers/oberon/oberon_key_management.h</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/drivers/oberon/oberon_lms.c</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/drivers/oberon/oberon_lms.h</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/drivers/oberon/oberon_mac.c</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/drivers/oberon/oberon_mac.h</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/drivers/oberon/oberon_ml_dsa.c</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/drivers/oberon/oberon_ml_dsa.h</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/drivers/oberon/oberon_ml_kem.c</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/drivers/oberon/oberon_ml_kem.h</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/drivers/oberon/oberon_rsa.c</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/drivers/oberon/oberon_rsa.h</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/drivers/oberon/oberon_spake2p.c</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/drivers/oberon/oberon_spake2p.h</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/drivers/oberon/oberon_srp.c</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/drivers/oberon/oberon_srp.h</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/drivers/oberon/oberon_wpa3_sae.c</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/drivers/oberon/oberon_wpa3_sae.h</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/drivers/oberon/oberon_xmss.c</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/drivers/oberon/oberon_xmss.h</span>
+</pre>
+	
+	
+	
+	<h2 id="LICENSEREF-SCANCODE-DELORIE-HISTORICAL">LicenseRef-scancode-delorie-historical</h2>
+	<div>
+		
+			
+				Non-standard SPDX License:
+			
+			
+				DJ Delorie historical notice
+			
+			
+			
+				<br /><a href="#text-LICENSEREF-SCANCODE-DELORIE-HISTORICAL">The license text</a> is added to this report.
+			
+		
+	</div>
+	<pre class="list">
+<div class="package" id="package#TOOLCHAIN#ZEPHYR#1.0.1#LICENSEREF-SCANCODE-DELORIE-HISTORICAL">Repository: <a href="#package#TOOLCHAIN#ZEPHYR#1.0.1">zephyr</a>
+Version:    1.0.1</div><span class="fa">../toolchains/zephyr-sdk/gnu/arm-zephyr-eabi/arm-zephyr-eabi/sys-include/machine/ieeefp.h</span>
+<span class="fa">../toolchains/zephyr-sdk/gnu/arm-zephyr-eabi/arm-zephyr-eabi/sys-include/machine/types.h</span>
+</pre>
+	
+	
+	
+	<h2 id="LICENSEREF-SCANCODE-RED-HAT-ATTRIBUTION">LicenseRef-scancode-red-hat-attribution</h2>
+	<div>
+		
+			
+				Non-standard SPDX License:
+			
+			
+				Ralf Corsepius permissive notice
+			
+			
+			
+				<br /><a href="#text-LICENSEREF-SCANCODE-RED-HAT-ATTRIBUTION">The license text</a> is added to this report.
+			
+		
+	</div>
+	<pre class="list">
+<div class="package" id="package#TOOLCHAIN#ZEPHYR#1.0.1#LICENSEREF-SCANCODE-RED-HAT-ATTRIBUTION">Repository: <a href="#package#TOOLCHAIN#ZEPHYR#1.0.1">zephyr</a>
+Version:    1.0.1</div><span class="fa">../toolchains/zephyr-sdk/gnu/arm-zephyr-eabi/arm-zephyr-eabi/sys-include/inttypes.h</span>
+<span class="fa">../toolchains/zephyr-sdk/gnu/arm-zephyr-eabi/arm-zephyr-eabi/sys-include/stdint.h</span>
+<span class="fa">../toolchains/zephyr-sdk/gnu/arm-zephyr-eabi/arm-zephyr-eabi/sys-include/sys/_intsup.h</span>
+<span class="fa">../toolchains/zephyr-sdk/gnu/arm-zephyr-eabi/arm-zephyr-eabi/sys-include/sys/_stdint.h</span>
+</pre>
+	
+	
+	
+	<h2 id="LICENSEREF-WEST-NCS-SBOM-NEWLIB-RUNTIME">LicenseRef-west-ncs-sbom-newlib-runtime</h2>
+	<div>
+		
+			
+				Non-standard SPDX License:
+			
+			
+				newlib runtime archives bundled license notice
+			
+			
+			
+				<br /><a href="#text-LICENSEREF-WEST-NCS-SBOM-NEWLIB-RUNTIME">The license text</a> is added to this report.
+			
+		
+	</div>
+	<pre class="list">
+<div class="package" id="package#TOOLCHAIN#ZEPHYR#1.0.1#LICENSEREF-WEST-NCS-SBOM-NEWLIB-RUNTIME">Repository: <a href="#package#TOOLCHAIN#ZEPHYR#1.0.1">zephyr</a>
+Version:    1.0.1</div><span class="fa">../toolchains/zephyr-sdk/gnu/arm-zephyr-eabi/arm-zephyr-eabi/lib/thumb/v7e-m/nofp/space/libc.a</span>
+</pre>
+	
+	
+	
+	<h2 id="APACHE-2.0 OR GPL-2.0-OR-LATER">Apache-2.0 OR GPL-2.0-or-later</h2>
+	<div>
+		
+			The license expression
+			
+			
+				containing the following licenses:<ul>
+				
+					<li>
+					Apache-2.0<br />
+					
+					
+						Apache License 2.0
+					
+					
+						<br /><a href="https://spdx.org/licenses/Apache-2.0.html">https://spdx.org/licenses/Apache-2.0.html</a>
+					
+					
+					</li>
+				
+					<li>
+					GPL-2.0-or-later<br />
+					
+					
+						GNU General Public License v2.0 or later
+					
+					
+						<br /><a href="https://spdx.org/licenses/GPL-2.0-or-later.html">https://spdx.org/licenses/GPL-2.0-or-later.html</a>
+					
+					
+					</li>
+				
+			
+			</ul>
+		
+	</div>
+	<pre class="list">
+<div class="package" id="package#GIT#HTTPS://GITHUB.COM/NRFCONNECT/SDK-MBEDTLS#804249DDCDCF78A16F9BE760B9FF1F65C2F29D9E#APACHE-2.0 OR GPL-2.0-OR-LATER">Repository: <a href="#package#GIT#HTTPS://GITHUB.COM/NRFCONNECT/SDK-MBEDTLS#804249DDCDCF78A16F9BE760B9FF1F65C2F29D9E">nrfconnect/sdk-mbedtls</a>
+Version:    804249ddcdcf78a16f9be760b9ff1f65c2f29d9e</div><span class="fa">modules/crypto/mbedtls/include/mbedtls/build_info.h</span>
+<span class="fa">modules/crypto/mbedtls/include/mbedtls/debug.h</span>
+<span class="fa">modules/crypto/mbedtls/include/mbedtls/error.h</span>
+<span class="fa">modules/crypto/mbedtls/include/mbedtls/private/config_adjust_ssl.h</span>
+<span class="fa">modules/crypto/mbedtls/include/mbedtls/private/config_adjust_x509.h</span>
+<span class="fa">modules/crypto/mbedtls/include/mbedtls/ssl.h</span>
+<span class="fa">modules/crypto/mbedtls/include/mbedtls/ssl_ciphersuites.h</span>
+<span class="fa">modules/crypto/mbedtls/include/mbedtls/x509.h</span>
+<span class="fa">modules/crypto/mbedtls/include/mbedtls/x509_crl.h</span>
+<span class="fa">modules/crypto/mbedtls/include/mbedtls/x509_crt.h</span>
+<span class="fa">modules/crypto/mbedtls/library/debug.c</span>
+<span class="fa">modules/crypto/mbedtls/library/debug_internal.h</span>
+<span class="fa">modules/crypto/mbedtls/library/error.c</span>
+<span class="fa">modules/crypto/mbedtls/library/mbedtls_check_config.h</span>
+<span class="fa">modules/crypto/mbedtls/library/mbedtls_common.h</span>
+<span class="fa">modules/crypto/mbedtls/library/mbedtls_config.c</span>
+<span class="fa">modules/crypto/mbedtls/library/mbedtls_config_check_before.h</span>
+<span class="fa">modules/crypto/mbedtls/library/mbedtls_config_check_final.h</span>
+<span class="fa">modules/crypto/mbedtls/library/mbedtls_config_check_user.h</span>
+<span class="fa">modules/crypto/mbedtls/library/mbedtls_platform_requirements.h</span>
+<span class="fa">modules/crypto/mbedtls/library/mps_reader.c</span>
+<span class="fa">modules/crypto/mbedtls/library/mps_trace.c</span>
+<span class="fa">modules/crypto/mbedtls/library/net_sockets.c</span>
+<span class="fa">modules/crypto/mbedtls/library/pkcs7.c</span>
+<span class="fa">modules/crypto/mbedtls/library/ssl_cache.c</span>
+<span class="fa">modules/crypto/mbedtls/library/ssl_ciphersuites.c</span>
+<span class="fa">modules/crypto/mbedtls/library/ssl_ciphersuites_internal.h</span>
+<span class="fa">modules/crypto/mbedtls/library/ssl_client.c</span>
+<span class="fa">modules/crypto/mbedtls/library/ssl_cookie.c</span>
+<span class="fa">modules/crypto/mbedtls/library/ssl_debug_helpers_generated.c</span>
+<span class="fa">modules/crypto/mbedtls/library/ssl_misc.h</span>
+<span class="fa">modules/crypto/mbedtls/library/ssl_msg.c</span>
+<span class="fa">modules/crypto/mbedtls/library/ssl_ticket.c</span>
+<span class="fa">modules/crypto/mbedtls/library/ssl_tls.c</span>
+<span class="fa">modules/crypto/mbedtls/library/ssl_tls12_client.c</span>
+<span class="fa">modules/crypto/mbedtls/library/ssl_tls12_server.c</span>
+<span class="fa">modules/crypto/mbedtls/library/ssl_tls13_client.c</span>
+<span class="fa">modules/crypto/mbedtls/library/ssl_tls13_generic.c</span>
+<span class="fa">modules/crypto/mbedtls/library/ssl_tls13_keys.c</span>
+<span class="fa">modules/crypto/mbedtls/library/ssl_tls13_server.c</span>
+<span class="fa">modules/crypto/mbedtls/library/timing.c</span>
+<span class="fa">modules/crypto/mbedtls/library/version.c</span>
+<span class="fa">modules/crypto/mbedtls/library/version_features.c</span>
+<span class="fa">modules/crypto/mbedtls/library/x509.c</span>
+<span class="fa">modules/crypto/mbedtls/library/x509_create.c</span>
+<span class="fa">modules/crypto/mbedtls/library/x509_crl.c</span>
+<span class="fa">modules/crypto/mbedtls/library/x509_crt.c</span>
+<span class="fa">modules/crypto/mbedtls/library/x509_csr.c</span>
+<span class="fa">modules/crypto/mbedtls/library/x509_internal.h</span>
+<span class="fa">modules/crypto/mbedtls/library/x509_oid.c</span>
+<span class="fa">modules/crypto/mbedtls/library/x509write.c</span>
+<span class="fa">modules/crypto/mbedtls/library/x509write_crt.c</span>
+<span class="fa">modules/crypto/mbedtls/library/x509write_csr.c</span>
+<div class="package" id="package#GIT#HTTPS://GITHUB.COM/NRFCONNECT/SDK-OBERON-PSA-CRYPTO#E8DB62ED0FBA5028E7AE0EBA7B1FB63436AE6416#APACHE-2.0 OR GPL-2.0-OR-LATER">Repository: <a href="#package#GIT#HTTPS://GITHUB.COM/NRFCONNECT/SDK-OBERON-PSA-CRYPTO#E8DB62ED0FBA5028E7AE0EBA7B1FB63436AE6416">nrfconnect/sdk-oberon-psa-crypto</a>
+Version:    e8db62ed0fba5028e7ae0eba7b1fb63436ae6416</div><span class="fa">modules/crypto/oberon-psa-crypto/core/alignment.h</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/core/check_crypto_config.h</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/core/psa_crypto.c</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/core/psa_crypto_client.c</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/core/psa_crypto_core.h</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/core/psa_crypto_core_common.h</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/core/psa_crypto_slot_management.c</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/core/psa_crypto_slot_management.h</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/core/psa_crypto_storage.c</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/core/psa_crypto_storage.h</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/core/psa_util.c</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/core/tf_psa_crypto_common.h</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/core/tf_psa_crypto_platform_requirements.h</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/dispatch/psa_crypto_driver_wrappers.h</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/dispatch/psa_crypto_driver_wrappers_no_static.h</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/extras/md.c</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/extras/nist_kw.c</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/extras/pk.c</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/extras/pk_ecc.c</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/extras/pk_internal.h</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/extras/pk_rsa.c</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/extras/pk_wrap.c</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/extras/pkparse.c</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/extras/pkwrite.c</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/include/mbedtls/asn1.h</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/include/mbedtls/asn1write.h</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/include/mbedtls/base64.h</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/include/mbedtls/compat-3-crypto.h</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/include/mbedtls/constant_time.h</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/include/mbedtls/md.h</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/include/mbedtls/memory_buffer_alloc.h</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/include/mbedtls/pk.h</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/include/mbedtls/platform.h</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/include/mbedtls/platform_util.h</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/include/mbedtls/private/bignum.h</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/include/mbedtls/private/cipher.h</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/include/mbedtls/private/crypto_adjust_config_enable_builtins.h</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/include/mbedtls/private/crypto_adjust_config_tweak_builtins.h</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/include/mbedtls/private/error_common.h</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/include/mbedtls/private/pk_private.h</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/include/mbedtls/private_access.h</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/include/mbedtls/psa_util.h</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/include/mbedtls/threading.h</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/include/oberon-psa-crypto/build_info.h</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/include/psa/crypto.h</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/include/psa/crypto_compat.h</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/include/psa/crypto_driver_common.h</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/include/psa/crypto_driver_random.h</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/include/psa/crypto_extra.h</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/include/psa/crypto_platform.h</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/include/psa/crypto_sizes.h</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/include/psa/crypto_struct.h</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/include/psa/crypto_types.h</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/include/psa/crypto_values.h</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/include/tf-psa-crypto/build_info.h</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/include/tf-psa-crypto/private/crypto_adjust_config_auto_enabled.h</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/include/tf-psa-crypto/private/crypto_adjust_config_derived.h</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/include/tf-psa-crypto/private/crypto_adjust_config_key_pair_types.h</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/include/tf-psa-crypto/private/crypto_adjust_config_support.h</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/include/tf-psa-crypto/private/crypto_adjust_config_synonyms.h</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/legacy_sub/include/mbedtls/private/ecp.h</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/legacy_sub/include/mbedtls/private/entropy.h</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/legacy_sub/include/mbedtls/private/rsa.h</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/legacy_sub/src/bignum.c</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/legacy_sub/src/bignum_core.c</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/legacy_sub/src/bignum_core.h</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/legacy_sub/src/bignum_core_invasive.h</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/legacy_sub/src/bignum_internal.h</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/legacy_sub/src/bignum_mod.h</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/legacy_sub/src/bn_mul.h</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/legacy_sub/src/ecp.c</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/legacy_sub/src/ecp_curves.c</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/legacy_sub/src/ecp_invasive.h</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/legacy_sub/src/psa_util_internal.c</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/legacy_sub/src/psa_util_internal.h</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/platform/memory_buffer_alloc.c</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/platform/platform.c</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/platform/platform_util.c</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/platform/threading_internal.h</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/utilities/asn1parse.c</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/utilities/asn1write.c</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/utilities/base64.c</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/utilities/base64_internal.h</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/utilities/constant_time.c</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/utilities/constant_time_impl.h</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/utilities/constant_time_internal.h</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/utilities/crypto_oid.h</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/utilities/oid.c</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/utilities/pem.c</span>
+<span class="fa">modules/crypto/oberon-psa-crypto/utilities/pkcs5.c</span>
+</pre>
+	
+	
+	
+	<h2 id="GPL-3.0-OR-LATER WITH GCC-EXCEPTION-3.1">GPL-3.0-or-later WITH GCC-EXCEPTION-3.1</h2>
+	<div>
+		
+			The license expression
+			
+			
+				containing the following licenses:<ul>
+				
+					<li>
+					GPL-3.0-or-later<br />
+					
+					
+						GNU General Public License v3.0 or later
+					
+					
+						<br /><a href="https://spdx.org/licenses/GPL-3.0-or-later.html">https://spdx.org/licenses/GPL-3.0-or-later.html</a>
+					
+					
+					</li>
+				
+			
+			</ul>
+		
+	</div>
+	<pre class="list">
+<div class="package" id="package#TOOLCHAIN#ZEPHYR#1.0.1#GPL-3.0-OR-LATER WITH GCC-EXCEPTION-3.1">Repository: <a href="#package#TOOLCHAIN#ZEPHYR#1.0.1">zephyr</a>
+Version:    1.0.1</div><span class="fa">../toolchains/zephyr-sdk/gnu/arm-zephyr-eabi/lib/gcc/arm-zephyr-eabi/14.3.0/include/arm_acle.h</span>
+<span class="fa">../toolchains/zephyr-sdk/gnu/arm-zephyr-eabi/lib/gcc/arm-zephyr-eabi/14.3.0/include/limits.h</span>
+<span class="fa">../toolchains/zephyr-sdk/gnu/arm-zephyr-eabi/lib/gcc/arm-zephyr-eabi/14.3.0/include/stdarg.h</span>
+<span class="fa">../toolchains/zephyr-sdk/gnu/arm-zephyr-eabi/lib/gcc/arm-zephyr-eabi/14.3.0/include/stdbool.h</span>
+<span class="fa">../toolchains/zephyr-sdk/gnu/arm-zephyr-eabi/lib/gcc/arm-zephyr-eabi/14.3.0/include/stddef.h</span>
+<span class="fa">../toolchains/zephyr-sdk/gnu/arm-zephyr-eabi/lib/gcc/arm-zephyr-eabi/14.3.0/include/syslimits.h</span>
+<span class="fa">../toolchains/zephyr-sdk/gnu/arm-zephyr-eabi/lib/gcc/arm-zephyr-eabi/14.3.0/thumb/v7e-m/nofp/space/libgcc.a</span>
+</pre>
+	
+	
+	
+	<h2 id="APACHE-2.0">Apache-2.0</h2>
+	<div>
+		
+			
+			
+				Apache License 2.0
+			
+			
+				<br /><a href="https://spdx.org/licenses/Apache-2.0.html">https://spdx.org/licenses/Apache-2.0.html</a>
+			
+			
+		
+	</div>
+	<pre class="list">
+<div class="package" id="package##APACHE-2.0">Repository: Unknown
+Version:    NoneVersion</div><span class="fa">../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/device-api-sections.ld</span>
+<span class="fa">../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/ncs_version.h</span>
+<span class="fa">../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/snippets-data-sections.ld</span>
+<span class="fa">../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/snippets-ram-sections.ld</span>
+<span class="fa">../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/snippets-rom-start.ld</span>
+<span class="fa">../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/snippets-rwdata.ld</span>
+<span class="fa">../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/snippets-sections.ld</span>
+<span class="fa">../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/heap_constants.h</span>
+<span class="fa">../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/kobj-types-enum.h</span>
+<span class="fa">../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/offsets.h</span>
+<span class="fa">../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscall_list.h</span>
+<span class="fa">../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/cache.h</span>
+<span class="fa">../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/clock.h</span>
+<span class="fa">../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/device.h</span>
+<span class="fa">../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/entropy.h</span>
+<span class="fa">../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/flash.h</span>
+<span class="fa">../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/gpio.h</span>
+<span class="fa">../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/hwinfo.h</span>
+<span class="fa">../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/kernel.h</span>
+<span class="fa">../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/kobject.h</span>
+<span class="fa">../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/libc-hooks.h</span>
+<span class="fa">../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/log_ctrl.h</span>
+<span class="fa">../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/log_msg.h</span>
+<span class="fa">../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/net_if.h</span>
+<span class="fa">../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/net_ip.h</span>
+<span class="fa">../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/random.h</span>
+<span class="fa">../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/rtio.h</span>
+<span class="fa">../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/sensor.h</span>
+<span class="fa">../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/syscalls/uart.h</span>
+<span class="fa">../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/version.h</span>
+<span class="fa">../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/isr_tables.c</span>
+<span class="fa">../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/misc/generated/configs.c</span>
+<div class="package" id="package#GIT#HTTPS://GITHUB.COM/NRFCONNECT/SDK-HAL_NORDIC#69865C20DC4AFBDD27060AD1E81AF1B62D31F7AF#APACHE-2.0">Repository: <a href="#package#GIT#HTTPS://GITHUB.COM/NRFCONNECT/SDK-HAL_NORDIC#69865C20DC4AFBDD27060AD1E81AF1B62D31F7AF">nrfconnect/sdk-hal_nordic</a>
+Version:    69865c20dc4afbdd27060ad1e81af1b62d31f7af</div><span class="fa">modules/hal/nordic/nrfx/bsp/stable/mdk/system_nrf52.c</span>
+<span class="fa">modules/hal/nordic/nrfx/bsp/stable/mdk/system_nrf52.h</span>
+<span class="fa">modules/hal/nordic/nrfx/bsp/stable/mdk/system_nrf52840.h</span>
+<span class="fa">modules/hal/nordic/nrfx/bsp/stable/mdk/system_nrf52_approtect.h</span>
+<div class="package" id="package#GIT#HTTPS://GITHUB.COM/NRFCONNECT/SDK-NRF#B20F8619BA9A5530F8C34B0A130D829947CFE55D#APACHE-2.0">Repository: <a href="#package#GIT#HTTPS://GITHUB.COM/NRFCONNECT/SDK-NRF#B20F8619BA9A5530F8C34B0A130D829947CFE55D">nrfconnect/sdk-nrf</a>
+Version:    b20f8619ba9a5530f8c34b0a130d829947cfe55d</div><span class="fa">nrf/drivers/mpsl/temp_nrf5/temp_nrf5_mpsl.c</span>
+<span class="fa">nrf/modules/openthread/platform/crypto_psa.c</span>
+<div class="package" id="package#GIT#HTTPS://GITHUB.COM/NRFCONNECT/SDK-ZEPHYR#33FA6A7AAC6A4401D16A67CB9F27A3483FA02DD6#APACHE-2.0">Repository: <a href="#package#GIT#HTTPS://GITHUB.COM/NRFCONNECT/SDK-ZEPHYR#33FA6A7AAC6A4401D16A67CB9F27A3483FA02DD6">nrfconnect/sdk-zephyr</a>
+Version:    33fa6a7aac6a4401d16a67cb9f27a3483fa02dd6</div><span class="fa">zephyr/VERSION</span>
+<span class="fa">zephyr/arch/arm/core/__aeabi_atexit.c</span>
+<span class="fa">zephyr/arch/arm/core/cortex_m/__aeabi_read_tp.S</span>
+<span class="fa">zephyr/arch/arm/core/cortex_m/cpu_idle.c</span>
+<span class="fa">zephyr/arch/arm/core/cortex_m/exc_exit.c</span>
+<span class="fa">zephyr/arch/arm/core/cortex_m/fault.c</span>
+<span class="fa">zephyr/arch/arm/core/cortex_m/fault_s.S</span>
+<span class="fa">zephyr/arch/arm/core/cortex_m/fpu.c</span>
+<span class="fa">zephyr/arch/arm/core/cortex_m/irq_init.c</span>
+<span class="fa">zephyr/arch/arm/core/cortex_m/irq_manage.c</span>
+<span class="fa">zephyr/arch/arm/core/cortex_m/isr_wrapper.c</span>
+<span class="fa">zephyr/arch/arm/core/cortex_m/prep_c.c</span>
+<span class="fa">zephyr/arch/arm/core/cortex_m/reset.S</span>
+<span class="fa">zephyr/arch/arm/core/cortex_m/scb.c</span>
+<span class="fa">zephyr/arch/arm/core/cortex_m/svc.S</span>
+<span class="fa">zephyr/arch/arm/core/cortex_m/swap_helper.S</span>
+<span class="fa">zephyr/arch/arm/core/cortex_m/thread.c</span>
+<span class="fa">zephyr/arch/arm/core/cortex_m/thread_abort.c</span>
+<span class="fa">zephyr/arch/arm/core/cortex_m/vector_table.S</span>
+<span class="fa">zephyr/arch/arm/core/cortex_m/vector_table.h</span>
+<span class="fa">zephyr/arch/arm/core/cortex_m/vector_table_pad.ld</span>
+<span class="fa">zephyr/arch/arm/core/fatal.c</span>
+<span class="fa">zephyr/arch/arm/core/mpu/arm_core_mpu.c</span>
+<span class="fa">zephyr/arch/arm/core/mpu/arm_core_mpu_dev.h</span>
+<span class="fa">zephyr/arch/arm/core/mpu/arm_mpu.c</span>
+<span class="fa">zephyr/arch/arm/core/mpu/arm_mpu_regions.c</span>
+<span class="fa">zephyr/arch/arm/core/mpu/arm_mpu_v7_internal.h</span>
+<span class="fa">zephyr/arch/arm/core/mpu/cortex_m/arm_mpu_internal.h</span>
+<span class="fa">zephyr/arch/arm/core/nmi.c</span>
+<span class="fa">zephyr/arch/arm/core/nmi_on_reset.S</span>
+<span class="fa">zephyr/arch/arm/core/offsets/offsets.c</span>
+<span class="fa">zephyr/arch/arm/core/offsets/offsets_aarch32.c</span>
+<span class="fa">zephyr/arch/arm/core/swi_tables.ld</span>
+<span class="fa">zephyr/arch/arm/core/tls.c</span>
+<span class="fa">zephyr/arch/arm/core/vector_table.ld</span>
+<span class="fa">zephyr/arch/arm/include/cortex_m/debug.h</span>
+<span class="fa">zephyr/arch/arm/include/cortex_m/exception.h</span>
+<span class="fa">zephyr/arch/arm/include/cortex_m/kernel_arch_func.h</span>
+<span class="fa">zephyr/arch/arm/include/cortex_m/stack.h</span>
+<span class="fa">zephyr/arch/arm/include/kernel_arch_data.h</span>
+<span class="fa">zephyr/arch/arm/include/kernel_arch_func.h</span>
+<span class="fa">zephyr/arch/arm/include/offsets_short_arch.h</span>
+<span class="fa">zephyr/arch/common/dynamic_isr.c</span>
+<span class="fa">zephyr/arch/common/fill_with_zeros.ld</span>
+<span class="fa">zephyr/arch/common/include/sw_isr_common.h</span>
+<span class="fa">zephyr/arch/common/init.c</span>
+<span class="fa">zephyr/arch/common/isr_tables.c</span>
+<span class="fa">zephyr/arch/common/ramfunc.ld</span>
+<span class="fa">zephyr/arch/common/rom_start_address.ld</span>
+<span class="fa">zephyr/arch/common/rom_start_offset.ld</span>
+<span class="fa">zephyr/arch/common/sw_isr_common.c</span>
+<span class="fa">zephyr/arch/common/xip.c</span>
+<span class="fa">zephyr/boards/nordic/nrf52840dongle/board.c</span>
+<span class="fa">zephyr/drivers/clock_control/clock_control_nrf.c</span>
+<span class="fa">zephyr/drivers/clock_control/nrf_clock_calibration.h</span>
+<span class="fa">zephyr/drivers/console/uart_console.c</span>
+<span class="fa">zephyr/drivers/entropy/entropy_nrf5.c</span>
+<span class="fa">zephyr/drivers/flash/flash_page_layout.c</span>
+<span class="fa">zephyr/drivers/flash/flash_util.c</span>
+<span class="fa">zephyr/drivers/flash/soc_flash_nrf.c</span>
+<span class="fa">zephyr/drivers/flash/soc_flash_nrf.h</span>
+<span class="fa">zephyr/drivers/gpio/gpio_nrfx.c</span>
+<span class="fa">zephyr/drivers/hwinfo/hwinfo_nrf.c</span>
+<span class="fa">zephyr/drivers/hwinfo/hwinfo_weak_impl.c</span>
+<span class="fa">zephyr/drivers/pinctrl/common.c</span>
+<span class="fa">zephyr/drivers/pinctrl/pinctrl_nrf.c</span>
+<span class="fa">zephyr/drivers/serial/uart_nrfx_uarte.c</span>
+<span class="fa">zephyr/drivers/timer/nrf_rtc_timer.c</span>
+<span class="fa">zephyr/drivers/timer/sys_clock_init.c</span>
+<span class="fa">zephyr/drivers/usb/common/buf/usb_buf.c</span>
+<span class="fa">zephyr/drivers/usb/common/nrf_usbd_common/nrf_usbd_common.c</span>
+<span class="fa">zephyr/drivers/usb/common/nrf_usbd_common/nrf_usbd_common.h</span>
+<span class="fa">zephyr/drivers/usb/common/nrf_usbd_common/nrf_usbd_common_errata.h</span>
+<span class="fa">zephyr/drivers/usb/udc/udc_common.c</span>
+<span class="fa">zephyr/drivers/usb/udc/udc_common.h</span>
+<span class="fa">zephyr/drivers/usb/udc/udc_nrf.c</span>
+<span class="fa">zephyr/include/zephyr/app_memory/app_memdomain.h</span>
+<span class="fa">zephyr/include/zephyr/app_memory/mem_domain.h</span>
+<span class="fa">zephyr/include/zephyr/arch/arch_inlines.h</span>
+<span class="fa">zephyr/include/zephyr/arch/arch_interface.h</span>
+<span class="fa">zephyr/include/zephyr/arch/arm/arch.h</span>
+<span class="fa">zephyr/include/zephyr/arch/arm/arch_inlines.h</span>
+<span class="fa">zephyr/include/zephyr/arch/arm/arm-m-switch.h</span>
+<span class="fa">zephyr/include/zephyr/arch/arm/asm_inline.h</span>
+<span class="fa">zephyr/include/zephyr/arch/arm/asm_inline_gcc.h</span>
+<span class="fa">zephyr/include/zephyr/arch/arm/barrier.h</span>
+<span class="fa">zephyr/include/zephyr/arch/arm/cfi.h</span>
+<span class="fa">zephyr/include/zephyr/arch/arm/cortex_m/cpu.h</span>
+<span class="fa">zephyr/include/zephyr/arch/arm/cortex_m/exception.h</span>
+<span class="fa">zephyr/include/zephyr/arch/arm/cortex_m/fpu.h</span>
+<span class="fa">zephyr/include/zephyr/arch/arm/cortex_m/memory_map.h</span>
+<span class="fa">zephyr/include/zephyr/arch/arm/cortex_m/nvic.h</span>
+<span class="fa">zephyr/include/zephyr/arch/arm/cortex_m/scb.h</span>
+<span class="fa">zephyr/include/zephyr/arch/arm/cortex_m/scripts/linker.ld</span>
+<span class="fa">zephyr/include/zephyr/arch/arm/error.h</span>
+<span class="fa">zephyr/include/zephyr/arch/arm/exception.h</span>
+<span class="fa">zephyr/include/zephyr/arch/arm/irq.h</span>
+<span class="fa">zephyr/include/zephyr/arch/arm/misc.h</span>
+<span class="fa">zephyr/include/zephyr/arch/arm/mpu/arm_mpu.h</span>
+<span class="fa">zephyr/include/zephyr/arch/arm/mpu/arm_mpu_mem_cfg.h</span>
+<span class="fa">zephyr/include/zephyr/arch/arm/mpu/arm_mpu_v7m.h</span>
+<span class="fa">zephyr/include/zephyr/arch/arm/nmi.h</span>
+<span class="fa">zephyr/include/zephyr/arch/arm/structs.h</span>
+<span class="fa">zephyr/include/zephyr/arch/arm/syscall.h</span>
+<span class="fa">zephyr/include/zephyr/arch/arm/thread.h</span>
+<span class="fa">zephyr/include/zephyr/arch/cache.h</span>
+<span class="fa">zephyr/include/zephyr/arch/cfi.h</span>
+<span class="fa">zephyr/include/zephyr/arch/common/addr_types.h</span>
+<span class="fa">zephyr/include/zephyr/arch/common/exc_handle.h</span>
+<span class="fa">zephyr/include/zephyr/arch/common/ffs.h</span>
+<span class="fa">zephyr/include/zephyr/arch/common/init.h</span>
+<span class="fa">zephyr/include/zephyr/arch/common/sys_bitops.h</span>
+<span class="fa">zephyr/include/zephyr/arch/common/sys_io.h</span>
+<span class="fa">zephyr/include/zephyr/arch/common/xip.h</span>
+<span class="fa">zephyr/include/zephyr/arch/cpu.h</span>
+<span class="fa">zephyr/include/zephyr/arch/exception.h</span>
+<span class="fa">zephyr/include/zephyr/arch/structs.h</span>
+<span class="fa">zephyr/include/zephyr/arch/syscall.h</span>
+<span class="fa">zephyr/include/zephyr/cache.h</span>
+<span class="fa">zephyr/include/zephyr/debug/coredump.h</span>
+<span class="fa">zephyr/include/zephyr/debug/cpu_load.h</span>
+<span class="fa">zephyr/include/zephyr/debug/gcov.h</span>
+<span class="fa">zephyr/include/zephyr/debug/sparse.h</span>
+<span class="fa">zephyr/include/zephyr/debug/stack.h</span>
+<span class="fa">zephyr/include/zephyr/device.h</span>
+<span class="fa">zephyr/include/zephyr/devicetree/can.h</span>
+<span class="fa">zephyr/include/zephyr/devicetree/clocks.h</span>
+<span class="fa">zephyr/include/zephyr/devicetree/display.h</span>
+<span class="fa">zephyr/include/zephyr/devicetree/dma.h</span>
+<span class="fa">zephyr/include/zephyr/devicetree/fixed-partitions.h</span>
+<span class="fa">zephyr/include/zephyr/devicetree/gpio.h</span>
+<span class="fa">zephyr/include/zephyr/devicetree/hwspinlock.h</span>
+<span class="fa">zephyr/include/zephyr/devicetree/io-channels.h</span>
+<span class="fa">zephyr/include/zephyr/devicetree/map.h</span>
+<span class="fa">zephyr/include/zephyr/devicetree/mapped-partition.h</span>
+<span class="fa">zephyr/include/zephyr/devicetree/mbox.h</span>
+<span class="fa">zephyr/include/zephyr/devicetree/ordinals.h</span>
+<span class="fa">zephyr/include/zephyr/devicetree/partitions.h</span>
+<span class="fa">zephyr/include/zephyr/devicetree/pinctrl.h</span>
+<span class="fa">zephyr/include/zephyr/devicetree/port-endpoint.h</span>
+<span class="fa">zephyr/include/zephyr/devicetree/pwms.h</span>
+<span class="fa">zephyr/include/zephyr/devicetree/reset.h</span>
+<span class="fa">zephyr/include/zephyr/devicetree/spi.h</span>
+<span class="fa">zephyr/include/zephyr/devicetree/sram.h</span>
+<span class="fa">zephyr/include/zephyr/devicetree/wuc.h</span>
+<span class="fa">zephyr/include/zephyr/devicetree.h</span>
+<span class="fa">zephyr/include/zephyr/drivers/clock_control/nrf_clock_control.h</span>
+<span class="fa">zephyr/include/zephyr/drivers/clock_control.h</span>
+<span class="fa">zephyr/include/zephyr/drivers/console/console.h</span>
+<span class="fa">zephyr/include/zephyr/drivers/console/uart_console.h</span>
+<span class="fa">zephyr/include/zephyr/drivers/entropy.h</span>
+<span class="fa">zephyr/include/zephyr/drivers/flash.h</span>
+<span class="fa">zephyr/include/zephyr/drivers/gpio/gpio_nrf.h</span>
+<span class="fa">zephyr/include/zephyr/drivers/gpio/gpio_utils.h</span>
+<span class="fa">zephyr/include/zephyr/drivers/gpio.h</span>
+<span class="fa">zephyr/include/zephyr/drivers/hwinfo.h</span>
+<span class="fa">zephyr/include/zephyr/drivers/pinctrl.h</span>
+<span class="fa">zephyr/include/zephyr/drivers/sensor.h</span>
+<span class="fa">zephyr/include/zephyr/drivers/sensor_data_types.h</span>
+<span class="fa">zephyr/include/zephyr/drivers/timer/nrf_rtc_timer.h</span>
+<span class="fa">zephyr/include/zephyr/drivers/timer/system_timer.h</span>
+<span class="fa">zephyr/include/zephyr/drivers/uart/uart_internal.h</span>
+<span class="fa">zephyr/include/zephyr/drivers/uart.h</span>
+<span class="fa">zephyr/include/zephyr/drivers/usb/udc.h</span>
+<span class="fa">zephyr/include/zephyr/drivers/usb/usb_buf.h</span>
+<span class="fa">zephyr/include/zephyr/drivers/usb/usb_dc.h</span>
+<span class="fa">zephyr/include/zephyr/dsp/print_format.h</span>
+<span class="fa">zephyr/include/zephyr/dsp/types.h</span>
+<span class="fa">zephyr/include/zephyr/dt-bindings/adc/adc.h</span>
+<span class="fa">zephyr/include/zephyr/dt-bindings/adc/nrf-saadc.h</span>
+<span class="fa">zephyr/include/zephyr/dt-bindings/dt-util.h</span>
+<span class="fa">zephyr/include/zephyr/dt-bindings/gpio/gpio.h</span>
+<span class="fa">zephyr/include/zephyr/dt-bindings/gpio/nordic-nrf-gpio.h</span>
+<span class="fa">zephyr/include/zephyr/dt-bindings/i2c/i2c.h</span>
+<span class="fa">zephyr/include/zephyr/dt-bindings/input/input-event-codes.h</span>
+<span class="fa">zephyr/include/zephyr/dt-bindings/memory-attr/memory-attr-arm.h</span>
+<span class="fa">zephyr/include/zephyr/dt-bindings/memory-attr/memory-attr.h</span>
+<span class="fa">zephyr/include/zephyr/dt-bindings/pinctrl/nrf-pinctrl.h</span>
+<span class="fa">zephyr/include/zephyr/dt-bindings/pwm/pwm.h</span>
+<span class="fa">zephyr/include/zephyr/dt-bindings/regulator/nrf5x.h</span>
+<span class="fa">zephyr/include/zephyr/dt-bindings/sensor/qdec_nrf.h</span>
+<span class="fa">zephyr/include/zephyr/fatal.h</span>
+<span class="fa">zephyr/include/zephyr/fatal_types.h</span>
+<span class="fa">zephyr/include/zephyr/init.h</span>
+<span class="fa">zephyr/include/zephyr/internal/syscall_handler.h</span>
+<span class="fa">zephyr/include/zephyr/irq.h</span>
+<span class="fa">zephyr/include/zephyr/irq_multilevel.h</span>
+<span class="fa">zephyr/include/zephyr/irq_offload.h</span>
+<span class="fa">zephyr/include/zephyr/kernel/internal/mm.h</span>
+<span class="fa">zephyr/include/zephyr/kernel/mm.h</span>
+<span class="fa">zephyr/include/zephyr/kernel/obj_core.h</span>
+<span class="fa">zephyr/include/zephyr/kernel/stats.h</span>
+<span class="fa">zephyr/include/zephyr/kernel/thread.h</span>
+<span class="fa">zephyr/include/zephyr/kernel/thread_stack.h</span>
+<span class="fa">zephyr/include/zephyr/kernel.h</span>
+<span class="fa">zephyr/include/zephyr/kernel_includes.h</span>
+<span class="fa">zephyr/include/zephyr/kernel_structs.h</span>
+<span class="fa">zephyr/include/zephyr/kernel_version.h</span>
+<span class="fa">zephyr/include/zephyr/kvss/nvs.h</span>
+<span class="fa">zephyr/include/zephyr/linker/common-noinit.ld</span>
+<span class="fa">zephyr/include/zephyr/linker/common-ram.ld</span>
+<span class="fa">zephyr/include/zephyr/linker/common-rom/common-rom-bt.ld</span>
+<span class="fa">zephyr/include/zephyr/linker/common-rom/common-rom-debug.ld</span>
+<span class="fa">zephyr/include/zephyr/linker/common-rom/common-rom-init.ld</span>
+<span class="fa">zephyr/include/zephyr/linker/common-rom/common-rom-interrupt-controllers.ld</span>
+<span class="fa">zephyr/include/zephyr/linker/common-rom/common-rom-kernel-devices.ld</span>
+<span class="fa">zephyr/include/zephyr/linker/common-rom/common-rom-logging.ld</span>
+<span class="fa">zephyr/include/zephyr/linker/common-rom/common-rom-misc.ld</span>
+<span class="fa">zephyr/include/zephyr/linker/common-rom/common-rom-net.ld</span>
+<span class="fa">zephyr/include/zephyr/linker/common-rom/common-rom-ztest.ld</span>
+<span class="fa">zephyr/include/zephyr/linker/common-rom.ld</span>
+<span class="fa">zephyr/include/zephyr/linker/cplusplus-ram.ld</span>
+<span class="fa">zephyr/include/zephyr/linker/cplusplus-rom.ld</span>
+<span class="fa">zephyr/include/zephyr/linker/debug-sections.ld</span>
+<span class="fa">zephyr/include/zephyr/linker/device-deps.ld</span>
+<span class="fa">zephyr/include/zephyr/linker/devicetree_regions.h</span>
+<span class="fa">zephyr/include/zephyr/linker/intlist.ld</span>
+<span class="fa">zephyr/include/zephyr/linker/irq-vector-table-section.ld</span>
+<span class="fa">zephyr/include/zephyr/linker/iterable_sections.h</span>
+<span class="fa">zephyr/include/zephyr/linker/kobject-data.ld</span>
+<span class="fa">zephyr/include/zephyr/linker/kobject-priv-stacks.ld</span>
+<span class="fa">zephyr/include/zephyr/linker/kobject-rom.ld</span>
+<span class="fa">zephyr/include/zephyr/linker/kobject-text.ld</span>
+<span class="fa">zephyr/include/zephyr/linker/linker-defs.h</span>
+<span class="fa">zephyr/include/zephyr/linker/linker-devnull.h</span>
+<span class="fa">zephyr/include/zephyr/linker/linker-tool-gcc.h</span>
+<span class="fa">zephyr/include/zephyr/linker/linker-tool.h</span>
+<span class="fa">zephyr/include/zephyr/linker/llext-sections.ld</span>
+<span class="fa">zephyr/include/zephyr/linker/ram-end.ld</span>
+<span class="fa">zephyr/include/zephyr/linker/rel-sections.ld</span>
+<span class="fa">zephyr/include/zephyr/linker/section_tags.h</span>
+<span class="fa">zephyr/include/zephyr/linker/sections.h</span>
+<span class="fa">zephyr/include/zephyr/linker/thread-local-storage.ld</span>
+<span class="fa">zephyr/include/zephyr/linker/utils.h</span>
+<span class="fa">zephyr/include/zephyr/llext/symbol.h</span>
+<span class="fa">zephyr/include/zephyr/logging/log.h</span>
+<span class="fa">zephyr/include/zephyr/logging/log_backend.h</span>
+<span class="fa">zephyr/include/zephyr/logging/log_core.h</span>
+<span class="fa">zephyr/include/zephyr/logging/log_ctrl.h</span>
+<span class="fa">zephyr/include/zephyr/logging/log_instance.h</span>
+<span class="fa">zephyr/include/zephyr/logging/log_internal.h</span>
+<span class="fa">zephyr/include/zephyr/logging/log_msg.h</span>
+<span class="fa">zephyr/include/zephyr/logging/log_output.h</span>
+<span class="fa">zephyr/include/zephyr/math/ilog2.h</span>
+<span class="fa">zephyr/include/zephyr/mem_mgmt/mem_attr.h</span>
+<span class="fa">zephyr/include/zephyr/net/capture.h</span>
+<span class="fa">zephyr/include/zephyr/net/ethernet_vlan.h</span>
+<span class="fa">zephyr/include/zephyr/net/hostname.h</span>
+<span class="fa">zephyr/include/zephyr/net/net_context.h</span>
+<span class="fa">zephyr/include/zephyr/net/net_core.h</span>
+<span class="fa">zephyr/include/zephyr/net/net_event.h</span>
+<span class="fa">zephyr/include/zephyr/net/net_if.h</span>
+<span class="fa">zephyr/include/zephyr/net/net_ip.h</span>
+<span class="fa">zephyr/include/zephyr/net/net_l2.h</span>
+<span class="fa">zephyr/include/zephyr/net/net_linkaddr.h</span>
+<span class="fa">zephyr/include/zephyr/net/net_mgmt.h</span>
+<span class="fa">zephyr/include/zephyr/net/net_pkt.h</span>
+<span class="fa">zephyr/include/zephyr/net/net_stats.h</span>
+<span class="fa">zephyr/include/zephyr/net/net_time.h</span>
+<span class="fa">zephyr/include/zephyr/net/net_timeout.h</span>
+<span class="fa">zephyr/include/zephyr/net/prometheus/collector.h</span>
+<span class="fa">zephyr/include/zephyr/net/prometheus/counter.h</span>
+<span class="fa">zephyr/include/zephyr/net/prometheus/gauge.h</span>
+<span class="fa">zephyr/include/zephyr/net/prometheus/histogram.h</span>
+<span class="fa">zephyr/include/zephyr/net/prometheus/label.h</span>
+<span class="fa">zephyr/include/zephyr/net/prometheus/metric.h</span>
+<span class="fa">zephyr/include/zephyr/net/prometheus/summary.h</span>
+<span class="fa">zephyr/include/zephyr/net/ptp_time.h</span>
+<span class="fa">zephyr/include/zephyr/net_buf.h</span>
+<span class="fa">zephyr/include/zephyr/platform/hooks.h</span>
+<span class="fa">zephyr/include/zephyr/pm/device.h</span>
+<span class="fa">zephyr/include/zephyr/pm/device_runtime.h</span>
+<span class="fa">zephyr/include/zephyr/pm/pm.h</span>
+<span class="fa">zephyr/include/zephyr/pm/state.h</span>
+<span class="fa">zephyr/include/zephyr/posix/posix_features.h</span>
+<span class="fa">zephyr/include/zephyr/posix/posix_types.h</span>
+<span class="fa">zephyr/include/zephyr/posix/sys/confstr.h</span>
+<span class="fa">zephyr/include/zephyr/posix/sys/sysconf.h</span>
+<span class="fa">zephyr/include/zephyr/posix/unistd.h</span>
+<span class="fa">zephyr/include/zephyr/psa/key_ids.h</span>
+<span class="fa">zephyr/include/zephyr/random/random.h</span>
+<span class="fa">zephyr/include/zephyr/rtio/cqe.h</span>
+<span class="fa">zephyr/include/zephyr/rtio/iodev.h</span>
+<span class="fa">zephyr/include/zephyr/rtio/rtio.h</span>
+<span class="fa">zephyr/include/zephyr/rtio/sqe.h</span>
+<span class="fa">zephyr/include/zephyr/settings/settings.h</span>
+<span class="fa">zephyr/include/zephyr/shell/shell.h</span>
+<span class="fa">zephyr/include/zephyr/shell/shell_fprintf.h</span>
+<span class="fa">zephyr/include/zephyr/shell/shell_history.h</span>
+<span class="fa">zephyr/include/zephyr/shell/shell_log_backend.h</span>
+<span class="fa">zephyr/include/zephyr/shell/shell_string_conv.h</span>
+<span class="fa">zephyr/include/zephyr/shell/shell_types.h</span>
+<span class="fa">zephyr/include/zephyr/spinlock.h</span>
+<span class="fa">zephyr/include/zephyr/storage/flash_map.h</span>
+<span class="fa">zephyr/include/zephyr/sw_isr_table.h</span>
+<span class="fa">zephyr/include/zephyr/sys/__assert.h</span>
+<span class="fa">zephyr/include/zephyr/sys/atomic.h</span>
+<span class="fa">zephyr/include/zephyr/sys/atomic_builtin.h</span>
+<span class="fa">zephyr/include/zephyr/sys/atomic_types.h</span>
+<span class="fa">zephyr/include/zephyr/sys/barrier.h</span>
+<span class="fa">zephyr/include/zephyr/sys/bitarray.h</span>
+<span class="fa">zephyr/include/zephyr/sys/byteorder.h</span>
+<span class="fa">zephyr/include/zephyr/sys/cbprintf.h</span>
+<span class="fa">zephyr/include/zephyr/sys/cbprintf_cxx.h</span>
+<span class="fa">zephyr/include/zephyr/sys/cbprintf_enums.h</span>
+<span class="fa">zephyr/include/zephyr/sys/cbprintf_internal.h</span>
+<span class="fa">zephyr/include/zephyr/sys/check.h</span>
+<span class="fa">zephyr/include/zephyr/sys/clock.h</span>
+<span class="fa">zephyr/include/zephyr/sys/crc.h</span>
+<span class="fa">zephyr/include/zephyr/sys/device_mmio.h</span>
+<span class="fa">zephyr/include/zephyr/sys/dlist.h</span>
+<span class="fa">zephyr/include/zephyr/sys/errno_private.h</span>
+<span class="fa">zephyr/include/zephyr/sys/heap_listener.h</span>
+<span class="fa">zephyr/include/zephyr/sys/internal/kobject_internal.h</span>
+<span class="fa">zephyr/include/zephyr/sys/iterable_sections.h</span>
+<span class="fa">zephyr/include/zephyr/sys/kobject.h</span>
+<span class="fa">zephyr/include/zephyr/sys/libc-hooks.h</span>
+<span class="fa">zephyr/include/zephyr/sys/list_gen.h</span>
+<span class="fa">zephyr/include/zephyr/sys/math_extras.h</span>
+<span class="fa">zephyr/include/zephyr/sys/math_extras_impl.h</span>
+<span class="fa">zephyr/include/zephyr/sys/mem_blocks.h</span>
+<span class="fa">zephyr/include/zephyr/sys/mem_manage.h</span>
+<span class="fa">zephyr/include/zephyr/sys/mem_stats.h</span>
+<span class="fa">zephyr/include/zephyr/sys/mpsc_lockfree.h</span>
+<span class="fa">zephyr/include/zephyr/sys/mpsc_packet.h</span>
+<span class="fa">zephyr/include/zephyr/sys/mpsc_pbuf.h</span>
+<span class="fa">zephyr/include/zephyr/sys/mutex.h</span>
+<span class="fa">zephyr/include/zephyr/sys/notify.h</span>
+<span class="fa">zephyr/include/zephyr/sys/onoff.h</span>
+<span class="fa">zephyr/include/zephyr/sys/printk-hooks.h</span>
+<span class="fa">zephyr/include/zephyr/sys/printk.h</span>
+<span class="fa">zephyr/include/zephyr/sys/rb.h</span>
+<span class="fa">zephyr/include/zephyr/sys/reboot.h</span>
+<span class="fa">zephyr/include/zephyr/sys/ring_buffer.h</span>
+<span class="fa">zephyr/include/zephyr/sys/sem.h</span>
+<span class="fa">zephyr/include/zephyr/sys/set.h</span>
+<span class="fa">zephyr/include/zephyr/sys/sflist.h</span>
+<span class="fa">zephyr/include/zephyr/sys/slist.h</span>
+<span class="fa">zephyr/include/zephyr/sys/sys_getopt.h</span>
+<span class="fa">zephyr/include/zephyr/sys/sys_heap.h</span>
+<span class="fa">zephyr/include/zephyr/sys/sys_io.h</span>
+<span class="fa">zephyr/include/zephyr/sys/time_units.h</span>
+<span class="fa">zephyr/include/zephyr/sys/timeutil.h</span>
+<span class="fa">zephyr/include/zephyr/sys/util.h</span>
+<span class="fa">zephyr/include/zephyr/sys/util_internal.h</span>
+<span class="fa">zephyr/include/zephyr/sys/util_internal_is_eq.h</span>
+<span class="fa">zephyr/include/zephyr/sys/util_internal_util_dec.h</span>
+<span class="fa">zephyr/include/zephyr/sys/util_internal_util_inc.h</span>
+<span class="fa">zephyr/include/zephyr/sys/util_internal_util_x2.h</span>
+<span class="fa">zephyr/include/zephyr/sys/util_listify.h</span>
+<span class="fa">zephyr/include/zephyr/sys/util_loops.h</span>
+<span class="fa">zephyr/include/zephyr/sys/util_macro.h</span>
+<span class="fa">zephyr/include/zephyr/sys_clock.h</span>
+<span class="fa">zephyr/include/zephyr/syscall.h</span>
+<span class="fa">zephyr/include/zephyr/timing/timing.h</span>
+<span class="fa">zephyr/include/zephyr/timing/types.h</span>
+<span class="fa">zephyr/include/zephyr/toolchain/common.h</span>
+<span class="fa">zephyr/include/zephyr/toolchain/gcc.h</span>
+<span class="fa">zephyr/include/zephyr/toolchain/zephyr_stdint.h</span>
+<span class="fa">zephyr/include/zephyr/toolchain.h</span>
+<span class="fa">zephyr/include/zephyr/tracing/tracing.h</span>
+<span class="fa">zephyr/include/zephyr/tracing/tracing_macros.h</span>
+<span class="fa">zephyr/include/zephyr/tracing/tracing_syscall.h</span>
+<span class="fa">zephyr/include/zephyr/tracing/tracking.h</span>
+<span class="fa">zephyr/include/zephyr/types.h</span>
+<span class="fa">zephyr/include/zephyr/usb/bos.h</span>
+<span class="fa">zephyr/include/zephyr/usb/class/usb_cdc.h</span>
+<span class="fa">zephyr/include/zephyr/usb/class/usb_hub.h</span>
+<span class="fa">zephyr/include/zephyr/usb/usb_ch9.h</span>
+<span class="fa">zephyr/include/zephyr/usb/usbd.h</span>
+<span class="fa">zephyr/include/zephyr/usb/usbd_msg.h</span>
+<span class="fa">zephyr/kernel/banner.c</span>
+<span class="fa">zephyr/kernel/busy_wait.c</span>
+<span class="fa">zephyr/kernel/condvar.c</span>
+<span class="fa">zephyr/kernel/device.c</span>
+<span class="fa">zephyr/kernel/dynamic_disabled.c</span>
+<span class="fa">zephyr/kernel/errno.c</span>
+<span class="fa">zephyr/kernel/events.c</span>
+<span class="fa">zephyr/kernel/fatal.c</span>
+<span class="fa">zephyr/kernel/float.c</span>
+<span class="fa">zephyr/kernel/idle.c</span>
+<span class="fa">zephyr/kernel/include/gen_offset.h</span>
+<span class="fa">zephyr/kernel/include/ipi.h</span>
+<span class="fa">zephyr/kernel/include/kernel_arch_interface.h</span>
+<span class="fa">zephyr/kernel/include/kernel_internal.h</span>
+<span class="fa">zephyr/kernel/include/kernel_offsets.h</span>
+<span class="fa">zephyr/kernel/include/kernel_tls.h</span>
+<span class="fa">zephyr/kernel/include/ksched.h</span>
+<span class="fa">zephyr/kernel/include/kswap.h</span>
+<span class="fa">zephyr/kernel/include/kthread.h</span>
+<span class="fa">zephyr/kernel/include/offsets_short.h</span>
+<span class="fa">zephyr/kernel/include/priority_q.h</span>
+<span class="fa">zephyr/kernel/include/timeout_q.h</span>
+<span class="fa">zephyr/kernel/include/wait_q.h</span>
+<span class="fa">zephyr/kernel/init.c</span>
+<span class="fa">zephyr/kernel/kheap.c</span>
+<span class="fa">zephyr/kernel/mailbox.c</span>
+<span class="fa">zephyr/kernel/main_weak.c</span>
+<span class="fa">zephyr/kernel/mem_slab.c</span>
+<span class="fa">zephyr/kernel/mempool.c</span>
+<span class="fa">zephyr/kernel/msg_q.c</span>
+<span class="fa">zephyr/kernel/mutex.c</span>
+<span class="fa">zephyr/kernel/pipe.c</span>
+<span class="fa">zephyr/kernel/queue.c</span>
+<span class="fa">zephyr/kernel/sched.c</span>
+<span class="fa">zephyr/kernel/sem.c</span>
+<span class="fa">zephyr/kernel/stack.c</span>
+<span class="fa">zephyr/kernel/system_work_q.c</span>
+<span class="fa">zephyr/kernel/thread.c</span>
+<span class="fa">zephyr/kernel/timeout.c</span>
+<span class="fa">zephyr/kernel/timer.c</span>
+<span class="fa">zephyr/kernel/timeslicing.c</span>
+<span class="fa">zephyr/kernel/version.c</span>
+<span class="fa">zephyr/kernel/work.c</span>
+<span class="fa">zephyr/lib/cpp/abi/cpp_dtors.c</span>
+<span class="fa">zephyr/lib/cpp/minimal/cpp_new.cpp</span>
+<span class="fa">zephyr/lib/cpp/minimal/cpp_virtual.c</span>
+<span class="fa">zephyr/lib/cpp/minimal/cpp_vtable.cpp</span>
+<span class="fa">zephyr/lib/cpp/minimal/include/cstddef</span>
+<span class="fa">zephyr/lib/cpp/minimal/include/new</span>
+<span class="fa">zephyr/lib/heap/heap.c</span>
+<span class="fa">zephyr/lib/heap/heap.h</span>
+<span class="fa">zephyr/lib/heap/heap_constants.c</span>
+<span class="fa">zephyr/lib/libc/common/source/stdlib/abort.c</span>
+<span class="fa">zephyr/lib/libc/common/source/stdlib/malloc.c</span>
+<span class="fa">zephyr/lib/libc/common/source/time/time.c</span>
+<span class="fa">zephyr/lib/libc/picolibc/assert.c</span>
+<span class="fa">zephyr/lib/libc/picolibc/cbprintf.c</span>
+<span class="fa">zephyr/lib/libc/picolibc/chk_fail.c</span>
+<span class="fa">zephyr/lib/libc/picolibc/errno_wrap.c</span>
+<span class="fa">zephyr/lib/libc/picolibc/exit.c</span>
+<span class="fa">zephyr/lib/libc/picolibc/include/sys/_timespec.h</span>
+<span class="fa">zephyr/lib/libc/picolibc/include/sys/_timeval.h</span>
+<span class="fa">zephyr/lib/libc/picolibc/include/time.h</span>
+<span class="fa">zephyr/lib/libc/picolibc/locks.c</span>
+<span class="fa">zephyr/lib/libc/picolibc/picolibc-hooks.h</span>
+<span class="fa">zephyr/lib/libc/picolibc/stdio.c</span>
+<span class="fa">zephyr/lib/libc/validate_libc.c</span>
+<span class="fa">zephyr/lib/net_buf/buf.c</span>
+<span class="fa">zephyr/lib/net_buf/buf_simple.c</span>
+<span class="fa">zephyr/lib/os/assert.c</span>
+<span class="fa">zephyr/lib/os/cbprintf_complete.c</span>
+<span class="fa">zephyr/lib/os/cbprintf_packaged.c</span>
+<span class="fa">zephyr/lib/os/clock.c</span>
+<span class="fa">zephyr/lib/os/printk.c</span>
+<span class="fa">zephyr/lib/os/reboot.c</span>
+<span class="fa">zephyr/lib/os/sem.c</span>
+<span class="fa">zephyr/lib/os/thread_entry.c</span>
+<span class="fa">zephyr/lib/posix/c_lib_ext/getentropy.c</span>
+<span class="fa">zephyr/lib/posix/c_lib_ext/getopt/getopt.h</span>
+<span class="fa">zephyr/lib/posix/c_lib_ext/getopt_shim.c</span>
+<span class="fa">zephyr/lib/utils/bitarray.c</span>
+<span class="fa">zephyr/lib/utils/bitmask.c</span>
+<span class="fa">zephyr/lib/utils/dec.c</span>
+<span class="fa">zephyr/lib/utils/getopt/getopt_common.c</span>
+<span class="fa">zephyr/lib/utils/getopt/getopt_common.h</span>
+<span class="fa">zephyr/lib/utils/hex.c</span>
+<span class="fa">zephyr/lib/utils/last_section_id.c</span>
+<span class="fa">zephyr/lib/utils/notify.c</span>
+<span class="fa">zephyr/lib/utils/onoff.c</span>
+<span class="fa">zephyr/lib/utils/rb.c</span>
+<span class="fa">zephyr/lib/utils/ring_buffer.c</span>
+<span class="fa">zephyr/lib/utils/set.c</span>
+<span class="fa">zephyr/lib/utils/timeutil.c</span>
+<span class="fa">zephyr/misc/empty_file.c</span>
+<span class="fa">zephyr/modules/cmsis_6/cmsis_core.h</span>
+<span class="fa">zephyr/modules/cmsis_6/cmsis_core_m.h</span>
+<span class="fa">zephyr/modules/cmsis_6/cmsis_core_m_defaults.h</span>
+<span class="fa">zephyr/modules/hal_nordic/nrf_802154/include/nrf_802154_assert_zephyr.h</span>
+<span class="fa">zephyr/modules/hal_nordic/nrf_802154/nrf_802154_assert_handler.c</span>
+<span class="fa">zephyr/modules/hal_nordic/nrf_802154/radio/platform/nrf_802154_random_zephyr.c</span>
+<span class="fa">zephyr/modules/hal_nordic/nrf_802154/sl_opensource/platform/nrf_802154_clock_zephyr.c</span>
+<span class="fa">zephyr/modules/hal_nordic/nrf_802154/sl_opensource/platform/nrf_802154_irq_zephyr.c</span>
+<span class="fa">zephyr/modules/hal_nordic/nrf_802154/sl_opensource/platform/nrf_802154_temperature_zephyr.c</span>
+<span class="fa">zephyr/modules/hal_nordic/nrfx/mdk_config.h</span>
+<span class="fa">zephyr/modules/hal_nordic/nrfx/nrfx_config.h</span>
+<span class="fa">zephyr/modules/hal_nordic/nrfx/nrfx_glue.c</span>
+<span class="fa">zephyr/modules/hal_nordic/nrfx/nrfx_glue.h</span>
+<span class="fa">zephyr/modules/hal_nordic/nrfx/nrfx_kconfig.h</span>
+<span class="fa">zephyr/modules/hal_nordic/nrfx/nrfx_log.h</span>
+<span class="fa">zephyr/modules/hal_nordic/nrfx/nrfx_reserved_resources.h</span>
+<span class="fa">zephyr/modules/hal_nordic/nrfx/nrfx_reserved_resources_ncs.h</span>
+<span class="fa">zephyr/modules/hal_nordic/nrfx/nrfx_zephyr_utils.h</span>
+<span class="fa">zephyr/modules/openthread/include/openthread.h</span>
+<span class="fa">zephyr/modules/openthread/include/openthread_utils.h</span>
+<span class="fa">zephyr/modules/openthread/openthread.c</span>
+<span class="fa">zephyr/modules/openthread/openthread_utils.c</span>
+<span class="fa">zephyr/modules/openthread/platform/alarm_micro.c</span>
+<span class="fa">zephyr/modules/openthread/platform/alarm_milli.c</span>
+<span class="fa">zephyr/modules/openthread/platform/entropy.c</span>
+<span class="fa">zephyr/modules/openthread/platform/logging.c</span>
+<span class="fa">zephyr/modules/openthread/platform/misc.c</span>
+<span class="fa">zephyr/modules/openthread/platform/openthread-core-zephyr-config.h</span>
+<span class="fa">zephyr/modules/openthread/platform/platform-zephyr.h</span>
+<span class="fa">zephyr/modules/openthread/platform/platform.c</span>
+<span class="fa">zephyr/modules/openthread/platform/settings.c</span>
+<span class="fa">zephyr/modules/openthread/platform/spi.c</span>
+<span class="fa">zephyr/modules/openthread/platform/uart.c</span>
+<span class="fa">zephyr/scripts/build/gen_iter_sections.py</span>
+<span class="fa">zephyr/scripts/build/gen_kobject_list.py</span>
+<span class="fa">zephyr/soc/nordic/common/dmm.h</span>
+<span class="fa">zephyr/soc/nordic/common/gpiote_nrfx.c</span>
+<span class="fa">zephyr/soc/nordic/common/gpiote_nrfx.h</span>
+<span class="fa">zephyr/soc/nordic/common/gppi_init.c</span>
+<span class="fa">zephyr/soc/nordic/common/nrf_sys_event.h</span>
+<span class="fa">zephyr/soc/nordic/common/pinctrl_soc.h</span>
+<span class="fa">zephyr/soc/nordic/common/platform_init.ld</span>
+<span class="fa">zephyr/soc/nordic/common/reboot.c</span>
+<span class="fa">zephyr/soc/nordic/common/soc_nrf_common.h</span>
+<span class="fa">zephyr/soc/nordic/nrf52/soc.c</span>
+<span class="fa">zephyr/soc/nordic/nrf52/soc.h</span>
+<span class="fa">zephyr/soc/nordic/validate_base_addresses.c</span>
+<span class="fa">zephyr/soc/nordic/validate_binding_headers.c</span>
+<span class="fa">zephyr/soc/nordic/validate_enabled_instances.c</span>
+<span class="fa">zephyr/subsys/crc/crc16_sw.c</span>
+<span class="fa">zephyr/subsys/crc/crc24_sw.c</span>
+<span class="fa">zephyr/subsys/crc/crc32_sw.c</span>
+<span class="fa">zephyr/subsys/crc/crc32c_sw.c</span>
+<span class="fa">zephyr/subsys/crc/crc32k_4_2_sw.c</span>
+<span class="fa">zephyr/subsys/crc/crc4_sw.c</span>
+<span class="fa">zephyr/subsys/crc/crc7_sw.c</span>
+<span class="fa">zephyr/subsys/crc/crc8_sw.c</span>
+<span class="fa">zephyr/subsys/kvss/nvs/nvs.c</span>
+<span class="fa">zephyr/subsys/kvss/nvs/nvs_priv.h</span>
+<span class="fa">zephyr/subsys/mem_mgmt/mem_attr.c</span>
+<span class="fa">zephyr/subsys/random/random_entropy_device.c</span>
+<span class="fa">zephyr/subsys/settings/include/settings/settings_file.h</span>
+<span class="fa">zephyr/subsys/settings/include/settings/settings_nvs.h</span>
+<span class="fa">zephyr/subsys/settings/src/settings.c</span>
+<span class="fa">zephyr/subsys/settings/src/settings_init.c</span>
+<span class="fa">zephyr/subsys/settings/src/settings_line.c</span>
+<span class="fa">zephyr/subsys/settings/src/settings_nvs.c</span>
+<span class="fa">zephyr/subsys/settings/src/settings_priv.h</span>
+<span class="fa">zephyr/subsys/settings/src/settings_store.c</span>
+<span class="fa">zephyr/subsys/storage/flash_map/flash_map.c</span>
+<span class="fa">zephyr/subsys/storage/flash_map/flash_map_default.c</span>
+<span class="fa">zephyr/subsys/storage/flash_map/flash_map_layout.c</span>
+<span class="fa">zephyr/subsys/storage/flash_map/flash_map_priv.h</span>
+<span class="fa">zephyr/subsys/tracing/tracing_none.c</span>
+<span class="fa">zephyr/subsys/usb/device_next/app/cdc_acm_serial.c</span>
+<span class="fa">zephyr/subsys/usb/device_next/class/usbd_cdc_acm.c</span>
+<span class="fa">zephyr/subsys/usb/device_next/usbd_ch9.c</span>
+<span class="fa">zephyr/subsys/usb/device_next/usbd_ch9.h</span>
+<span class="fa">zephyr/subsys/usb/device_next/usbd_class.c</span>
+<span class="fa">zephyr/subsys/usb/device_next/usbd_class.h</span>
+<span class="fa">zephyr/subsys/usb/device_next/usbd_class_api.h</span>
+<span class="fa">zephyr/subsys/usb/device_next/usbd_config.c</span>
+<span class="fa">zephyr/subsys/usb/device_next/usbd_config.h</span>
+<span class="fa">zephyr/subsys/usb/device_next/usbd_core.c</span>
+<span class="fa">zephyr/subsys/usb/device_next/usbd_data.ld</span>
+<span class="fa">zephyr/subsys/usb/device_next/usbd_desc.c</span>
+<span class="fa">zephyr/subsys/usb/device_next/usbd_desc.h</span>
+<span class="fa">zephyr/subsys/usb/device_next/usbd_device.c</span>
+<span class="fa">zephyr/subsys/usb/device_next/usbd_device.h</span>
+<span class="fa">zephyr/subsys/usb/device_next/usbd_endpoint.c</span>
+<span class="fa">zephyr/subsys/usb/device_next/usbd_endpoint.h</span>
+<span class="fa">zephyr/subsys/usb/device_next/usbd_init.c</span>
+<span class="fa">zephyr/subsys/usb/device_next/usbd_init.h</span>
+<span class="fa">zephyr/subsys/usb/device_next/usbd_interface.c</span>
+<span class="fa">zephyr/subsys/usb/device_next/usbd_interface.h</span>
+<span class="fa">zephyr/subsys/usb/device_next/usbd_msg.c</span>
+<span class="fa">zephyr/subsys/usb/device_next/usbd_msg.h</span>
+<div class="package" id="package#GIT#HTTPS://GITHUB.COM/ZEPHYRPROJECT-RTOS/CMSIS_6#30A859F44EF8AB4DC8F84B03ED586FD16CCF9D74#APACHE-2.0">Repository: <a href="#package#GIT#HTTPS://GITHUB.COM/ZEPHYRPROJECT-RTOS/CMSIS_6#30A859F44EF8AB4DC8F84B03ED586FD16CCF9D74">zephyrproject-rtos/CMSIS_6</a>
+Version:    30a859f44ef8ab4dc8f84b03ed586fd16ccf9d74</div><span class="fa">modules/hal/cmsis_6/CMSIS/Core/Include/cmsis_compiler.h</span>
+<span class="fa">modules/hal/cmsis_6/CMSIS/Core/Include/cmsis_gcc.h</span>
+<span class="fa">modules/hal/cmsis_6/CMSIS/Core/Include/cmsis_version.h</span>
+<span class="fa">modules/hal/cmsis_6/CMSIS/Core/Include/core_cm4.h</span>
+<span class="fa">modules/hal/cmsis_6/CMSIS/Core/Include/m-profile/armv7m_mpu.h</span>
+<span class="fa">modules/hal/cmsis_6/CMSIS/Core/Include/m-profile/cmsis_gcc_m.h</span>
+</pre>
+	
+	
+	
+	<h2 id="BSD-2-CLAUSE">BSD-2-Clause</h2>
+	<div>
+		
+			
+			
+				BSD 2-Clause &#34;Simplified&#34; License
+			
+			
+				<br /><a href="https://spdx.org/licenses/BSD-2-Clause.html">https://spdx.org/licenses/BSD-2-Clause.html</a>
+			
+			
+		
+	</div>
+	<pre class="list">
+<div class="package" id="package#TOOLCHAIN#ZEPHYR#1.0.1#BSD-2-CLAUSE">Repository: <a href="#package#TOOLCHAIN#ZEPHYR#1.0.1">zephyr</a>
+Version:    1.0.1</div><span class="fa">../toolchains/zephyr-sdk/gnu/arm-zephyr-eabi/arm-zephyr-eabi/sys-include/strings.h</span>
+</pre>
+	
+	
+	
+	<h2 id="BSD-2-CLAUSE-FREEBSD">BSD-2-Clause-FreeBSD</h2>
+	<div>
+		
+			
+			
+				BSD 2-Clause FreeBSD License
+			
+			
+				<br /><a href="https://spdx.org/licenses/BSD-2-Clause-FreeBSD.html">https://spdx.org/licenses/BSD-2-Clause-FreeBSD.html</a>
+			
+			
+		
+	</div>
+	<pre class="list">
+<div class="package" id="package#TOOLCHAIN#ZEPHYR#1.0.1#BSD-2-CLAUSE-FREEBSD">Repository: <a href="#package#TOOLCHAIN#ZEPHYR#1.0.1">zephyr</a>
+Version:    1.0.1</div><span class="fa">../toolchains/zephyr-sdk/gnu/arm-zephyr-eabi/arm-zephyr-eabi/sys-include/sys/_timeval.h</span>
+</pre>
+	
+	
+	
+	<h2 id="BSD-3-CLAUSE">BSD-3-Clause</h2>
+	<div>
+		
+			
+			
+				BSD 3-Clause &#34;New&#34; or &#34;Revised&#34; License
+			
+			
+				<br /><a href="https://spdx.org/licenses/BSD-3-Clause.html">https://spdx.org/licenses/BSD-3-Clause.html</a>
+			
+			
+		
+	</div>
+	<pre class="list">
+<div class="package" id="package##BSD-3-CLAUSE">Repository: Unknown
+Version:    NoneVersion</div><span class="fa">../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/devicetree_generated.h</span>
+<div class="package" id="package#GIT#HTTPS://GITHUB.COM/NRFCONNECT/SDK-HAL_NORDIC#69865C20DC4AFBDD27060AD1E81AF1B62D31F7AF#BSD-3-CLAUSE">Repository: <a href="#package#GIT#HTTPS://GITHUB.COM/NRFCONNECT/SDK-HAL_NORDIC#69865C20DC4AFBDD27060AD1E81AF1B62D31F7AF">nrfconnect/sdk-hal_nordic</a>
+Version:    69865c20dc4afbdd27060ad1e81af1b62d31f7af</div><span class="fa">modules/hal/nordic/nrfx/bsp/stable/mdk/compiler_abstraction.h</span>
+<span class="fa">modules/hal/nordic/nrfx/bsp/stable/mdk/nrf.h</span>
+<span class="fa">modules/hal/nordic/nrfx/bsp/stable/mdk/nrf51_erratas.h</span>
+<span class="fa">modules/hal/nordic/nrfx/bsp/stable/mdk/nrf51_to_nrf52840.h</span>
+<span class="fa">modules/hal/nordic/nrfx/bsp/stable/mdk/nrf52840.h</span>
+<span class="fa">modules/hal/nordic/nrfx/bsp/stable/mdk/nrf52840_bitfields.h</span>
+<span class="fa">modules/hal/nordic/nrfx/bsp/stable/mdk/nrf52840_name_change.h</span>
+<span class="fa">modules/hal/nordic/nrfx/bsp/stable/mdk/nrf52840_peripherals.h</span>
+<span class="fa">modules/hal/nordic/nrfx/bsp/stable/mdk/nrf52840_xxaa_memory.h</span>
+<span class="fa">modules/hal/nordic/nrfx/bsp/stable/mdk/nrf52_erratas.h</span>
+<span class="fa">modules/hal/nordic/nrfx/bsp/stable/mdk/nrf52_to_nrf52840.h</span>
+<span class="fa">modules/hal/nordic/nrfx/bsp/stable/mdk/nrf53_erratas.h</span>
+<span class="fa">modules/hal/nordic/nrfx/bsp/stable/mdk/nrf54h_erratas.h</span>
+<span class="fa">modules/hal/nordic/nrfx/bsp/stable/mdk/nrf54l_erratas.h</span>
+<span class="fa">modules/hal/nordic/nrfx/bsp/stable/mdk/nrf91_erratas.h</span>
+<span class="fa">modules/hal/nordic/nrfx/bsp/stable/mdk/nrf_erratas.h</span>
+<span class="fa">modules/hal/nordic/nrfx/bsp/stable/mdk/nrf_mem.h</span>
+<span class="fa">modules/hal/nordic/nrfx/bsp/stable/mdk/nrf_peripherals.h</span>
+<span class="fa">modules/hal/nordic/nrfx/bsp/stable/mdk/system_nrf52840.c</span>
+<span class="fa">modules/hal/nordic/nrfx/bsp/stable/nrfx_bsp.h</span>
+<span class="fa">modules/hal/nordic/nrfx/bsp/stable/nrfx_ext.h</span>
+<span class="fa">modules/hal/nordic/nrfx/bsp/stable/soc/nrfx_mdk_fixups.h</span>
+<span class="fa">modules/hal/nordic/nrfx/bsp/stable/soc/nrfx_mdk_fixups_ext.h</span>
+<span class="fa">modules/hal/nordic/nrfx/bsp/stable/soc/nrfx_soc_defines.h</span>
+<span class="fa">modules/hal/nordic/nrfx/bsp/stable/templates/nrfx_config_nrf52840.h</span>
+<span class="fa">modules/hal/nordic/nrfx/bsp/stable/templates/nrfx_templates_config.h</span>
+<span class="fa">modules/hal/nordic/nrfx/drivers/include/nrf_bitmask.h</span>
+<span class="fa">modules/hal/nordic/nrfx/drivers/include/nrfx_clock.h</span>
+<span class="fa">modules/hal/nordic/nrfx/drivers/include/nrfx_clock_hfclk.h</span>
+<span class="fa">modules/hal/nordic/nrfx/drivers/include/nrfx_clock_lfclk.h</span>
+<span class="fa">modules/hal/nordic/nrfx/drivers/include/nrfx_gpiote.h</span>
+<span class="fa">modules/hal/nordic/nrfx/drivers/include/nrfx_nvmc.h</span>
+<span class="fa">modules/hal/nordic/nrfx/drivers/include/nrfx_power.h</span>
+<span class="fa">modules/hal/nordic/nrfx/drivers/include/nrfx_power_clock.h</span>
+<span class="fa">modules/hal/nordic/nrfx/drivers/include/nrfx_power_compat.h</span>
+<span class="fa">modules/hal/nordic/nrfx/drivers/nrfx_common.h</span>
+<span class="fa">modules/hal/nordic/nrfx/drivers/nrfx_errata.h</span>
+<span class="fa">modules/hal/nordic/nrfx/drivers/nrfx_errors.h</span>
+<span class="fa">modules/hal/nordic/nrfx/drivers/nrfx_utils.h</span>
+<span class="fa">modules/hal/nordic/nrfx/drivers/nrfx_utils_internal.h</span>
+<span class="fa">modules/hal/nordic/nrfx/drivers/src/nrfx_gpiote.c</span>
+<span class="fa">modules/hal/nordic/nrfx/drivers/src/nrfx_nvmc.c</span>
+<span class="fa">modules/hal/nordic/nrfx/drivers/src/nrfx_power.c</span>
+<span class="fa">modules/hal/nordic/nrfx/hal/nrf_clock.h</span>
+<span class="fa">modules/hal/nordic/nrfx/hal/nrf_common.h</span>
+<span class="fa">modules/hal/nordic/nrfx/hal/nrf_egu.h</span>
+<span class="fa">modules/hal/nordic/nrfx/hal/nrf_ficr.h</span>
+<span class="fa">modules/hal/nordic/nrfx/hal/nrf_gpio.h</span>
+<span class="fa">modules/hal/nordic/nrfx/hal/nrf_gpiote.h</span>
+<span class="fa">modules/hal/nordic/nrfx/hal/nrf_nvmc.h</span>
+<span class="fa">modules/hal/nordic/nrfx/hal/nrf_power.h</span>
+<span class="fa">modules/hal/nordic/nrfx/hal/nrf_ppi.h</span>
+<span class="fa">modules/hal/nordic/nrfx/hal/nrf_radio.h</span>
+<span class="fa">modules/hal/nordic/nrfx/hal/nrf_rng.h</span>
+<span class="fa">modules/hal/nordic/nrfx/hal/nrf_rtc.h</span>
+<span class="fa">modules/hal/nordic/nrfx/hal/nrf_timer.h</span>
+<span class="fa">modules/hal/nordic/nrfx/hal/nrf_uarte.h</span>
+<span class="fa">modules/hal/nordic/nrfx/hal/nrf_uicr.h</span>
+<span class="fa">modules/hal/nordic/nrfx/hal/nrf_usbd.h</span>
+<span class="fa">modules/hal/nordic/nrfx/haly/nrfy_common.h</span>
+<span class="fa">modules/hal/nordic/nrfx/haly/nrfy_gpio.h</span>
+<span class="fa">modules/hal/nordic/nrfx/haly/nrfy_gpiote.h</span>
+<span class="fa">modules/hal/nordic/nrfx/haly/nrfy_rtc.h</span>
+<span class="fa">modules/hal/nordic/nrfx/helpers/nrfx_flag32_allocator.c</span>
+<span class="fa">modules/hal/nordic/nrfx/helpers/nrfx_flag32_allocator.h</span>
+<span class="fa">modules/hal/nordic/nrfx/helpers/nrfx_gppi.h</span>
+<span class="fa">modules/hal/nordic/nrfx/helpers/nrfx_gppi_ppi.c</span>
+<span class="fa">modules/hal/nordic/nrfx/helpers/nrfx_ram_ctrl.c</span>
+<span class="fa">modules/hal/nordic/nrfx/helpers/nrfx_ram_ctrl.h</span>
+<span class="fa">modules/hal/nordic/nrfx/helpers/nrfx_reset_reason.h</span>
+<span class="fa">modules/hal/nordic/nrfx/lib/nrfx_coredep.h</span>
+<span class="fa">modules/hal/nordic/nrfx/nrfx.h</span>
+<div class="package" id="package#GIT#HTTPS://GITHUB.COM/NRFCONNECT/SDK-NRFXLIB#BB715183A57AC501907B63DF2079C3FBCD067641#BSD-3-CLAUSE">Repository: <a href="#package#GIT#HTTPS://GITHUB.COM/NRFCONNECT/SDK-NRFXLIB#BB715183A57AC501907B63DF2079C3FBCD067641">nrfconnect/sdk-nrfxlib</a>
+Version:    bb715183a57ac501907b63df2079c3fbcd067641</div><span class="fa">nrfxlib/crypto/nrf_cc310_platform/include/threading_alt.h</span>
+<span class="fa">nrfxlib/nrf_802154/common/include/nrf_802154.h</span>
+<span class="fa">nrfxlib/nrf_802154/common/include/nrf_802154_assert.h</span>
+<span class="fa">nrfxlib/nrf_802154/common/include/nrf_802154_callouts.h</span>
+<span class="fa">nrfxlib/nrf_802154/common/include/nrf_802154_common_utils.h</span>
+<span class="fa">nrfxlib/nrf_802154/common/include/nrf_802154_compiler.h</span>
+<span class="fa">nrfxlib/nrf_802154/common/include/nrf_802154_config.h</span>
+<span class="fa">nrfxlib/nrf_802154/common/include/nrf_802154_config_soc.h</span>
+<span class="fa">nrfxlib/nrf_802154/common/include/nrf_802154_const.h</span>
+<span class="fa">nrfxlib/nrf_802154/common/include/nrf_802154_nrfx_addons.h</span>
+<span class="fa">nrfxlib/nrf_802154/common/include/nrf_802154_types.h</span>
+<span class="fa">nrfxlib/nrf_802154/common/src/nrf_802154_common_utils.c</span>
+<span class="fa">nrfxlib/nrf_802154/driver/include/nrf_802154_irq_handlers.h</span>
+<span class="fa">nrfxlib/nrf_802154/driver/include/platform/nrf_802154_random.h</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/mac_features/ack_generator/nrf_802154_ack_data.c</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/mac_features/ack_generator/nrf_802154_ack_data.h</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/mac_features/ack_generator/nrf_802154_ack_generator.c</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/mac_features/ack_generator/nrf_802154_ack_generator.h</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/mac_features/ack_generator/nrf_802154_enh_ack_generator.c</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/mac_features/ack_generator/nrf_802154_enh_ack_generator.h</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/mac_features/ack_generator/nrf_802154_imm_ack_generator.c</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/mac_features/ack_generator/nrf_802154_imm_ack_generator.h</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/mac_features/nrf_802154_ack_timeout.h</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/mac_features/nrf_802154_csma_ca.c</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/mac_features/nrf_802154_csma_ca.h</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/mac_features/nrf_802154_csma_ca_backoff.c</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/mac_features/nrf_802154_csma_ca_backoff.h</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/mac_features/nrf_802154_delayed_trx.c</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/mac_features/nrf_802154_delayed_trx.h</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/mac_features/nrf_802154_filter.c</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/mac_features/nrf_802154_filter.h</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/mac_features/nrf_802154_frame.h</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/mac_features/nrf_802154_frame_parser.c</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/mac_features/nrf_802154_frame_parser.h</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/mac_features/nrf_802154_ie_writer.c</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/mac_features/nrf_802154_ie_writer.h</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/mac_features/nrf_802154_imm_tx.c</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/mac_features/nrf_802154_imm_tx.h</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/mac_features/nrf_802154_precise_ack_timeout.c</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/mac_features/nrf_802154_security_pib.h</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/mac_features/nrf_802154_security_pib_ram.c</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/mac_features/nrf_802154_security_writer.c</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/mac_features/nrf_802154_security_writer.h</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/mac_features/nrf_802154_tx_timestamp_provider.c</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/mac_features/nrf_802154_tx_timestamp_provider.h</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/nrf_802154.c</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/nrf_802154_aes_ccm.h</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/nrf_802154_aes_ccm_acc_ccm.c</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/nrf_802154_aes_ccm_acc_ecb.c</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/nrf_802154_bsim_utils.c</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/nrf_802154_bsim_utils.h</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/nrf_802154_bsmap.c</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/nrf_802154_bsmap.h</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/nrf_802154_co.c</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/nrf_802154_co.h</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/nrf_802154_core.c</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/nrf_802154_core.h</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/nrf_802154_core_hooks.c</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/nrf_802154_core_hooks.h</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/nrf_802154_critical_section.c</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/nrf_802154_critical_section.h</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/nrf_802154_debug.c</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/nrf_802154_debug.h</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/nrf_802154_debug_gpio.c</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/nrf_802154_debug_log.h</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/nrf_802154_debug_log_codes.h</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/nrf_802154_debug_peripherals.h</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/nrf_802154_encrypt.c</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/nrf_802154_encrypt.h</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/nrf_802154_facade_helpers.h</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/nrf_802154_hw_utils.h</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/nrf_802154_notification.h</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/nrf_802154_notification_direct.c</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/nrf_802154_notification_swi.c</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/nrf_802154_peripherals.h</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/nrf_802154_peripherals_nrf52.h</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/nrf_802154_pib.c</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/nrf_802154_pib.h</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/nrf_802154_procedures_duration.h</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/nrf_802154_queue.c</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/nrf_802154_queue.h</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/nrf_802154_request.h</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/nrf_802154_request_direct.c</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/nrf_802154_request_swi.c</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/nrf_802154_rssi.c</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/nrf_802154_rssi.h</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/nrf_802154_rx_buffer.c</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/nrf_802154_rx_buffer.h</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/nrf_802154_stats.c</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/nrf_802154_stats.h</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/nrf_802154_swi.c</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/nrf_802154_swi.h</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/nrf_802154_swi_callouts.h</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/nrf_802154_swi_callouts_weak.c</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/nrf_802154_trx.c</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/nrf_802154_trx.h</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/nrf_802154_trx_dppi.c</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/nrf_802154_trx_ppi.c</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/nrf_802154_trx_ppi_api.h</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/nrf_802154_tx_power.c</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/nrf_802154_tx_power.h</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/nrf_802154_tx_work_buffer.c</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/nrf_802154_tx_work_buffer.h</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/nrf_802154_types_internal.h</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/nrf_802154_utils.h</span>
+<span class="fa">nrfxlib/nrf_802154/driver/src/nrf_802154_utils_byteorder.h</span>
+<span class="fa">nrfxlib/nrf_802154/sl/include/nrf_802154_fal.h</span>
+<span class="fa">nrfxlib/nrf_802154/sl/include/nrf_802154_sl_ant_div.h</span>
+<span class="fa">nrfxlib/nrf_802154/sl/include/nrf_802154_sl_atomics.h</span>
+<span class="fa">nrfxlib/nrf_802154/sl/include/nrf_802154_sl_capabilities.h</span>
+<span class="fa">nrfxlib/nrf_802154/sl/include/nrf_802154_sl_crit_sect_if.h</span>
+<span class="fa">nrfxlib/nrf_802154/sl/include/nrf_802154_sl_log.h</span>
+<span class="fa">nrfxlib/nrf_802154/sl/include/nrf_802154_sl_timer.h</span>
+<span class="fa">nrfxlib/nrf_802154/sl/include/nrf_802154_sl_types.h</span>
+<span class="fa">nrfxlib/nrf_802154/sl/include/nrf_802154_sl_utils.h</span>
+<span class="fa">nrfxlib/nrf_802154/sl/include/platform/nrf_802154_clock.h</span>
+<span class="fa">nrfxlib/nrf_802154/sl/include/platform/nrf_802154_hp_timer.h</span>
+<span class="fa">nrfxlib/nrf_802154/sl/include/platform/nrf_802154_irq.h</span>
+<span class="fa">nrfxlib/nrf_802154/sl/include/platform/nrf_802154_platform_sl_lptimer.h</span>
+<span class="fa">nrfxlib/nrf_802154/sl/include/platform/nrf_802154_temperature.h</span>
+<span class="fa">nrfxlib/nrf_802154/sl/include/rsch/nrf_802154_rsch.h</span>
+<span class="fa">nrfxlib/nrf_802154/sl/include/rsch/nrf_802154_rsch_crit_sect.h</span>
+<span class="fa">nrfxlib/nrf_802154/sl/include/timer/nrf_802154_timer_coord.h</span>
+<div class="package" id="package#GIT#HTTPS://GITHUB.COM/NRFCONNECT/SDK-OPENTHREAD#0FE68FF23527E8BB9A9821CA96A255FCCFBB44A7#BSD-3-CLAUSE">Repository: <a href="#package#GIT#HTTPS://GITHUB.COM/NRFCONNECT/SDK-OPENTHREAD#0FE68FF23527E8BB9A9821CA96A255FCCFBB44A7">nrfconnect/sdk-openthread</a>
+Version:    0fe68ff23527e8bb9a9821ca96a255fccfbb44a7</div><span class="fa">modules/lib/openthread/examples/platforms/openthread-system.h</span>
+<span class="fa">modules/lib/openthread/examples/platforms/utils/uart.h</span>
+<span class="fa">modules/lib/openthread/include/openthread/child_supervision.h</span>
+<span class="fa">modules/lib/openthread/include/openthread/cli.h</span>
+<span class="fa">modules/lib/openthread/include/openthread/commissioner.h</span>
+<span class="fa">modules/lib/openthread/include/openthread/config.h</span>
+<span class="fa">modules/lib/openthread/include/openthread/crypto.h</span>
+<span class="fa">modules/lib/openthread/include/openthread/dataset.h</span>
+<span class="fa">modules/lib/openthread/include/openthread/diag.h</span>
+<span class="fa">modules/lib/openthread/include/openthread/error.h</span>
+<span class="fa">modules/lib/openthread/include/openthread/heap.h</span>
+<span class="fa">modules/lib/openthread/include/openthread/icmp6.h</span>
+<span class="fa">modules/lib/openthread/include/openthread/instance.h</span>
+<span class="fa">modules/lib/openthread/include/openthread/ip6.h</span>
+<span class="fa">modules/lib/openthread/include/openthread/joiner.h</span>
+<span class="fa">modules/lib/openthread/include/openthread/link.h</span>
+<span class="fa">modules/lib/openthread/include/openthread/link_raw.h</span>
+<span class="fa">modules/lib/openthread/include/openthread/logging.h</span>
+<span class="fa">modules/lib/openthread/include/openthread/message.h</span>
+<span class="fa">modules/lib/openthread/include/openthread/nat64.h</span>
+<span class="fa">modules/lib/openthread/include/openthread/ncp.h</span>
+<span class="fa">modules/lib/openthread/include/openthread/netdata.h</span>
+<span class="fa">modules/lib/openthread/include/openthread/network_time.h</span>
+<span class="fa">modules/lib/openthread/include/openthread/platform/alarm-micro.h</span>
+<span class="fa">modules/lib/openthread/include/openthread/platform/alarm-milli.h</span>
+<span class="fa">modules/lib/openthread/include/openthread/platform/crypto.h</span>
+<span class="fa">modules/lib/openthread/include/openthread/platform/diag.h</span>
+<span class="fa">modules/lib/openthread/include/openthread/platform/entropy.h</span>
+<span class="fa">modules/lib/openthread/include/openthread/platform/infra_if.h</span>
+<span class="fa">modules/lib/openthread/include/openthread/platform/logging.h</span>
+<span class="fa">modules/lib/openthread/include/openthread/platform/messagepool.h</span>
+<span class="fa">modules/lib/openthread/include/openthread/platform/misc.h</span>
+<span class="fa">modules/lib/openthread/include/openthread/platform/multipan.h</span>
+<span class="fa">modules/lib/openthread/include/openthread/platform/radio.h</span>
+<span class="fa">modules/lib/openthread/include/openthread/platform/settings.h</span>
+<span class="fa">modules/lib/openthread/include/openthread/platform/spi-slave.h</span>
+<span class="fa">modules/lib/openthread/include/openthread/platform/time.h</span>
+<span class="fa">modules/lib/openthread/include/openthread/platform/toolchain.h</span>
+<span class="fa">modules/lib/openthread/include/openthread/platform/udp.h</span>
+<span class="fa">modules/lib/openthread/include/openthread/radio_stats.h</span>
+<span class="fa">modules/lib/openthread/include/openthread/random_noncrypto.h</span>
+<span class="fa">modules/lib/openthread/include/openthread/tasklet.h</span>
+<span class="fa">modules/lib/openthread/include/openthread/tcp.h</span>
+<span class="fa">modules/lib/openthread/include/openthread/thread.h</span>
+<span class="fa">modules/lib/openthread/include/openthread/thread_ftd.h</span>
+<span class="fa">modules/lib/openthread/include/openthread/udp.h</span>
+<span class="fa">modules/lib/openthread/src/core/api/diags_api.cpp</span>
+<span class="fa">modules/lib/openthread/src/core/api/error_api.cpp</span>
+<span class="fa">modules/lib/openthread/src/core/api/instance_api.cpp</span>
+<span class="fa">modules/lib/openthread/src/core/api/link_raw_api.cpp</span>
+<span class="fa">modules/lib/openthread/src/core/api/logging_api.cpp</span>
+<span class="fa">modules/lib/openthread/src/core/api/random_noncrypto_api.cpp</span>
+<span class="fa">modules/lib/openthread/src/core/api/tasklet_api.cpp</span>
+<span class="fa">modules/lib/openthread/src/core/common/arg_macros.hpp</span>
+<span class="fa">modules/lib/openthread/src/core/common/array.hpp</span>
+<span class="fa">modules/lib/openthread/src/core/common/as_core_type.hpp</span>
+<span class="fa">modules/lib/openthread/src/core/common/binary_search.cpp</span>
+<span class="fa">modules/lib/openthread/src/core/common/binary_search.hpp</span>
+<span class="fa">modules/lib/openthread/src/core/common/bit_vector.hpp</span>
+<span class="fa">modules/lib/openthread/src/core/common/callback.hpp</span>
+<span class="fa">modules/lib/openthread/src/core/common/clearable.hpp</span>
+<span class="fa">modules/lib/openthread/src/core/common/code_utils.hpp</span>
+<span class="fa">modules/lib/openthread/src/core/common/const_cast.hpp</span>
+<span class="fa">modules/lib/openthread/src/core/common/data.hpp</span>
+<span class="fa">modules/lib/openthread/src/core/common/debug.hpp</span>
+<span class="fa">modules/lib/openthread/src/core/common/encoding.hpp</span>
+<span class="fa">modules/lib/openthread/src/core/common/equatable.hpp</span>
+<span class="fa">modules/lib/openthread/src/core/common/error.cpp</span>
+<span class="fa">modules/lib/openthread/src/core/common/error.hpp</span>
+<span class="fa">modules/lib/openthread/src/core/common/frame_builder.cpp</span>
+<span class="fa">modules/lib/openthread/src/core/common/frame_builder.hpp</span>
+<span class="fa">modules/lib/openthread/src/core/common/frame_data.hpp</span>
+<span class="fa">modules/lib/openthread/src/core/common/iterator_utils.hpp</span>
+<span class="fa">modules/lib/openthread/src/core/common/linked_list.hpp</span>
+<span class="fa">modules/lib/openthread/src/core/common/locator.hpp</span>
+<span class="fa">modules/lib/openthread/src/core/common/locator_getters.hpp</span>
+<span class="fa">modules/lib/openthread/src/core/common/log.cpp</span>
+<span class="fa">modules/lib/openthread/src/core/common/log.hpp</span>
+<span class="fa">modules/lib/openthread/src/core/common/message.hpp</span>
+<span class="fa">modules/lib/openthread/src/core/common/new.hpp</span>
+<span class="fa">modules/lib/openthread/src/core/common/non_copyable.hpp</span>
+<span class="fa">modules/lib/openthread/src/core/common/num_utils.hpp</span>
+<span class="fa">modules/lib/openthread/src/core/common/numeric_limits.hpp</span>
+<span class="fa">modules/lib/openthread/src/core/common/offset_range.hpp</span>
+<span class="fa">modules/lib/openthread/src/core/common/owned_ptr.hpp</span>
+<span class="fa">modules/lib/openthread/src/core/common/pool.hpp</span>
+<span class="fa">modules/lib/openthread/src/core/common/preference.hpp</span>
+<span class="fa">modules/lib/openthread/src/core/common/ptr_wrapper.hpp</span>
+<span class="fa">modules/lib/openthread/src/core/common/random.cpp</span>
+<span class="fa">modules/lib/openthread/src/core/common/random.hpp</span>
+<span class="fa">modules/lib/openthread/src/core/common/serial_number.hpp</span>
+<span class="fa">modules/lib/openthread/src/core/common/string.cpp</span>
+<span class="fa">modules/lib/openthread/src/core/common/string.hpp</span>
+<span class="fa">modules/lib/openthread/src/core/common/tasklet.cpp</span>
+<span class="fa">modules/lib/openthread/src/core/common/tasklet.hpp</span>
+<span class="fa">modules/lib/openthread/src/core/common/time.hpp</span>
+<span class="fa">modules/lib/openthread/src/core/common/time_ticker.hpp</span>
+<span class="fa">modules/lib/openthread/src/core/common/timer.cpp</span>
+<span class="fa">modules/lib/openthread/src/core/common/timer.hpp</span>
+<span class="fa">modules/lib/openthread/src/core/common/type_traits.hpp</span>
+<span class="fa">modules/lib/openthread/src/core/common/uptime.cpp</span>
+<span class="fa">modules/lib/openthread/src/core/common/uptime.hpp</span>
+<span class="fa">modules/lib/openthread/src/core/config/announce_sender.h</span>
+<span class="fa">modules/lib/openthread/src/core/config/backbone_router.h</span>
+<span class="fa">modules/lib/openthread/src/core/config/border_agent.h</span>
+<span class="fa">modules/lib/openthread/src/core/config/border_router.h</span>
+<span class="fa">modules/lib/openthread/src/core/config/border_routing.h</span>
+<span class="fa">modules/lib/openthread/src/core/config/channel_manager.h</span>
+<span class="fa">modules/lib/openthread/src/core/config/channel_monitor.h</span>
+<span class="fa">modules/lib/openthread/src/core/config/child_supervision.h</span>
+<span class="fa">modules/lib/openthread/src/core/config/coap.h</span>
+<span class="fa">modules/lib/openthread/src/core/config/commissioner.h</span>
+<span class="fa">modules/lib/openthread/src/core/config/crypto.h</span>
+<span class="fa">modules/lib/openthread/src/core/config/dataset_updater.h</span>
+<span class="fa">modules/lib/openthread/src/core/config/dhcp6_client.h</span>
+<span class="fa">modules/lib/openthread/src/core/config/dhcp6_server.h</span>
+<span class="fa">modules/lib/openthread/src/core/config/diag.h</span>
+<span class="fa">modules/lib/openthread/src/core/config/dns_client.h</span>
+<span class="fa">modules/lib/openthread/src/core/config/dns_dso.h</span>
+<span class="fa">modules/lib/openthread/src/core/config/dnssd_server.h</span>
+<span class="fa">modules/lib/openthread/src/core/config/history_tracker.h</span>
+<span class="fa">modules/lib/openthread/src/core/config/ip6.h</span>
+<span class="fa">modules/lib/openthread/src/core/config/joiner.h</span>
+<span class="fa">modules/lib/openthread/src/core/config/link_metrics_manager.h</span>
+<span class="fa">modules/lib/openthread/src/core/config/link_quality.h</span>
+<span class="fa">modules/lib/openthread/src/core/config/link_raw.h</span>
+<span class="fa">modules/lib/openthread/src/core/config/logging.h</span>
+<span class="fa">modules/lib/openthread/src/core/config/mac.h</span>
+<span class="fa">modules/lib/openthread/src/core/config/mdns.h</span>
+<span class="fa">modules/lib/openthread/src/core/config/mesh_diag.h</span>
+<span class="fa">modules/lib/openthread/src/core/config/mesh_forwarder.h</span>
+<span class="fa">modules/lib/openthread/src/core/config/misc.h</span>
+<span class="fa">modules/lib/openthread/src/core/config/mle.h</span>
+<span class="fa">modules/lib/openthread/src/core/config/nat64.h</span>
+<span class="fa">modules/lib/openthread/src/core/config/netdata_publisher.h</span>
+<span class="fa">modules/lib/openthread/src/core/config/network_diagnostic.h</span>
+<span class="fa">modules/lib/openthread/src/core/config/openthread-core-config-check.h</span>
+<span class="fa">modules/lib/openthread/src/core/config/parent_search.h</span>
+<span class="fa">modules/lib/openthread/src/core/config/ping_sender.h</span>
+<span class="fa">modules/lib/openthread/src/core/config/platform.h</span>
+<span class="fa">modules/lib/openthread/src/core/config/power_calibration.h</span>
+<span class="fa">modules/lib/openthread/src/core/config/radio_link.h</span>
+<span class="fa">modules/lib/openthread/src/core/config/secure_transport.h</span>
+<span class="fa">modules/lib/openthread/src/core/config/sntp_client.h</span>
+<span class="fa">modules/lib/openthread/src/core/config/srp_client.h</span>
+<span class="fa">modules/lib/openthread/src/core/config/srp_server.h</span>
+<span class="fa">modules/lib/openthread/src/core/config/time_sync.h</span>
+<span class="fa">modules/lib/openthread/src/core/config/tmf.h</span>
+<span class="fa">modules/lib/openthread/src/core/config/trel.h</span>
+<span class="fa">modules/lib/openthread/src/core/crypto/aes_ccm.cpp</span>
+<span class="fa">modules/lib/openthread/src/core/crypto/aes_ccm.hpp</span>
+<span class="fa">modules/lib/openthread/src/core/crypto/aes_ecb.cpp</span>
+<span class="fa">modules/lib/openthread/src/core/crypto/aes_ecb.hpp</span>
+<span class="fa">modules/lib/openthread/src/core/crypto/context_size.hpp</span>
+<span class="fa">modules/lib/openthread/src/core/crypto/crypto_platform.cpp</span>
+<span class="fa">modules/lib/openthread/src/core/crypto/ecdsa.hpp</span>
+<span class="fa">modules/lib/openthread/src/core/crypto/hmac_sha256.hpp</span>
+<span class="fa">modules/lib/openthread/src/core/crypto/sha256.hpp</span>
+<span class="fa">modules/lib/openthread/src/core/crypto/storage.cpp</span>
+<span class="fa">modules/lib/openthread/src/core/crypto/storage.hpp</span>
+<span class="fa">modules/lib/openthread/src/core/diags/factory_diags.cpp</span>
+<span class="fa">modules/lib/openthread/src/core/diags/factory_diags.hpp</span>
+<span class="fa">modules/lib/openthread/src/core/instance/extension.hpp</span>
+<span class="fa">modules/lib/openthread/src/core/instance/instance.cpp</span>
+<span class="fa">modules/lib/openthread/src/core/instance/instance.hpp</span>
+<span class="fa">modules/lib/openthread/src/core/mac/link_raw.cpp</span>
+<span class="fa">modules/lib/openthread/src/core/mac/link_raw.hpp</span>
+<span class="fa">modules/lib/openthread/src/core/mac/mac_frame.cpp</span>
+<span class="fa">modules/lib/openthread/src/core/mac/mac_frame.hpp</span>
+<span class="fa">modules/lib/openthread/src/core/mac/mac_header_ie.cpp</span>
+<span class="fa">modules/lib/openthread/src/core/mac/mac_header_ie.hpp</span>
+<span class="fa">modules/lib/openthread/src/core/mac/mac_types.cpp</span>
+<span class="fa">modules/lib/openthread/src/core/mac/mac_types.hpp</span>
+<span class="fa">modules/lib/openthread/src/core/mac/sub_mac.cpp</span>
+<span class="fa">modules/lib/openthread/src/core/mac/sub_mac.hpp</span>
+<span class="fa">modules/lib/openthread/src/core/mac/sub_mac_callbacks.cpp</span>
+<span class="fa">modules/lib/openthread/src/core/mac/sub_mac_csl_receiver.cpp</span>
+<span class="fa">modules/lib/openthread/src/core/meshcop/extended_panid.hpp</span>
+<span class="fa">modules/lib/openthread/src/core/meshcop/network_name.hpp</span>
+<span class="fa">modules/lib/openthread/src/core/net/icmp6.hpp</span>
+<span class="fa">modules/lib/openthread/src/core/net/ip6.hpp</span>
+<span class="fa">modules/lib/openthread/src/core/net/ip6_address.hpp</span>
+<span class="fa">modules/lib/openthread/src/core/net/ip6_headers.hpp</span>
+<span class="fa">modules/lib/openthread/src/core/net/ip6_mpl.hpp</span>
+<span class="fa">modules/lib/openthread/src/core/net/ip6_types.hpp</span>
+<span class="fa">modules/lib/openthread/src/core/net/netif.hpp</span>
+<span class="fa">modules/lib/openthread/src/core/net/socket.hpp</span>
+<span class="fa">modules/lib/openthread/src/core/net/tcp6.hpp</span>
+<span class="fa">modules/lib/openthread/src/core/net/udp6.hpp</span>
+<span class="fa">modules/lib/openthread/src/core/openthread-core-config.h</span>
+<span class="fa">modules/lib/openthread/src/core/radio/radio.cpp</span>
+<span class="fa">modules/lib/openthread/src/core/radio/radio.hpp</span>
+<span class="fa">modules/lib/openthread/src/core/radio/radio_callbacks.cpp</span>
+<span class="fa">modules/lib/openthread/src/core/radio/radio_platform.cpp</span>
+<span class="fa">modules/lib/openthread/src/core/radio/trel_link.hpp</span>
+<span class="fa">modules/lib/openthread/src/core/thread/child_mask.hpp</span>
+<span class="fa">modules/lib/openthread/src/core/thread/link_quality.cpp</span>
+<span class="fa">modules/lib/openthread/src/core/thread/link_quality.hpp</span>
+<span class="fa">modules/lib/openthread/src/core/thread/mle_types.hpp</span>
+<span class="fa">modules/lib/openthread/src/core/thread/mlr_types.hpp</span>
+<span class="fa">modules/lib/openthread/src/core/thread/network_data_types.hpp</span>
+<span class="fa">modules/lib/openthread/src/core/utils/heap.hpp</span>
+<span class="fa">modules/lib/openthread/src/core/utils/otns.hpp</span>
+<span class="fa">modules/lib/openthread/src/core/utils/parse_cmdline.cpp</span>
+<span class="fa">modules/lib/openthread/src/core/utils/parse_cmdline.hpp</span>
+<span class="fa">modules/lib/openthread/src/core/utils/power_calibration.cpp</span>
+<span class="fa">modules/lib/openthread/src/core/utils/power_calibration.hpp</span>
+<span class="fa">modules/lib/openthread/src/lib/hdlc/hdlc.cpp</span>
+<span class="fa">modules/lib/openthread/src/lib/hdlc/hdlc.hpp</span>
+<span class="fa">modules/lib/openthread/src/lib/spinel/multi_frame_buffer.hpp</span>
+<span class="fa">modules/lib/openthread/src/lib/spinel/openthread-spinel-config.h</span>
+<span class="fa">modules/lib/openthread/src/lib/spinel/spi_frame.hpp</span>
+<span class="fa">modules/lib/openthread/src/lib/spinel/spinel.c</span>
+<span class="fa">modules/lib/openthread/src/lib/spinel/spinel.h</span>
+<span class="fa">modules/lib/openthread/src/lib/spinel/spinel_buffer.cpp</span>
+<span class="fa">modules/lib/openthread/src/lib/spinel/spinel_buffer.hpp</span>
+<span class="fa">modules/lib/openthread/src/lib/spinel/spinel_decoder.cpp</span>
+<span class="fa">modules/lib/openthread/src/lib/spinel/spinel_decoder.hpp</span>
+<span class="fa">modules/lib/openthread/src/lib/spinel/spinel_encoder.cpp</span>
+<span class="fa">modules/lib/openthread/src/lib/spinel/spinel_encoder.hpp</span>
+<span class="fa">modules/lib/openthread/src/lib/spinel/spinel_helper.cpp</span>
+<span class="fa">modules/lib/openthread/src/lib/spinel/spinel_helper.hpp</span>
+<span class="fa">modules/lib/openthread/src/lib/utils/endian.hpp</span>
+<span class="fa">modules/lib/openthread/src/lib/utils/utils.hpp</span>
+<span class="fa">modules/lib/openthread/src/ncp/changed_props_set.cpp</span>
+<span class="fa">modules/lib/openthread/src/ncp/changed_props_set.hpp</span>
+<span class="fa">modules/lib/openthread/src/ncp/multipan_platform.cpp</span>
+<span class="fa">modules/lib/openthread/src/ncp/ncp_base.cpp</span>
+<span class="fa">modules/lib/openthread/src/ncp/ncp_base.hpp</span>
+<span class="fa">modules/lib/openthread/src/ncp/ncp_base_dispatcher.cpp</span>
+<span class="fa">modules/lib/openthread/src/ncp/ncp_base_radio.cpp</span>
+<span class="fa">modules/lib/openthread/src/ncp/ncp_config.h</span>
+<span class="fa">modules/lib/openthread/src/ncp/ncp_hdlc.cpp</span>
+<span class="fa">modules/lib/openthread/src/ncp/ncp_hdlc.hpp</span>
+<span class="fa">modules/lib/openthread/src/ncp/ncp_spi.cpp</span>
+<span class="fa">modules/lib/openthread/src/ncp/ncp_spi.hpp</span>
+<span class="fa">modules/lib/openthread/src/ncp/platform/infra_if.cpp</span>
+<div class="package" id="package#GIT#HTTPS://GITHUB.COM/NRFCONNECT/SDK-ZEPHYR#33FA6A7AAC6A4401D16A67CB9F27A3483FA02DD6#BSD-3-CLAUSE">Repository: <a href="#package#GIT#HTTPS://GITHUB.COM/NRFCONNECT/SDK-ZEPHYR#33FA6A7AAC6A4401D16A67CB9F27A3483FA02DD6">nrfconnect/sdk-zephyr</a>
+Version:    33fa6a7aac6a4401d16a67cb9f27a3483fa02dd6</div><span class="fa">zephyr/include/zephyr/posix/fnmatch.h</span>
+<span class="fa">zephyr/include/zephyr/posix/sys/stat.h</span>
+<span class="fa">zephyr/include/zephyr/usb/usb_device.h</span>
+<span class="fa">zephyr/lib/posix/c_lib_ext/fnmatch.c</span>
+<span class="fa">zephyr/lib/utils/getopt/getopt.c</span>
+<div class="package" id="package#TOOLCHAIN#ZEPHYR#1.0.1#BSD-3-CLAUSE">Repository: <a href="#package#TOOLCHAIN#ZEPHYR#1.0.1">zephyr</a>
+Version:    1.0.1</div><span class="fa">../toolchains/zephyr-sdk/gnu/arm-zephyr-eabi/arm-zephyr-eabi/sys-include/assert.h</span>
+<span class="fa">../toolchains/zephyr-sdk/gnu/arm-zephyr-eabi/arm-zephyr-eabi/sys-include/ctype.h</span>
+<span class="fa">../toolchains/zephyr-sdk/gnu/arm-zephyr-eabi/arm-zephyr-eabi/sys-include/errno.h</span>
+<span class="fa">../toolchains/zephyr-sdk/gnu/arm-zephyr-eabi/arm-zephyr-eabi/sys-include/limits.h</span>
+<span class="fa">../toolchains/zephyr-sdk/gnu/arm-zephyr-eabi/arm-zephyr-eabi/sys-include/machine/_default_types.h</span>
+<span class="fa">../toolchains/zephyr-sdk/gnu/arm-zephyr-eabi/arm-zephyr-eabi/sys-include/machine/_time.h</span>
+<span class="fa">../toolchains/zephyr-sdk/gnu/arm-zephyr-eabi/arm-zephyr-eabi/sys-include/machine/_types.h</span>
+<span class="fa">../toolchains/zephyr-sdk/gnu/arm-zephyr-eabi/arm-zephyr-eabi/sys-include/machine/stdlib.h</span>
+<span class="fa">../toolchains/zephyr-sdk/gnu/arm-zephyr-eabi/arm-zephyr-eabi/sys-include/picolibc.h</span>
+<span class="fa">../toolchains/zephyr-sdk/gnu/arm-zephyr-eabi/arm-zephyr-eabi/sys-include/stdio.h</span>
+<span class="fa">../toolchains/zephyr-sdk/gnu/arm-zephyr-eabi/arm-zephyr-eabi/sys-include/stdlib.h</span>
+<span class="fa">../toolchains/zephyr-sdk/gnu/arm-zephyr-eabi/arm-zephyr-eabi/sys-include/string.h</span>
+<span class="fa">../toolchains/zephyr-sdk/gnu/arm-zephyr-eabi/arm-zephyr-eabi/sys-include/sys/_locale.h</span>
+<span class="fa">../toolchains/zephyr-sdk/gnu/arm-zephyr-eabi/arm-zephyr-eabi/sys-include/sys/_select.h</span>
+<span class="fa">../toolchains/zephyr-sdk/gnu/arm-zephyr-eabi/arm-zephyr-eabi/sys-include/sys/_timespec.h</span>
+<span class="fa">../toolchains/zephyr-sdk/gnu/arm-zephyr-eabi/arm-zephyr-eabi/sys-include/sys/_types.h</span>
+<span class="fa">../toolchains/zephyr-sdk/gnu/arm-zephyr-eabi/arm-zephyr-eabi/sys-include/sys/_wait.h</span>
+<span class="fa">../toolchains/zephyr-sdk/gnu/arm-zephyr-eabi/arm-zephyr-eabi/sys-include/sys/cdefs.h</span>
+<span class="fa">../toolchains/zephyr-sdk/gnu/arm-zephyr-eabi/arm-zephyr-eabi/sys-include/sys/config.h</span>
+<span class="fa">../toolchains/zephyr-sdk/gnu/arm-zephyr-eabi/arm-zephyr-eabi/sys-include/sys/errno.h</span>
+<span class="fa">../toolchains/zephyr-sdk/gnu/arm-zephyr-eabi/arm-zephyr-eabi/sys-include/sys/lock.h</span>
+<span class="fa">../toolchains/zephyr-sdk/gnu/arm-zephyr-eabi/arm-zephyr-eabi/sys-include/sys/string.h</span>
+<span class="fa">../toolchains/zephyr-sdk/gnu/arm-zephyr-eabi/arm-zephyr-eabi/sys-include/sys/syslimits.h</span>
+<span class="fa">../toolchains/zephyr-sdk/gnu/arm-zephyr-eabi/arm-zephyr-eabi/sys-include/sys/time.h</span>
+<span class="fa">../toolchains/zephyr-sdk/gnu/arm-zephyr-eabi/arm-zephyr-eabi/sys-include/sys/types.h</span>
+<span class="fa">../toolchains/zephyr-sdk/gnu/arm-zephyr-eabi/arm-zephyr-eabi/sys-include/time.h</span>
+</pre>
+	
+	
+	
+	
+	
+	
+	
+	<h2 id="ISC">ISC</h2>
+	<div>
+		
+			
+			
+				ISC License
+			
+			
+				<br /><a href="https://spdx.org/licenses/ISC.html">https://spdx.org/licenses/ISC.html</a>
+			
+			
+		
+	</div>
+	<pre class="list">
+<div class="package" id="package##ISC">Repository: Unknown
+Version:    NoneVersion</div><span class="fa">../../ha-nrf52840-ot-rcp-updater/ha-nrf52840-ot-rcp-updater/candidate/build/coprocessor/zephyr/include/generated/zephyr/autoconf.h</span>
+</pre>
+	
+	
+	
+	<h2 id="OAR">OAR</h2>
+	<div>
+		
+			
+			
+				OAR License
+			
+			
+				<br /><a href="https://spdx.org/licenses/OAR.html">https://spdx.org/licenses/OAR.html</a>
+			
+			
+		
+	</div>
+	<pre class="list">
+<div class="package" id="package#TOOLCHAIN#ZEPHYR#1.0.1#OAR">Repository: <a href="#package#TOOLCHAIN#ZEPHYR#1.0.1">zephyr</a>
+Version:    1.0.1</div><span class="fa">../toolchains/zephyr-sdk/gnu/arm-zephyr-eabi/arm-zephyr-eabi/sys-include/sys/features.h</span>
+</pre>
+	
+	
+
+	<h1>Packages details</h1>
+
+	
+	
+	<h2 id="no-package">Unknown source</h2>
+	The files from unknown source are covered by the following licenses:
+	<ul>
+		
+		
+		
+		<li><a href="#package##LICENSEREF-NORDIC-5-CLAUSE">LicenseRef-Nordic-5-Clause</a></li>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		<li><a href="#package##APACHE-2.0">Apache-2.0</a></li>
+		
+		
+		
+		
+		
+		
+		
+		<li><a href="#package##BSD-3-CLAUSE">BSD-3-Clause</a></li>
+		
+		
+		
+		
+		
+		
+		
+		<li><a href="#package##ISC">ISC</a></li>
+		
+		
+		
+		
+		
+	</ul>
+	
+
+	
+	
+	
+	
+	
+
+	<h2 id="package#GIT#HTTPS://GITHUB.COM/NRFCONNECT/SDK-HAL_NORDIC#69865C20DC4AFBDD27060AD1E81AF1B62D31F7AF">nrfconnect/sdk-hal_nordic</h2>
+	<h3>Version: 69865c20dc4afbdd27060ad1e81af1b62d31f7af</h3>
+	<p>URL:
+	
+	<a href="https://github.com/nrfconnect/sdk-hal_nordic">https://github.com/nrfconnect/sdk-hal_nordic</a>
+	
+	</p>
+	<p>The files from this source are covered by the following licenses:</p>
+	<ul>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		<li><a href="#package#GIT#HTTPS://GITHUB.COM/NRFCONNECT/SDK-HAL_NORDIC#69865C20DC4AFBDD27060AD1E81AF1B62D31F7AF#APACHE-2.0">Apache-2.0</a></li>
+		
+		
+		
+		
+		
+		
+		
+		<li><a href="#package#GIT#HTTPS://GITHUB.COM/NRFCONNECT/SDK-HAL_NORDIC#69865C20DC4AFBDD27060AD1E81AF1B62D31F7AF#BSD-3-CLAUSE">BSD-3-Clause</a></li>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+	</ul>
+	
+	
+	
+
+	<h2 id="package#GIT#HTTPS://GITHUB.COM/NRFCONNECT/SDK-MBEDTLS#804249DDCDCF78A16F9BE760B9FF1F65C2F29D9E">nrfconnect/sdk-mbedtls</h2>
+	<h3>Version: 804249ddcdcf78a16f9be760b9ff1f65c2f29d9e</h3>
+	<p>URL:
+	
+	<a href="https://github.com/nrfconnect/sdk-mbedtls">https://github.com/nrfconnect/sdk-mbedtls</a>
+	
+	</p>
+	<p>The files from this source are covered by the following licenses:</p>
+	<ul>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		<li><a href="#package#GIT#HTTPS://GITHUB.COM/NRFCONNECT/SDK-MBEDTLS#804249DDCDCF78A16F9BE760B9FF1F65C2F29D9E#APACHE-2.0 OR GPL-2.0-OR-LATER">Apache-2.0 OR GPL-2.0-or-later</a></li>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+	</ul>
+	
+	
+	
+
+	<h2 id="package#GIT#HTTPS://GITHUB.COM/NRFCONNECT/SDK-NRF#B20F8619BA9A5530F8C34B0A130D829947CFE55D">nrfconnect/sdk-nrf</h2>
+	<h3>Version: b20f8619ba9a5530f8c34b0a130d829947cfe55d</h3>
+	<p>URL:
+	
+	<a href="https://github.com/nrfconnect/sdk-nrf">https://github.com/nrfconnect/sdk-nrf</a>
+	
+	</p>
+	<p>The files from this source are covered by the following licenses:</p>
+	<ul>
+		
+		
+		
+		<li><a href="#package#GIT#HTTPS://GITHUB.COM/NRFCONNECT/SDK-NRF#B20F8619BA9A5530F8C34B0A130D829947CFE55D#LICENSEREF-NORDIC-5-CLAUSE">LicenseRef-Nordic-5-Clause</a></li>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		<li><a href="#package#GIT#HTTPS://GITHUB.COM/NRFCONNECT/SDK-NRF#B20F8619BA9A5530F8C34B0A130D829947CFE55D#APACHE-2.0">Apache-2.0</a></li>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+	</ul>
+	
+	
+	
+
+	<h2 id="package#GIT#HTTPS://GITHUB.COM/NRFCONNECT/SDK-NRFXLIB#BB715183A57AC501907B63DF2079C3FBCD067641">nrfconnect/sdk-nrfxlib</h2>
+	<h3>Version: bb715183a57ac501907b63df2079c3fbcd067641</h3>
+	<p>URL:
+	
+	<a href="https://github.com/nrfconnect/sdk-nrfxlib">https://github.com/nrfconnect/sdk-nrfxlib</a>
+	
+	</p>
+	<p>The files from this source are covered by the following licenses:</p>
+	<ul>
+		
+		
+		
+		<li><a href="#package#GIT#HTTPS://GITHUB.COM/NRFCONNECT/SDK-NRFXLIB#BB715183A57AC501907B63DF2079C3FBCD067641#LICENSEREF-NORDIC-5-CLAUSE">LicenseRef-Nordic-5-Clause</a></li>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		<li><a href="#package#GIT#HTTPS://GITHUB.COM/NRFCONNECT/SDK-NRFXLIB#BB715183A57AC501907B63DF2079C3FBCD067641#BSD-3-CLAUSE">BSD-3-Clause</a></li>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+	</ul>
+	
+	
+	
+
+	<h2 id="package#GIT#HTTPS://GITHUB.COM/NRFCONNECT/SDK-OBERON-PSA-CRYPTO#E8DB62ED0FBA5028E7AE0EBA7B1FB63436AE6416">nrfconnect/sdk-oberon-psa-crypto</h2>
+	<h3>Version: e8db62ed0fba5028e7ae0eba7b1fb63436ae6416</h3>
+	<p>URL:
+	
+	<a href="https://github.com/nrfconnect/sdk-oberon-psa-crypto">https://github.com/nrfconnect/sdk-oberon-psa-crypto</a>
+	
+	</p>
+	<p>The files from this source are covered by the following licenses:</p>
+	<ul>
+		
+		
+		
+		<li><a href="#package#GIT#HTTPS://GITHUB.COM/NRFCONNECT/SDK-OBERON-PSA-CRYPTO#E8DB62ED0FBA5028E7AE0EBA7B1FB63436AE6416#LICENSEREF-NORDIC-5-CLAUSE">LicenseRef-Nordic-5-Clause</a></li>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		<li><a href="#package#GIT#HTTPS://GITHUB.COM/NRFCONNECT/SDK-OBERON-PSA-CRYPTO#E8DB62ED0FBA5028E7AE0EBA7B1FB63436AE6416#APACHE-2.0 OR GPL-2.0-OR-LATER">Apache-2.0 OR GPL-2.0-or-later</a></li>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+	</ul>
+	
+	
+	
+
+	<h2 id="package#GIT#HTTPS://GITHUB.COM/NRFCONNECT/SDK-OPENTHREAD#0FE68FF23527E8BB9A9821CA96A255FCCFBB44A7">nrfconnect/sdk-openthread</h2>
+	<h3>Version: 0fe68ff23527e8bb9a9821ca96a255fccfbb44a7</h3>
+	<p>URL:
+	
+	<a href="https://github.com/nrfconnect/sdk-openthread">https://github.com/nrfconnect/sdk-openthread</a>
+	
+	</p>
+	<p>The files from this source are covered by the following licenses:</p>
+	<ul>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		<li><a href="#package#GIT#HTTPS://GITHUB.COM/NRFCONNECT/SDK-OPENTHREAD#0FE68FF23527E8BB9A9821CA96A255FCCFBB44A7#BSD-3-CLAUSE">BSD-3-Clause</a></li>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+	</ul>
+	
+	
+	
+
+	<h2 id="package#GIT#HTTPS://GITHUB.COM/NRFCONNECT/SDK-ZEPHYR#33FA6A7AAC6A4401D16A67CB9F27A3483FA02DD6">nrfconnect/sdk-zephyr</h2>
+	<h3>Version: 33fa6a7aac6a4401d16a67cb9f27a3483fa02dd6</h3>
+	<p>URL:
+	
+	<a href="https://github.com/nrfconnect/sdk-zephyr">https://github.com/nrfconnect/sdk-zephyr</a>
+	
+	</p>
+	<p>The files from this source are covered by the following licenses:</p>
+	<ul>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		<li><a href="#package#GIT#HTTPS://GITHUB.COM/NRFCONNECT/SDK-ZEPHYR#33FA6A7AAC6A4401D16A67CB9F27A3483FA02DD6#APACHE-2.0">Apache-2.0</a></li>
+		
+		
+		
+		
+		
+		
+		
+		<li><a href="#package#GIT#HTTPS://GITHUB.COM/NRFCONNECT/SDK-ZEPHYR#33FA6A7AAC6A4401D16A67CB9F27A3483FA02DD6#BSD-3-CLAUSE">BSD-3-Clause</a></li>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+	</ul>
+	
+	
+	
+	
+	
+
+	<h2 id="package#GIT#HTTPS://GITHUB.COM/ZEPHYRPROJECT-RTOS/CMSIS_6#30A859F44EF8AB4DC8F84B03ED586FD16CCF9D74">zephyrproject-rtos/CMSIS_6</h2>
+	<h3>Version: 30a859f44ef8ab4dc8f84b03ed586fd16ccf9d74</h3>
+	<p>URL:
+	
+	<a href="https://github.com/zephyrproject-rtos/CMSIS_6">https://github.com/zephyrproject-rtos/CMSIS_6</a>
+	
+	</p>
+	<p>The files from this source are covered by the following licenses:</p>
+	<ul>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		<li><a href="#package#GIT#HTTPS://GITHUB.COM/ZEPHYRPROJECT-RTOS/CMSIS_6#30A859F44EF8AB4DC8F84B03ED586FD16CCF9D74#APACHE-2.0">Apache-2.0</a></li>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+	</ul>
+	
+	
+	
+
+	<h2 id="package#TOOLCHAIN#ZEPHYR#1.0.1">zephyr</h2>
+	<h3>Version: 1.0.1</h3>
+	<p>URL:
+	
+	/home/runner/work/_temp/toolchains/zephyr-sdk
+	
+	</p>
+	<p>The files from this source are covered by the following licenses:</p>
+	<ul>
+		
+		
+		
+		
+		
+		<li><a href="#package#TOOLCHAIN#ZEPHYR#1.0.1#LICENSEREF-SCANCODE-DELORIE-HISTORICAL">LicenseRef-scancode-delorie-historical</a></li>
+		
+		
+		
+		<li><a href="#package#TOOLCHAIN#ZEPHYR#1.0.1#LICENSEREF-SCANCODE-RED-HAT-ATTRIBUTION">LicenseRef-scancode-red-hat-attribution</a></li>
+		
+		
+		
+		<li><a href="#package#TOOLCHAIN#ZEPHYR#1.0.1#LICENSEREF-WEST-NCS-SBOM-NEWLIB-RUNTIME">LicenseRef-west-ncs-sbom-newlib-runtime</a></li>
+		
+		
+		
+		
+		
+		<li><a href="#package#TOOLCHAIN#ZEPHYR#1.0.1#GPL-3.0-OR-LATER WITH GCC-EXCEPTION-3.1">GPL-3.0-or-later WITH GCC-EXCEPTION-3.1</a></li>
+		
+		
+		
+		
+		
+		<li><a href="#package#TOOLCHAIN#ZEPHYR#1.0.1#BSD-2-CLAUSE">BSD-2-Clause</a></li>
+		
+		
+		
+		<li><a href="#package#TOOLCHAIN#ZEPHYR#1.0.1#BSD-2-CLAUSE-FREEBSD">BSD-2-Clause-FreeBSD</a></li>
+		
+		
+		
+		<li><a href="#package#TOOLCHAIN#ZEPHYR#1.0.1#BSD-3-CLAUSE">BSD-3-Clause</a></li>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		<li><a href="#package#TOOLCHAIN#ZEPHYR#1.0.1#OAR">OAR</a></li>
+		
+		
+		
+	</ul>
+	
+	
+
+	<h1>Custom license texts</h1>
+
+	
+	<h2 id="text-LICENSEREF-NORDIC-5-CLAUSE">LicenseRef-Nordic-5-Clause</h2>
+	<pre>Redistribution and use in source and binary forms, with or without modification,
+are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice, this
+   list of conditions and the following disclaimer.
+
+2. Redistributions in binary form, except as embedded into a Nordic
+   Semiconductor ASA integrated circuit in a product or a software update for
+   such product, must reproduce the above copyright notice, this list of
+   conditions and the following disclaimer in the documentation and/or other
+   materials provided with the distribution.
+
+3. Neither the name of Nordic Semiconductor ASA nor the names of its
+   contributors may be used to endorse or promote products derived from this
+   software without specific prior written permission.
+
+4. This software, with or without modification, must only be used with a
+   Nordic Semiconductor ASA integrated circuit.
+
+5. Any software provided in binary form under this license must not be reverse
+   engineered, decompiled, modified and/or disassembled.
+
+THIS SOFTWARE IS PROVIDED BY NORDIC SEMICONDUCTOR ASA &#34;AS IS&#34; AND ANY EXPRESS
+OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL NORDIC SEMICONDUCTOR ASA OR CONTRIBUTORS BE
+LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
+OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+</pre>
+	
+	<h2 id="text-LICENSEREF-SCANCODE-DELORIE-HISTORICAL">LicenseRef-scancode-delorie-historical</h2>
+	<pre>Copyright (C) 1991 DJ Delorie
+All rights reserved.
+
+Redistribution, modification, and use in source and binary forms is permitted
+provided that the above copyright notice and following paragraph are
+duplicated in all such forms.
+
+This file is distributed WITHOUT ANY WARRANTY; without even the implied
+warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+</pre>
+	
+	<h2 id="text-LICENSEREF-SCANCODE-RED-HAT-ATTRIBUTION">LicenseRef-scancode-red-hat-attribution</h2>
+	<pre>Copyright (c) 2004, 2005 by
+Ralf Corsepius, Ulm/Germany. All rights reserved.
+
+Permission to use, copy, modify, and distribute this software
+is freely granted, provided that this notice is preserved.
+</pre>
+	
+	<h2 id="text-LICENSEREF-WEST-NCS-SBOM-NEWLIB-RUNTIME">LicenseRef-west-ncs-sbom-newlib-runtime</h2>
+	<pre>The newlib runtime archives are built from a collection of source files
+that carry multiple licenses and notices.
+
+The upstream COPYING.NEWLIB notice states:
+&#34;The newlib subdirectory is a collection of software from several sources.
+Each file may have its own copyright/license that is embedded in the source
+file.&#34;
+
+For Zephyr SDK toolchains that bundle newlib, the applicable notice files
+are:
+- share/licenses/newlib/COPYING
+- share/licenses/newlib/COPYING.LIB
+- share/licenses/newlib/COPYING.LIBGLOSS
+- share/licenses/newlib/COPYING.NEWLIB
+- share/licenses/newlib/COPYING3
+- share/licenses/newlib/COPYING3.LIB
+
+This LicenseRef represents that bundled multi-license notice set for the
+toolchain runtime archives libc.a and libm.a.
+</pre>
+	
+</body>
+
+</html>
