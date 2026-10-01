@@ -31,7 +31,7 @@ RUN apk add --no-cache \
         ca-certificates=20260909-r0 \
         libgcc=15.2.0-r5 \
         libstdc++=15.2.0-r5 \
-        python3=3.14.7-r1 \
+        python3=3.14.8-r0 \
         py3-cryptography=47.0.0-r0 \
         py3-paho-mqtt=1.6.1-r4 \
         py3-pyserial=3.5-r9 \
