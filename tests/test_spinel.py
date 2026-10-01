@@ -28,6 +28,7 @@ class SpinelTests(unittest.TestCase):
         self.assertEqual(version.hardware, "PCA10059")
         self.assertEqual(version.ncs_version, "3.3.4")
         self.assertEqual(version.zephyr_version, "4.4.0")
+        self.assertEqual(version.ot_version, "1.4.0")
 
     def test_parses_nordic_prerelease_platform_info(self) -> None:
         version = parse_ncp_version(

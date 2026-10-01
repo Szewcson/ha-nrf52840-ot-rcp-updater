@@ -330,7 +330,7 @@ jobs:
           set -euo pipefail
           python3 -m venv "${RUNNER_TEMP}/signing-venv"
           . "${RUNNER_TEMP}/signing-venv/bin/activate"
-          python -m pip install --disable-pip-version-check --no-cache-dir "cryptography==43.0.0"
+          python -m pip install --disable-pip-version-check --no-cache-dir "cryptography==49.0.0"
           test -n "${FIRMWARE_SIGNING_PRIVATE_KEY_B64}"
           signing_key="${RUNNER_TEMP}/firmware-signing-key.pem"
           trap 'rm -f "${signing_key}"' EXIT
@@ -460,7 +460,7 @@ jobs:
           set -euo pipefail
           python3 -m venv "${RUNNER_TEMP}/signing-venv"
           . "${RUNNER_TEMP}/signing-venv/bin/activate"
-          python -m pip install --disable-pip-version-check --no-cache-dir "cryptography==43.0.0"
+          python -m pip install --disable-pip-version-check --no-cache-dir "cryptography==49.0.0"
           test -n "${FIRMWARE_SIGNING_PRIVATE_KEY_B64}"
           signing_key="${RUNNER_TEMP}/firmware-signing-key.pem"
           challenge="${RUNNER_TEMP}/firmware-signing-challenge"

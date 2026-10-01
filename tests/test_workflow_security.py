@@ -6,6 +6,14 @@ from pathlib import Path
 
 
 class WorkflowSecurityTests(unittest.TestCase):
+    def test_signing_jobs_use_a_current_cryptography_release(self) -> None:
+        workflow = (
+            Path(__file__).parents[1] / ".github" / "workflows" / "ncs-candidate.yml"
+        ).read_text(encoding="utf-8")
+
+        self.assertEqual(workflow.count('"cryptography==49.0.0"'), 2)
+        self.assertNotIn("cryptography==43.0.0", workflow)
+
     def test_release_workflow_uses_least_privilege_and_pinned_actions(self) -> None:
         workflow = (
             Path(__file__).parents[1] / ".github" / "workflows" / "ncs-candidate.yml"

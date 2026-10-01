@@ -5,11 +5,12 @@ from __future__ import annotations
 import json
 import logging
 import secrets
+import socket
 from dataclasses import dataclass
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from threading import Event, Lock, Thread
+from threading import BoundedSemaphore, Event, Lock, Thread
 from time import monotonic
 from typing import Any, BinaryIO
 from urllib.parse import urlsplit
@@ -38,6 +39,8 @@ _TRUSTED_INGRESS_PROXY = "172.30.32.2"
 _MAX_JSON_BYTES = 8 * 1024
 _STAGED_ARTIFACT_TTL_SECONDS = 15 * 60
 _MAX_STAGED_ARTIFACTS = 3
+_MAX_INGRESS_WORKERS = 8
+_INGRESS_CONNECTION_BACKLOG = 16
 _STATIC_FILES = {
     "/": ("index.html", "text/html; charset=utf-8"),
     "/app.js": ("app.js", "application/javascript; charset=utf-8"),
@@ -47,6 +50,48 @@ _STATIC_FILES = {
 
 class IngressError(RuntimeError):
     """An Ingress request was invalid without exposing an internal detail."""
+
+
+class _BoundedThreadingHTTPServer(ThreadingHTTPServer):
+    """Thread-per-request server with a fixed cap for stalled Ingress clients."""
+
+    daemon_threads = True
+    request_queue_size = _INGRESS_CONNECTION_BACKLOG
+
+    def __init__(
+        self,
+        server_address: tuple[str, int],
+        request_handler_class: type[BaseHTTPRequestHandler],
+        *,
+        maximum_workers: int = _MAX_INGRESS_WORKERS,
+    ) -> None:
+        if isinstance(maximum_workers, bool) or maximum_workers < 1:
+            raise ValueError("maximum ingress workers must be a positive integer")
+        self._request_slots = BoundedSemaphore(maximum_workers)
+        super().__init__(server_address, request_handler_class)
+
+    def process_request(self, request: socket.socket, client_address: object) -> None:
+        """Reject excess sockets without allocating an unbounded handler thread."""
+
+        if not self._request_slots.acquire(blocking=False):
+            try:
+                request.close()
+            except OSError:
+                pass
+            return
+        try:
+            super().process_request(request, client_address)
+        except Exception:
+            self._request_slots.release()
+            raise
+
+    def process_request_thread(self, request: socket.socket, client_address: object) -> None:
+        """Release exactly the slot reserved before starting this handler thread."""
+
+        try:
+            super().process_request_thread(request, client_address)
+        finally:
+            self._request_slots.release()
 
 
 @dataclass
@@ -173,6 +218,7 @@ class IngressApi:
                 "installed": {
                     "ncs_version": installed.get("ncs_version"),
                     "zephyr_version": installed.get("zephyr_version"),
+                    "ot_version": installed.get("ot_version"),
                     "hardware": installed.get("hardware"),
                 },
                 "latest": self._release_payload(runtime.release),
@@ -347,7 +393,7 @@ class IngressServer:
         self._host = host
         self._port = port
         self._trusted_proxy_addresses = trusted_proxy_addresses
-        self._server: ThreadingHTTPServer | None = None
+        self._server: _BoundedThreadingHTTPServer | None = None
         self._thread: Thread | None = None
         self._reaper_stop = Event()
         self._reaper_thread: Thread | None = None
@@ -362,8 +408,7 @@ class IngressServer:
         if self._server is not None:
             return
         handler = self._handler_type()
-        server = ThreadingHTTPServer((self._host, self._port), handler)
-        server.daemon_threads = True
+        server = _BoundedThreadingHTTPServer((self._host, self._port), handler)
         self._server = server
         self._thread = Thread(target=server.serve_forever, name="rcp-ingress", daemon=True)
         self._reaper_stop.clear()

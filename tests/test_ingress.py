@@ -1,19 +1,22 @@
 from __future__ import annotations
 
 import http.client
+from http.server import BaseHTTPRequestHandler
 import io
 import json
+import socket
 import struct
 import sys
 import unittest
 from hashlib import sha256
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from threading import Event, Thread
 from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).parents[1] / "nrf52840_ot_rcp_updater"))
 
-from app.ingress import IngressApi, IngressError, IngressServer
+from app.ingress import _BoundedThreadingHTTPServer, IngressApi, IngressError, IngressServer
 from app.manual_artifact import DownloadResult
 from app.models import (
     Artifact,
@@ -136,6 +139,7 @@ def _controller(release: FirmwareRelease) -> OperationController:
             "hardware": "PCA10059",
             "ncs_version": "3.3.4",
             "zephyr_version": "4.3.99",
+            "ot_version": "ncs-thread-reference-20250402",
         },
         release=release,
         releases=(release,),
@@ -209,6 +213,10 @@ class IngressApiTests(unittest.TestCase):
             self.assertEqual(status["device"]["state"], "connected")
             self.assertEqual(status["firmware"]["policy_target_direction"], "upgrade")
             self.assertEqual(json.loads(json.dumps(status))["firmware"]["latest"]["ncs_version"], "3.4.0")
+            self.assertEqual(
+                status["firmware"]["installed"]["ot_version"],
+                "ncs-thread-reference-20250402",
+            )
 
     def test_status_marks_a_lower_configured_target_as_a_downgrade(self) -> None:
         controller = _controller(_release())
@@ -249,6 +257,60 @@ class IngressApiTests(unittest.TestCase):
 
 
 class IngressServerTests(unittest.TestCase):
+    def test_request_worker_limit_rejects_excess_connections_and_recovers(self) -> None:
+        started = Event()
+        release = Event()
+
+        class BlockingHandler(BaseHTTPRequestHandler):
+            def do_GET(self) -> None:  # noqa: N802 - BaseHTTPRequestHandler API.
+                started.set()
+                release.wait(2)
+                self.send_response(200)
+                self.send_header("Content-Length", "0")
+                self.end_headers()
+
+            def log_message(self, format: str, *args: object) -> None:
+                del format, args
+
+        server = _BoundedThreadingHTTPServer(
+            ("127.0.0.1", 0), BlockingHandler, maximum_workers=1
+        )
+        thread = Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        first = http.client.HTTPConnection("127.0.0.1", server.server_address[1], timeout=2)
+        second: socket.socket | None = None
+        try:
+            first.request("GET", "/")
+            self.assertTrue(started.wait(1))
+
+            second = socket.create_connection(server.server_address, timeout=2)
+            second.settimeout(1)
+            second.sendall(b"GET / HTTP/1.1\r\nHost: localhost\r\n\r\n")
+            try:
+                received = second.recv(1)
+            except ConnectionResetError:
+                pass
+            else:
+                self.assertEqual(received, b"")
+
+            release.set()
+            self.assertEqual(first.getresponse().status, 200)
+
+            third = http.client.HTTPConnection("127.0.0.1", server.server_address[1], timeout=2)
+            try:
+                third.request("GET", "/")
+                self.assertEqual(third.getresponse().status, 200)
+            finally:
+                third.close()
+        finally:
+            release.set()
+            if second is not None:
+                second.close()
+            first.close()
+            server.shutdown()
+            server.server_close()
+            thread.join(timeout=2)
+
     def test_ingress_proxy_gets_api_and_static_ui_but_unmarked_posts_are_rejected(self) -> None:
         with TemporaryDirectory() as directory:
             root = Path(directory)

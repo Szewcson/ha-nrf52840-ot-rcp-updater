@@ -251,6 +251,7 @@ class NcpVersion:
     hardware: str | None
     ncs_version: str | None
     zephyr_version: str | None
+    ot_version: str | None = None
 
 
 @dataclass(frozen=True)

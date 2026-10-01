@@ -88,6 +88,7 @@ function renderStatus(status) {
   details(elements.firmware, [
     ["Installed NCS", installed.ncs_version],
     ["Installed Zephyr", installed.zephyr_version],
+    ["Installed OpenThread", installed.ot_version],
     ["Configured NCS", latest.ncs_version],
     ["Configured Zephyr", latest.zephyr_version],
     ["Target direction", firmware.policy_target_direction],

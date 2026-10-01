@@ -11,8 +11,22 @@ class ImageLicensingTests(unittest.TestCase):
         build_yaml = (root / "build.yaml").read_text(encoding="utf-8")
 
         self.assertIn("RUST_BUILDER_IMAGE=rust:1.82-alpine@sha256:", dockerfile)
-        self.assertIn("ghcr.io/home-assistant/amd64-base:3.24", dockerfile)
+        self.assertRegex(
+            dockerfile,
+            r"ghcr\.io/home-assistant/amd64-base@sha256:[0-9a-f]{64}",
+        )
         self.assertIn("apk add --no-cache", dockerfile)
+        for package in (
+            "build-base=0.5-r3",
+            "ca-certificates=20260413-r0",
+            "git=2.45.4-r0",
+            "ca-certificates=20260909-r0",
+            "python3=3.14.7-r1",
+            "py3-cryptography=47.0.0-r0",
+            "py3-paho-mqtt=1.6.1-r4",
+            "py3-pyserial=3.5-r9",
+        ):
+            self.assertIn(package, dockerfile)
         self.assertIn(
             'apk query --from installed --format json --fields name,version "*"',
             dockerfile,
@@ -25,8 +39,11 @@ class ImageLicensingTests(unittest.TestCase):
         self.assertNotIn("apt-get", dockerfile)
         self.assertNotIn("gcompat", dockerfile)
         self.assertNotIn("debian", build_yaml)
-        self.assertIn("aarch64-base:3.24", build_yaml)
-        self.assertIn("amd64-base:3.24", build_yaml)
+        for architecture in ("aarch64", "amd64"):
+            self.assertRegex(
+                build_yaml,
+                rf"{architecture}: ghcr\.io/home-assistant/{architecture}-base@sha256:[0-9a-f]{{64}}",
+            )
         self.assertIn("LICENSES/Apache-2.0.txt", dockerfile)
         self.assertTrue((root / "LICENSES" / "Apache-2.0.txt").is_file())
         self.assertTrue((root / "LICENSES" / "COMPONENTS.md").is_file())

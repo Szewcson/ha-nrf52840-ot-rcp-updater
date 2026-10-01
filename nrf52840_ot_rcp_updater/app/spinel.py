@@ -30,6 +30,7 @@ _SPINEL_PROP_NCP_VERSION = 2
 _SPINEL_RESET_BOOTLOADER = 3
 
 _TOKEN_VALUE = r"(?P<{}>[A-Za-z0-9._+-]+)"
+_OT_VERSION = re.compile(r"^OPENTHREAD/" + _TOKEN_VALUE.format("ot_version") + r"(?:;|$)")
 _NCP_FIELDS = {
     "hardware": (
         # Current builds place the board directly after the conventional SoC.
@@ -149,7 +150,7 @@ def unpack_uint(data: bytes, offset: int) -> tuple[int, int]:
 
 
 def parse_ncp_version(raw: str) -> NcpVersion:
-    """Parse our additive tags from the OpenThread platform-info field.
+    """Parse the OpenThread package version and our platform-info tags.
 
     New RCPs lead this field with the conventional bare ``NRF52840`` token;
     older project firmware did not. Restrict parsing to that field so both
@@ -160,11 +161,16 @@ def parse_ncp_version(raw: str) -> NcpVersion:
         raise SpinelError("NCP version string is invalid")
     _prefix, separator, remainder = raw.partition(";")
     platform_info = remainder.partition(";")[0] if separator else raw
+    ot_match = _OT_VERSION.match(raw)
     values: dict[str, str | None] = {}
     for field, patterns in _NCP_FIELDS.items():
         match = next((match for pattern in patterns if (match := pattern.search(platform_info))), None)
         values[field] = match.group(field) if match else None
-    return NcpVersion(raw=raw, **values)
+    return NcpVersion(
+        raw=raw,
+        ot_version=ot_match.group("ot_version") if ot_match else None,
+        **values,
+    )
 
 
 @dataclass
