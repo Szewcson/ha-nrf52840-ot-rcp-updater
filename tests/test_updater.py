@@ -11,7 +11,7 @@ from unittest.mock import call, patch
 
 sys.path.insert(0, str(Path(__file__).parents[1] / "nrf52840_ot_rcp_updater"))
 
-from app.dfu import DfuSelector, DfuTarget, DfuTargetProbe, DfuTransferError
+from app.dfu import DfuError, DfuSelector, DfuTarget, DfuTargetProbe, DfuTransferError
 from app.models import (
     Artifact,
     FirmwareRelease,
@@ -172,6 +172,8 @@ class _Flasher:
     def bootloader_selector(
         self, configured_serial: str | None, configured_usb_path: str | None
     ) -> DfuSelector:
+        if configured_usb_path is None:
+            raise DfuError("bootloader-only recovery requires dfu_usb_path")
         selector = DfuSelector(None, configured_serial, configured_usb_path)
         self.selector_requests.append(selector)
         return selector
@@ -275,6 +277,7 @@ class SafeUpdateFallbackTests(unittest.TestCase):
                 _settings(
                     device="/dev/serial/by-id/missing-nrf52840",
                     dfu_serial_number="CC2180B1200E",
+                    dfu_usb_path="2-3",
                 ),
                 StateStore(Path(directory)),
                 supervisor=_Supervisor("stopped"),
@@ -288,7 +291,28 @@ class SafeUpdateFallbackTests(unittest.TestCase):
         self.assertEqual(checks["RCP serial device"]["state"], "ok")
         self.assertIn("Secure DFU target is ready", checks["RCP serial device"]["message"])
         self.assertEqual(checks["bootloader transition"]["state"], "ok")
-        self.assertEqual(flasher.selector_requests, [DfuSelector(None, "CC2180B1200E")])
+        self.assertEqual(flasher.selector_requests, [DfuSelector(None, "CC2180B1200E", "2-3")])
+
+    def test_rejects_bootloader_recovery_without_usb_path_before_stopping_otbr(self) -> None:
+        supervisor = _Supervisor("running")
+        with TemporaryDirectory() as directory:
+            updater = RcpUpdater(
+                _settings(
+                    device="/dev/serial/by-id/missing-nrf52840",
+                    dfu_serial_number="CC2180B1200E",
+                ),
+                StateStore(Path(directory)),
+                supervisor=supervisor,
+                flasher=_Flasher(),
+            )
+
+            with (
+                patch("app.updater.download_artifact", return_value=_firmware(Path(directory))),
+                self.assertRaisesRegex(UpdateError, "dfu_usb_path"),
+            ):
+                updater.install(_release("3.4.0"), selected_target=True)
+
+        self.assertEqual(supervisor.temporarily_stop_calls, 0)
 
     def test_current_version_defers_while_otbr_is_transitional(self) -> None:
         class TransitionalSupervisor(_Supervisor):
@@ -347,6 +371,7 @@ class SafeUpdateFallbackTests(unittest.TestCase):
             updater = RcpUpdater(
                 _settings(
                     dfu_serial_number="CC2180B1200E",
+                    dfu_usb_path="2-3",
                     device="/dev/serial/by-id/missing-nrf52840",
                 ),
                 StateStore(Path(directory)),
@@ -527,7 +552,7 @@ class NrfDfuUpdateTests(unittest.TestCase):
             with patch("app.updater.monotonic", side_effect=[0, 90, 0, 0]):
                 self.assertEqual(
                     updater._wait_for_expected_release(
-                        _release("3.4.0"), DfuSelector(None, "CC2180B1200E")
+                        _release("3.4.0"), DfuSelector(None, "CC2180B1200E", "2-3")
                     ),
                     expected,
                 )
@@ -679,6 +704,7 @@ class NrfDfuUpdateTests(unittest.TestCase):
             updater = RcpUpdater(
                 _settings(
                     dfu_serial_number="CC2180B1200E",
+                    dfu_usb_path="2-3",
                     qemu_usb_reenumeration_workaround=True,
                 ),
                 StateStore(Path(directory)),
@@ -750,7 +776,7 @@ class NrfDfuUpdateTests(unittest.TestCase):
             flasher = _Flasher()
             spinel = _BootloaderSpinel(expected)
             updater = RcpUpdater(
-                _settings(dfu_serial_number="CC2180B1200E"),
+                _settings(dfu_serial_number="CC2180B1200E", dfu_usb_path="2-3"),
                 StateStore(Path(directory)),
                 supervisor=_Supervisor("stopped"),
                 flasher=flasher,
@@ -762,7 +788,7 @@ class NrfDfuUpdateTests(unittest.TestCase):
 
         self.assertEqual(
             flasher.dfu_ready_requests,
-            [DfuSelector(None, "CC2180B1200E")],
+            [DfuSelector(None, "CC2180B1200E", "2-3")],
         )
 
     def test_selected_target_recovers_without_legacy_opt_in(self) -> None:
@@ -776,7 +802,11 @@ class NrfDfuUpdateTests(unittest.TestCase):
             flasher = _Flasher()
             spinel = _BootloaderSpinel(expected)
             updater = RcpUpdater(
-                _settings(dfu_serial_number="CC2180B1200E", allow_legacy_rcp=False),
+                _settings(
+                    dfu_serial_number="CC2180B1200E",
+                    dfu_usb_path="2-3",
+                    allow_legacy_rcp=False,
+                ),
                 StateStore(Path(directory)),
                 supervisor=_Supervisor("stopped"),
                 flasher=flasher,
@@ -788,7 +818,7 @@ class NrfDfuUpdateTests(unittest.TestCase):
 
         self.assertEqual(
             flasher.dfu_ready_requests,
-            [DfuSelector(None, "CC2180B1200E")],
+            [DfuSelector(None, "CC2180B1200E", "2-3")],
         )
 
     def test_rejects_bootloader_recovery_without_manual_target_or_legacy_opt_in(self) -> None:
@@ -822,7 +852,7 @@ class NrfDfuUpdateTests(unittest.TestCase):
         )
         with TemporaryDirectory() as directory:
             updater = RcpUpdater(
-                _settings(dfu_serial_number="CC2180B1200E"),
+                _settings(dfu_serial_number="CC2180B1200E", dfu_usb_path="2-3"),
                 StateStore(Path(directory)),
                 supervisor=_Supervisor("stopped"),
                 flasher=_Flasher(dfu_ready=False),
@@ -846,7 +876,7 @@ class NrfDfuUpdateTests(unittest.TestCase):
         )
         with TemporaryDirectory() as directory:
             updater = RcpUpdater(
-                _settings(dfu_serial_number="CC2180B1200E"),
+                _settings(dfu_serial_number="CC2180B1200E", dfu_usb_path="2-3"),
                 StateStore(Path(directory)),
                 supervisor=_Supervisor("stopped"),
                 flasher=_Flasher(dfu_ready=False, dfu_present=True),

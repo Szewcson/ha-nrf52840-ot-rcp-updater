@@ -5,6 +5,7 @@ from __future__ import annotations
 import http.client
 import ipaddress
 import os
+from queue import Empty, Queue
 import re
 import socket
 import ssl
@@ -12,6 +13,8 @@ import tempfile
 from dataclasses import dataclass
 from hashlib import sha256
 from pathlib import Path
+from threading import BoundedSemaphore, Thread
+from time import monotonic
 from typing import BinaryIO
 from urllib.parse import urljoin, urlsplit, urlunsplit
 
@@ -27,7 +30,11 @@ from .models import (
 _MAX_URL_LENGTH = 2048
 _MAX_REDIRECTS = 3
 _DOWNLOAD_TIMEOUT = 20
+_DOWNLOAD_DEADLINE = 60
 _DOWNLOAD_CHUNK_SIZE = 64 * 1024
+_MAX_RESOLVED_ADDRESSES = 8
+_MAX_DNS_RESOLVERS = 4
+_DNS_RESOLVER_SLOTS = BoundedSemaphore(_MAX_DNS_RESOLVERS)
 # A PCA10059 application has less than 1 MiB of flash. This leaves generous
 # room for ELF metadata while keeping buffered Home Assistant Ingress uploads
 # bounded well below large-body proxy limits.
@@ -62,8 +69,8 @@ class _UrlTarget:
 class _PinnedHTTPSConnection(http.client.HTTPSConnection):
     """HTTPS connection that uses an already screened DNS result exactly once."""
 
-    def __init__(self, host: str, port: int, address: str) -> None:
-        super().__init__(host, port=port, timeout=_DOWNLOAD_TIMEOUT, context=ssl.create_default_context())
+    def __init__(self, host: str, port: int, address: str, timeout: float) -> None:
+        super().__init__(host, port=port, timeout=timeout, context=ssl.create_default_context())
         self._address = address
 
     def connect(self) -> None:
@@ -107,9 +114,11 @@ def download_https_artifact(url: object, directory: Path = Path("/tmp")) -> Down
 
     current = _parse_https_url(url)
     directory.mkdir(mode=0o700, parents=True, exist_ok=True)
+    deadline = monotonic() + _DOWNLOAD_DEADLINE
     for redirect_count in range(_MAX_REDIRECTS + 1):
-        addresses = _resolve_global_addresses(current.host, current.port)
-        response, connection = _request_once(current, addresses)
+        _remaining_download_time(deadline)
+        addresses = _resolve_global_addresses(current.host, current.port, deadline)
+        response, connection = _request_once(current, addresses, deadline)
         try:
             if response.status in {301, 302, 303, 307, 308}:
                 location = response.getheader("Location")
@@ -121,7 +130,7 @@ def download_https_artifact(url: object, directory: Path = Path("/tmp")) -> Down
                 continue
             if response.status != 200:
                 raise ManualArtifactError(f"firmware URL returned HTTP {response.status}")
-            return DownloadResult(_write_response(response, directory), current.display_url)
+            return DownloadResult(_write_response(response, directory, deadline), current.display_url)
         finally:
             response.close()
             connection.close()
@@ -223,11 +232,38 @@ def _parse_https_url(value: object) -> _UrlTarget:
     return _UrlTarget(normalized, host, normalized_port, request_target, display_url)
 
 
-def _resolve_global_addresses(host: str, port: int) -> tuple[str, ...]:
+def _resolve_global_addresses(
+    host: str, port: int, deadline: float | None = None
+) -> tuple[str, ...]:
+    """Resolve a host within the shared deadline without accumulating blocked workers."""
+
+    if deadline is None:
+        deadline = monotonic() + _DOWNLOAD_TIMEOUT
+    if not _DNS_RESOLVER_SLOTS.acquire(timeout=_remaining_download_time(deadline)):
+        raise ManualArtifactError("firmware URL DNS resolution capacity is busy")
+    resolution: Queue[object] = Queue(maxsize=1)
+
+    def resolve() -> None:
+        try:
+            resolution.put(socket.getaddrinfo(host, port, type=socket.SOCK_STREAM))
+        except OSError as err:
+            resolution.put(err)
+        finally:
+            _DNS_RESOLVER_SLOTS.release()
+
     try:
-        results = socket.getaddrinfo(host, port, type=socket.SOCK_STREAM)
-    except OSError as err:
-        raise ManualArtifactError("firmware URL hostname could not be resolved") from err
+        Thread(target=resolve, daemon=True).start()
+    except RuntimeError as err:
+        _DNS_RESOLVER_SLOTS.release()
+        raise ManualArtifactError("firmware URL DNS resolver could not start") from err
+    try:
+        results = resolution.get(timeout=_remaining_download_time(deadline))
+    except Empty as err:
+        raise ManualArtifactError("firmware URL DNS resolution exceeded the download deadline") from err
+    if isinstance(results, OSError):
+        raise ManualArtifactError("firmware URL hostname could not be resolved") from results
+    if not isinstance(results, list):  # pragma: no cover - socket.getaddrinfo contract
+        raise ManualArtifactError("firmware URL hostname could not be resolved")
     addresses: list[str] = []
     for _family, _socktype, _protocol, _canonname, sockaddr in results:
         address = sockaddr[0]
@@ -239,17 +275,21 @@ def _resolve_global_addresses(host: str, port: int) -> tuple[str, ...]:
             continue
         if address not in addresses:
             addresses.append(address)
+            if len(addresses) == _MAX_RESOLVED_ADDRESSES:
+                break
     if not addresses:
         raise ManualArtifactError("firmware URL must not resolve to a local or private address")
     return tuple(addresses)
 
 
 def _request_once(
-    target: _UrlTarget, addresses: tuple[str, ...]
+    target: _UrlTarget, addresses: tuple[str, ...], deadline: float
 ) -> tuple[http.client.HTTPResponse, _PinnedHTTPSConnection]:
     last_error: OSError | http.client.HTTPException | ssl.SSLError | None = None
     for address in addresses:
-        connection = _PinnedHTTPSConnection(target.host, target.port, address)
+        connection = _PinnedHTTPSConnection(
+            target.host, target.port, address, _remaining_download_time(deadline)
+        )
         try:
             connection.request(
                 "GET",
@@ -267,7 +307,14 @@ def _request_once(
     raise ManualArtifactError("firmware URL could not be reached over HTTPS") from last_error
 
 
-def _write_response(response: http.client.HTTPResponse, directory: Path) -> Path:
+def _remaining_download_time(deadline: float) -> float:
+    remaining = deadline - monotonic()
+    if remaining <= 0:
+        raise ManualArtifactError(f"firmware URL download exceeded {_DOWNLOAD_DEADLINE} seconds")
+    return min(remaining, _DOWNLOAD_TIMEOUT)
+
+
+def _write_response(response: http.client.HTTPResponse, directory: Path, deadline: float) -> Path:
     content_length = response.getheader("Content-Length")
     if content_length is not None:
         try:
@@ -284,7 +331,11 @@ def _write_response(response: http.client.HTTPResponse, directory: Path) -> Path
     try:
         with os.fdopen(descriptor, "wb") as destination:
             while True:
-                chunk = response.read(_DOWNLOAD_CHUNK_SIZE)
+                # ``read1`` returns after at most one socket read. Checking the
+                # shared deadline before every chunk prevents a slow peer from
+                # retaining an Ingress worker indefinitely by trickling bytes.
+                _remaining_download_time(deadline)
+                chunk = response.read1(_DOWNLOAD_CHUNK_SIZE)
                 if not chunk:
                     break
                 total += len(chunk)

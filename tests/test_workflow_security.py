@@ -7,12 +7,26 @@ from pathlib import Path
 
 class WorkflowSecurityTests(unittest.TestCase):
     def test_signing_jobs_use_a_current_cryptography_release(self) -> None:
-        workflow = (
-            Path(__file__).parents[1] / ".github" / "workflows" / "ncs-candidate.yml"
-        ).read_text(encoding="utf-8")
+        root = Path(__file__).parents[1]
+        workflow = (root / ".github" / "workflows" / "ncs-candidate.yml").read_text(
+            encoding="utf-8"
+        )
+        requirements = (root / "requirements-signing.txt").read_text(encoding="utf-8")
 
-        self.assertEqual(workflow.count('"cryptography==49.0.0"'), 2)
-        self.assertNotIn("cryptography==43.0.0", workflow)
+        self.assertIn("cryptography==49.0.0", requirements)
+        self.assertIn("cffi==2.0.0", requirements)
+        self.assertIn("pycparser==2.23", requirements)
+        self.assertEqual(requirements.count("--hash=sha256:"), 4)
+        self.assertEqual(workflow.count("--require-hashes --only-binary=:all:"), 2)
+        self.assertEqual(workflow.count("--requirement requirements-signing.txt"), 2)
+        self.assertNotIn('pip install --disable-pip-version-check --no-cache-dir "cryptography', workflow)
+        publish = workflow[workflow.index("  publish:") : workflow.index("  reset-firmware-branch:")]
+        reset = workflow[workflow.index("  reset-firmware-branch:") :]
+        for signing_job in (publish, reset):
+            install_dependencies = signing_job.index("Install hash-locked signing dependencies")
+            signing_secret = signing_job.index("FIRMWARE_SIGNING_PRIVATE_KEY_B64")
+            self.assertLess(install_dependencies, signing_secret)
+            self.assertNotIn("FIRMWARE_SIGNING_PRIVATE_KEY_B64", signing_job[:install_dependencies])
 
     def test_release_workflow_uses_least_privilege_and_pinned_actions(self) -> None:
         workflow = (

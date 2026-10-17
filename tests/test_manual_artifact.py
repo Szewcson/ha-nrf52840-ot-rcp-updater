@@ -7,6 +7,8 @@ import sys
 import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from threading import Event
+from time import monotonic
 from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).parents[1] / "nrf52840_ot_rcp_updater"))
@@ -15,6 +17,7 @@ from app.manual_artifact import (
     MAX_MANUAL_ARTIFACT_BYTES,
     ManualArtifactError,
     _resolve_global_addresses,
+    _write_response,
     download_https_artifact,
     prepare_manual_firmware,
     write_upload,
@@ -64,6 +67,16 @@ def _elf(platform_tag: bytes = b"NRF52840 PCA10059 N/3.4.0 Z/4.4.0") -> bytes:
 class _OverlongReader:
     def read(self, size: int) -> bytes:
         return b"x" * (size + 1)
+
+
+class _SlowResponse:
+    def getheader(self, name: str) -> None:
+        del name
+        return None
+
+    def read1(self, size: int) -> bytes:
+        del size
+        return b"x"
 
 
 class ManualArtifactTests(unittest.TestCase):
@@ -129,6 +142,41 @@ class ManualArtifactTests(unittest.TestCase):
             self.assertEqual(
                 _resolve_global_addresses("example.invalid", 443), ("8.8.8.8", "1.1.1.1")
             )
+
+    def test_url_dns_limits_global_addresses(self) -> None:
+        addresses = [(2, 1, 6, "", (f"8.8.8.{index}", 443)) for index in range(1, 10)]
+        with patch("app.manual_artifact.socket.getaddrinfo", return_value=addresses):
+            self.assertEqual(
+                _resolve_global_addresses("example.invalid", 443),
+                tuple(f"8.8.8.{index}" for index in range(1, 9)),
+            )
+
+    def test_url_dns_respects_the_download_deadline(self) -> None:
+        started = Event()
+        release = Event()
+
+        def block_dns(*_args, **_kwargs):
+            started.set()
+            release.wait(timeout=1)
+            return []
+
+        try:
+            with patch("app.manual_artifact.socket.getaddrinfo", side_effect=block_dns):
+                with self.assertRaisesRegex(ManualArtifactError, "DNS resolution exceeded"):
+                    _resolve_global_addresses("example.invalid", 443, monotonic() + 0.01)
+            self.assertTrue(started.wait(timeout=0.2))
+        finally:
+            release.set()
+
+    def test_url_download_deadline_removes_a_partial_artifact(self) -> None:
+        with TemporaryDirectory() as directory:
+            root = Path(directory)
+            with (
+                patch("app.manual_artifact.monotonic", side_effect=[0.0, 61.0]),
+                self.assertRaisesRegex(ManualArtifactError, "exceeded 60 seconds"),
+            ):
+                _write_response(_SlowResponse(), root, deadline=60.0)
+            self.assertEqual(list(root.iterdir()), [])
 
 
 if __name__ == "__main__":

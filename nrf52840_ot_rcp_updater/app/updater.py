@@ -446,13 +446,20 @@ class RcpUpdater:
                 self._settings.device,
                 self._settings.dfu_serial_number,
             )
-            diagnostics["rcp_usb_topology_known"] = selector.physical_path is not None
+            diagnostics["rcp_usb_topology_known"] = True
         except DfuError:
-            selector = self._flasher.bootloader_selector(
-                self._settings.dfu_serial_number,
-                self._settings.dfu_usb_path,
-            )
             diagnostics["rcp_usb_topology_known"] = False
+            try:
+                selector = self._flasher.bootloader_selector(
+                    self._settings.dfu_serial_number,
+                    self._settings.dfu_usb_path,
+                )
+            except DfuError as err:
+                diagnostics["dfu_target_present"] = False
+                diagnostics["dfu_target_ready"] = False
+                diagnostics["resolved_dfu_serial"] = None
+                diagnostics["dfu_probe_error"] = str(err)
+                return diagnostics
         try:
             target = self._flasher.probe_dfu_target(selector)
             diagnostics["dfu_target_present"] = target.present

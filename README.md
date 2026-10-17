@@ -238,11 +238,10 @@ updater resolves the stock Nordic `1915:521f` bootloader from Linux USB
 topology before it invokes `nrfdfu`, then passes that exact endpoint so a
 duplicate device serial cannot select another USB interface. The bootloader
 serial is an internal transport selector, not a required setting.
-Bootloader-only recovery accepts one VID:PID target, or an optional
-`dfu_serial_number` when multiple compatible devices are attached. When
-multiple targets expose the same descriptor serial, the optional
-`dfu_usb_path` instead selects one Linux USB topology name (for example,
-`2-3`). The Docker build checks that each patch applies before building. `nrfdfu-rs` is licensed
+Bootloader-only recovery requires `dfu_usb_path` to select one Linux USB
+topology name (for example, `2-3`); `dfu_serial_number` optionally adds a
+second identity check. The Docker build checks that each patch applies before
+building. `nrfdfu-rs` is licensed
 `MIT OR Apache-2.0`; this project uses the Apache-2.0 option and includes its
 notice and license in the add-on image.
 
@@ -393,13 +392,13 @@ port. This avoids relying on a volatile `/dev/ttyACM*` name, assumes neither
 USB personality has the same descriptor serial, and excludes other Nordic DFU
 dongles attached to different ports.
 
-Leave `dfu_serial_number` and `dfu_usb_path` empty for one dongle. They are
-advanced overrides for bootloader-only recovery: when the normal RCP path is
-absent, exactly one `1915:521f` device is accepted automatically. If several
-targets have different descriptor serials, set `dfu_serial_number`. If they
-share a serial, set `dfu_usb_path` to the topology name reported by the error,
-such as `2-3`; do not guess this value, because it authorizes that physical USB
-port to be flashed.
+Leave `dfu_serial_number` and `dfu_usb_path` empty for ordinary updates: the
+updater derives the RCP's physical USB port before entering DFU. To recover an
+RCP that is already in Secure DFU mode, set `dfu_usb_path` to its Linux USB
+topology name, such as `2-3`; do not guess this value, because it authorizes
+that physical USB port to be flashed. `dfu_serial_number` is an optional second
+identity check and is recommended when the bootloader exposes one. Recovery
+fails closed when `dfu_usb_path` is not configured.
 
 The app requests Home Assistant UART access because the normal RCP and its
 Secure DFU personality both use CDC ACM serial endpoints. It does not request
@@ -410,17 +409,17 @@ a missing USB device from a DFU tool or permission failure without allowing a
 flash to an unknown target.
 
 If a failed update leaves the dongle in Secure DFU mode, keep the normal RCP
-`device` value unchanged and open the **PCA10059 RCP** sidebar panel. Validate
-the exact release you want to recover, then confirm Flash. The preflight uses
-the same constrained selector as the transaction: it accepts exactly one
-`1915:521f` bootloader and never treats PID `0000` as a wildcard. It skips the
-Spinel reset only after that exact Secure DFU target is confirmed, and still
-requires the normal post-flash Spinel version check. Set
-`dfu_serial_number` only if several bootloaders match with distinct serials,
-or `dfu_usb_path` if their serials are identical. If the exact DFU target
-remains present after the normal verification window expires, the updater sends
-one application reboot and makes one final verification attempt; it never
-flashes the image twice.
+`device` value unchanged and open the **PCA10059 RCP** sidebar panel. Configure
+`dfu_usb_path`, validate the exact release you want to recover, then confirm
+Flash. The preflight uses the same constrained selector as the transaction:
+recovery requires `dfu_usb_path`, accepts only the `1915:521f` bootloader on
+that port, and never treats PID `0000` as a wildcard. It skips the Spinel reset
+only after that exact Secure DFU target is confirmed, and still requires the
+normal post-flash Spinel version check. Set `dfu_serial_number` as an additional
+identity check when the bootloader exposes one. If the exact DFU target remains
+present after the normal verification window expires, the updater sends one
+application reboot and makes one final verification attempt; it never flashes
+the image twice.
 
 The panel's **Release** tab lists known signed releases in the configured
 stable or prerelease channel, including older ones for explicit recovery or

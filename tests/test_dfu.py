@@ -11,6 +11,7 @@ sys.path.insert(0, str(Path(__file__).parents[1] / "nrf52840_ot_rcp_updater"))
 
 from app.dfu import (
     NRFDFU_EXECUTABLE,
+    DfuError,
     DfuSelector,
     DfuTarget,
     DfuTargetProbe,
@@ -49,7 +50,10 @@ class NrfDfuFlasherTests(unittest.TestCase):
             firmware.touch()
             flasher = NrfDfuFlasher()
             with patch.object(flasher, "_wait_for_dfu_target", return_value=_target()):
-                self.assertEqual(flasher.flash(firmware, _selector(), 3_004_000), _target())
+                self.assertEqual(
+                    flasher.flash(firmware, _selector(Path("/sys/devices/1-2")), 3_004_000),
+                    _target(),
+                )
 
         self.assertEqual(
             run.call_args.args[0],
@@ -75,7 +79,7 @@ class NrfDfuFlasherTests(unittest.TestCase):
         with patch.object(flasher, "probe_dfu_target") as probe:
             probe.return_value = DfuTargetProbe(False, "no USB target matching 1915:521f")
             with self.assertRaisesRegex(RuntimeError, "no USB target matching 1915:521f"):
-                flasher._wait_for_dfu_target(_selector())
+                flasher._wait_for_dfu_target(_selector(Path("/sys/devices/1-2")))
 
     @patch("app.dfu.shutil.which", return_value="/usr/local/bin/nrfdfu")
     @patch("app.dfu.subprocess.run")
@@ -87,7 +91,7 @@ class NrfDfuFlasherTests(unittest.TestCase):
             patch.object(flasher, "_matching_dfu_targets", return_value=[_target()]),
             patch.object(flasher, "_tty_ports_for_usb_device", return_value=[Path("/dev/ttyACM0")]),
         ):
-            target = flasher.probe_dfu_target(_selector())
+            target = flasher.probe_dfu_target(_selector(Path("/sys/devices/1-2")))
 
         self.assertTrue(target.present)
         self.assertTrue(target.ready)
@@ -118,7 +122,7 @@ class NrfDfuFlasherTests(unittest.TestCase):
                 patch.object(flasher, "_wait_for_dfu_target", return_value=_target()),
                 self.assertRaisesRegex(DfuTransferError, "invalid firmware version"),
             ):
-                flasher.flash(firmware, _selector(), 3_004_000)
+                flasher.flash(firmware, _selector(Path("/sys/devices/1-2")), 3_004_000)
 
     @patch("app.dfu.shutil.which", return_value="/usr/local/bin/nrfdfu")
     @patch("app.dfu.subprocess.run")
@@ -169,6 +173,12 @@ class NrfDfuFlasherTests(unittest.TestCase):
         self.assertEqual(selector.physical_path, normal_rcp)
         self.assertIsNone(selector.serial_number)
 
+    def test_rejects_a_normal_rcp_without_physical_usb_topology(self) -> None:
+        flasher = NrfDfuFlasher(sys_class_tty=Path("/missing/tty"))
+
+        with self.assertRaisesRegex(DfuError, "physical USB topology"):
+            flasher.selector_for_device(Path("/dev/ttyACM0"), None)
+
     @patch("app.dfu.shutil.which", return_value="/usr/local/bin/nrfdfu")
     @patch("app.dfu.subprocess.run")
     def test_accepts_only_the_bootloader_on_the_recorded_physical_usb_path(self, run, which) -> None:
@@ -197,52 +207,13 @@ class NrfDfuFlasherTests(unittest.TestCase):
         self.assertEqual(run.call_args.args[0][2], "CC2180B1200E")
         self.assertEqual(run.call_args.args[0][4], "/dev/ttyACM0")
 
-    @patch("app.dfu.shutil.which", return_value="/usr/local/bin/nrfdfu")
-    def test_bootloader_only_recovery_rejects_multiple_vid_pid_candidates(self, which) -> None:
-        del which
-        with TemporaryDirectory() as directory:
-            root = Path(directory)
-            sys_bus_usb = root / "sys" / "bus" / "usb" / "devices"
-            first = root / "sys" / "devices" / "1-2"
-            second = root / "sys" / "devices" / "1-3"
-            _usb_device(first, "FIRST")
-            _usb_device(second, "SECOND")
-            sys_bus_usb.mkdir(parents=True)
-            (sys_bus_usb / "1-2").symlink_to(first)
-            (sys_bus_usb / "1-3").symlink_to(second)
+    def test_bootloader_only_recovery_requires_a_configured_usb_path(self) -> None:
+        with self.assertRaisesRegex(DfuError, "dfu_usb_path"):
+            NrfDfuFlasher().bootloader_selector("CC2180B1200E", None)
 
-            target = NrfDfuFlasher(sys_bus_usb=sys_bus_usb).probe_dfu_target(
-                _selector(serial_number=None)
-            )
-
-        self.assertFalse(target.present)
-        self.assertIn("multiple USB targets", target.diagnostic)
-        self.assertIn("FIRST (1-2)", target.diagnostic)
-        self.assertIn("SECOND (1-3)", target.diagnostic)
-
-    @patch("app.dfu.shutil.which", return_value="/usr/local/bin/nrfdfu")
-    def test_bootloader_only_recovery_explains_when_duplicate_serials_need_usb_path(
-        self, which
-    ) -> None:
-        del which
-        with TemporaryDirectory() as directory:
-            root = Path(directory)
-            sys_bus_usb = root / "sys" / "bus" / "usb" / "devices"
-            first = root / "sys" / "devices" / "2-3"
-            second = root / "sys" / "devices" / "2-5"
-            _usb_device(first, "CC2180B1200E")
-            _usb_device(second, "CC2180B1200E")
-            sys_bus_usb.mkdir(parents=True)
-            (sys_bus_usb / "2-3").symlink_to(first)
-            (sys_bus_usb / "2-5").symlink_to(second)
-
-            target = NrfDfuFlasher(sys_bus_usb=sys_bus_usb).probe_dfu_target(
-                _selector(serial_number="CC2180B1200E")
-            )
-
-        self.assertFalse(target.present)
-        self.assertIn("same descriptor serial", target.diagnostic)
-        self.assertIn("dfu_usb_path", target.diagnostic)
+    def test_rejects_a_selector_without_physical_usb_topology(self) -> None:
+        with self.assertRaisesRegex(DfuError, "physical USB path"):
+            NrfDfuFlasher().probe_dfu_target(_selector(serial_number=None))
 
     @patch("app.dfu.shutil.which", return_value="/usr/local/bin/nrfdfu")
     @patch("app.dfu.subprocess.run")
@@ -278,7 +249,7 @@ class NrfDfuFlasherTests(unittest.TestCase):
         del which
         flasher = NrfDfuFlasher(sys_bus_usb=Path("/missing/usb/devices"))
 
-        probe = flasher.probe_dfu_target(_selector(serial_number=None))
+        probe = flasher.probe_dfu_target(_selector(Path("/sys/devices/1-2"), None))
 
         self.assertFalse(probe.present)
         self.assertIn("cannot enumerate USB topology", probe.diagnostic)
@@ -301,7 +272,7 @@ class NrfDfuFlasherTests(unittest.TestCase):
             with patch.object(
                 flasher, "_tty_ports_for_usb_device", return_value=[Path("/dev/ttyACM0")]
             ):
-                target = flasher.probe_dfu_target(_selector(serial_number=None))
+                target = flasher.probe_dfu_target(_selector(serial_number=None, usb_path="1-2"))
 
         self.assertTrue(target.present)
         self.assertTrue(target.ready)
@@ -311,7 +282,7 @@ class NrfDfuFlasherTests(unittest.TestCase):
 
     @patch("app.dfu.shutil.which", return_value="/usr/local/bin/nrfdfu")
     @patch("app.dfu.subprocess.run")
-    def test_optional_dfu_serial_disambiguates_bootloader_only_recovery(self, run, which) -> None:
+    def test_configured_dfu_serial_adds_a_second_recovery_identity(self, run, which) -> None:
         del which
         run.return_value = subprocess.CompletedProcess([], 0, stdout=b"ready\n")
         with TemporaryDirectory() as directory:
@@ -326,10 +297,11 @@ class NrfDfuFlasherTests(unittest.TestCase):
             (sys_bus_usb / "1-3").symlink_to(second)
 
             flasher = NrfDfuFlasher(sys_bus_usb=sys_bus_usb)
+            selector = flasher.bootloader_selector("SECOND", "1-3")
             with patch.object(
                 flasher, "_tty_ports_for_usb_device", return_value=[Path("/dev/ttyACM1")]
             ):
-                target = flasher.probe_dfu_target(_selector(serial_number="SECOND"))
+                target = flasher.probe_dfu_target(selector)
 
         self.assertTrue(target.present)
         self.assertTrue(target.ready)
@@ -368,7 +340,7 @@ class NrfDfuFlasherTests(unittest.TestCase):
             patch.object(flasher, "_matching_dfu_targets", return_value=[_target()]),
             patch.object(flasher, "_tty_ports_for_usb_device", return_value=[Path("/dev/ttyACM0")]),
         ):
-            probe = flasher.probe_dfu_target(_selector())
+            probe = flasher.probe_dfu_target(_selector(Path("/sys/devices/1-2")))
 
         self.assertTrue(probe.present)
         self.assertFalse(probe.ready)

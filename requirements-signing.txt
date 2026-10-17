@@ -1,0 +1,11 @@
+# GitHub's ubuntu-24.04 signing jobs use CPython 3.12 on x86-64. The CPython
+# 3.13 wheel hash also supports local verification; every permitted artifact is
+# explicit. Keep this complete, wheel-only set hash-locked: the signing key is
+# exposed only after these packages are installed.
+cffi==2.0.0 \
+    --hash=sha256:3e17ed538242334bf70832644a32a7aae3d83b57567f9fd60a26257e992b79ba \
+    --hash=sha256:c8d3b5532fc71b7a77c09192b4a5a200ea992702734a2e9279a37f2478236f26
+cryptography==49.0.0 \
+    --hash=sha256:6f2debedf9ca60cf1d5bd466475638af5130f89965605cd818484d19987d3a21
+pycparser==2.23 \
+    --hash=sha256:e5c6e8d3fbad53479cab09ac03729e0a9faf2bee3db8208a550daf5af81a5934

@@ -320,6 +320,14 @@ jobs:
         with:
           name: nrf52840-ot-rcp-${{ matrix.version }}
           path: candidate
+      - name: Install hash-locked signing dependencies
+        run: |
+          set -euo pipefail
+          python3 -m venv "${RUNNER_TEMP}/signing-venv"
+          . "${RUNNER_TEMP}/signing-venv/bin/activate"
+          python -m pip install --disable-pip-version-check --no-cache-dir \
+            --require-hashes --only-binary=:all: \
+            --requirement requirements-signing.txt
       - name: Publish firmware branch
         env:
           FIRMWARE_SIGNING_PRIVATE_KEY_B64: ${{ secrets.FIRMWARE_SIGNING_PRIVATE_KEY_B64 }}
@@ -328,9 +336,7 @@ jobs:
           REPOSITORY: ${{ github.repository }}
         run: |
           set -euo pipefail
-          python3 -m venv "${RUNNER_TEMP}/signing-venv"
           . "${RUNNER_TEMP}/signing-venv/bin/activate"
-          python -m pip install --disable-pip-version-check --no-cache-dir "cryptography==49.0.0"
           test -n "${FIRMWARE_SIGNING_PRIVATE_KEY_B64}"
           signing_key="${RUNNER_TEMP}/firmware-signing-key.pem"
           trap 'rm -f "${signing_key}"' EXIT
@@ -451,6 +457,14 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+      - name: Install hash-locked signing dependencies
+        run: |
+          set -euo pipefail
+          python3 -m venv "${RUNNER_TEMP}/signing-venv"
+          . "${RUNNER_TEMP}/signing-venv/bin/activate"
+          python -m pip install --disable-pip-version-check --no-cache-dir \
+            --require-hashes --only-binary=:all: \
+            --requirement requirements-signing.txt
       - name: Reset signed firmware branch
         env:
           FIRMWARE_SIGNING_PRIVATE_KEY_B64: ${{ secrets.FIRMWARE_SIGNING_PRIVATE_KEY_B64 }}
@@ -458,9 +472,7 @@ jobs:
           REPOSITORY: ${{ github.repository }}
         run: |
           set -euo pipefail
-          python3 -m venv "${RUNNER_TEMP}/signing-venv"
           . "${RUNNER_TEMP}/signing-venv/bin/activate"
-          python -m pip install --disable-pip-version-check --no-cache-dir "cryptography==49.0.0"
           test -n "${FIRMWARE_SIGNING_PRIVATE_KEY_B64}"
           signing_key="${RUNNER_TEMP}/firmware-signing-key.pem"
           challenge="${RUNNER_TEMP}/firmware-signing-challenge"

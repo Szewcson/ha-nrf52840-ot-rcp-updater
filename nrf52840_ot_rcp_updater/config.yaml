@@ -1,5 +1,5 @@
 name: PCA10059 OpenThread RCP Updater
-version: 0.4.3
+version: 0.4.4
 slug: nrf52840_ot_rcp_updater
 description: Safely updates a PCA10059 RCP used by the Home Assistant Core OpenThread Border Router app
 stage: experimental
@@ -36,6 +36,8 @@ options:
   allow_prereleases: false
   pinned_ncs_minor: ""
   dfu_serial_number: ""
+  # Required to recover an RCP that is already in Secure DFU mode. Use the
+  # Linux USB topology name, such as 2-3; normal updates discover it directly.
   dfu_usb_path: ""
   manifest_poll_interval: 3600
   idle_window: 20

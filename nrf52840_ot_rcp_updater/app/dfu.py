@@ -82,20 +82,30 @@ class NrfDfuFlasher:
 
         if configured_serial is not None:
             self._validate_serial(configured_serial)
+        physical_path = self._usb_parent_for_tty(device)
+        if physical_path is None:
+            raise DfuError(
+                "cannot resolve the configured RCP's physical USB topology; "
+                "refusing to select a DFU device by VID:PID"
+            )
         return DfuSelector(
-            physical_path=self._usb_parent_for_tty(device),
+            physical_path=physical_path,
             serial_number=configured_serial,
         )
 
     def bootloader_selector(
         self, configured_serial: str | None, configured_usb_path: str | None
     ) -> DfuSelector:
-        """Select a bootloader-only recovery target without assuming a tty exists."""
+        """Select bootloader-only recovery by its configured physical USB path."""
 
         if configured_serial is not None:
             self._validate_serial(configured_serial)
-        if configured_usb_path is not None:
-            self._validate_usb_path(configured_usb_path)
+        if configured_usb_path is None:
+            raise DfuError(
+                "bootloader-only recovery requires dfu_usb_path to identify the RCP's "
+                "physical USB port"
+            )
+        self._validate_usb_path(configured_usb_path)
         return DfuSelector(
             physical_path=None,
             serial_number=configured_serial,
@@ -288,6 +298,8 @@ class NrfDfuFlasher:
             self._validate_serial(selector.serial_number)
         if selector.usb_path is not None:
             self._validate_usb_path(selector.usb_path)
+        if selector.physical_path is None and selector.usb_path is None:
+            raise DfuError("DFU selector requires a physical USB path")
         if selector.physical_path is not None and selector.usb_path is not None:
             raise DfuError("DFU selector cannot combine a live physical path with dfu_usb_path")
 
