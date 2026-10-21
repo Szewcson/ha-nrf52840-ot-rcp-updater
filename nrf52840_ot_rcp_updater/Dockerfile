@@ -10,10 +10,12 @@ ARG NRFDFU_REVISION
 COPY patches/nrfdfu-cli-init-packet-versions.patch \
      patches/nrfdfu-cli-exact-port.patch /patches/
 
-RUN apk add --no-cache \
-        build-base=0.5-r3 \
-        ca-certificates=20260413-r0 \
-        git=2.45.4-r0 \
+# Alpine's branch repositories replace old package revisions; resolve the
+# current compatible packages instead of pinning revisions that disappear.
+RUN apk add --no-cache --upgrade \
+        build-base \
+        ca-certificates \
+        git \
     && git clone https://github.com/knurling-rs/nrfdfu-rs.git /src/nrfdfu-rs \
     && git -C /src/nrfdfu-rs checkout --detach "${NRFDFU_REVISION}" \
     && test "$(git -C /src/nrfdfu-rs rev-parse HEAD)" = "${NRFDFU_REVISION}" \
@@ -27,14 +29,15 @@ RUN apk add --no-cache \
 
 FROM ${BUILD_FROM}
 
-RUN apk add --no-cache \
-        ca-certificates=20260909-r0 \
-        libgcc=15.2.0-r5 \
-        libstdc++=15.2.0-r5 \
-        python3=3.14.8-r0 \
-        py3-cryptography=47.0.0-r0 \
-        py3-paho-mqtt=1.6.1-r4 \
-        py3-pyserial=3.5-r9 \
+# Keep the actual resolved versions in alpine-packages.tsv below.
+RUN apk add --no-cache --upgrade \
+        ca-certificates \
+        libgcc \
+        libstdc++ \
+        python3 \
+        py3-cryptography \
+        py3-paho-mqtt \
+        py3-pyserial \
     && install -d -m 0755 /usr/share/licenses/pca10059-openthread-rcp-updater \
     && apk query --from installed --format json --fields name,version "*" \
         | python3 -c 'import json, sys; sys.stdout.writelines("{name}\t{version}\n".format(**package) for package in sorted(json.load(sys.stdin), key=lambda package: package["name"]))' \

@@ -171,6 +171,14 @@ The final image includes this project's Apache-2.0 license, the nrfdfu-rs
 license and notice, Cargo's locked dependency metadata, and an installed Alpine
 package inventory under `/usr/share/licenses`.
 
+Alpine packages are resolved from each base image's configured release branch
+with `apk add --no-cache --upgrade`. Those repositories replace older package
+revisions, so exact APK revision pins would eventually prevent fresh installs.
+Base images remain digest-pinned, while rebuilds can pick up package updates
+within their configured Alpine branch. The runtime's `alpine-packages.tsv`
+records the versions actually installed; these builds are not byte-for-byte
+reproducible snapshots of the package repositories.
+
 The app declares Home Assistant's `manager` Supervisor role because it must
 stop and restart OTBR around a DFU operation. Home Assistant only grants that
 capability to an app with extended Supervisor access.

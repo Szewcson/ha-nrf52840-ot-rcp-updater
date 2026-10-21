@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 import unittest
 from pathlib import Path
 
@@ -16,17 +17,20 @@ class ImageLicensingTests(unittest.TestCase):
             r"ghcr\.io/home-assistant/amd64-base@sha256:[0-9a-f]{64}",
         )
         self.assertIn("apk add --no-cache", dockerfile)
+        self.assertNotRegex(dockerfile, r"(?m)^\s+[a-z][a-z0-9+.-]*[=<>~]")
         for package in (
-            "build-base=0.5-r3",
-            "ca-certificates=20260413-r0",
-            "git=2.45.4-r0",
-            "ca-certificates=20260909-r0",
-            "python3=3.14.8-r0",
-            "py3-cryptography=47.0.0-r0",
-            "py3-paho-mqtt=1.6.1-r4",
-            "py3-pyserial=3.5-r9",
+            "build-base",
+            "ca-certificates",
+            "git",
+            "libgcc",
+            "libstdc++",
+            "python3",
+            "py3-cryptography",
+            "py3-paho-mqtt",
+            "py3-pyserial",
         ):
-            self.assertIn(package, dockerfile)
+            # Exact revisions disappear when Alpine publishes branch updates.
+            self.assertRegex(dockerfile, rf"(?m)^\s+{re.escape(package)}\s+\\$")
         self.assertIn(
             'apk query --from installed --format json --fields name,version "*"',
             dockerfile,
