@@ -260,6 +260,14 @@ class IngressServerTests(unittest.TestCase):
     def test_request_worker_limit_rejects_excess_connections_and_recovers(self) -> None:
         started = Event()
         release = Event()
+        worker_finished = Event()
+
+        class ObservedServer(_BoundedThreadingHTTPServer):
+            def process_request_thread(
+                self, request: socket.socket, client_address: object
+            ) -> None:
+                super().process_request_thread(request, client_address)
+                worker_finished.set()
 
         class BlockingHandler(BaseHTTPRequestHandler):
             def do_GET(self) -> None:  # noqa: N802 - BaseHTTPRequestHandler API.
@@ -272,7 +280,7 @@ class IngressServerTests(unittest.TestCase):
             def log_message(self, format: str, *args: object) -> None:
                 del format, args
 
-        server = _BoundedThreadingHTTPServer(
+        server = ObservedServer(
             ("127.0.0.1", 0), BlockingHandler, maximum_workers=1
         )
         thread = Thread(target=server.serve_forever, daemon=True)
@@ -295,6 +303,9 @@ class IngressServerTests(unittest.TestCase):
 
             release.set()
             self.assertEqual(first.getresponse().status, 200)
+            # Response headers can arrive before socket cleanup returns the
+            # worker slot; wait for completion before testing admission again.
+            self.assertTrue(worker_finished.wait(2), "the request worker did not finish")
 
             third = http.client.HTTPConnection("127.0.0.1", server.server_address[1], timeout=2)
             try:
